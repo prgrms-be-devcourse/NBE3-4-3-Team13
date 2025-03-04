@@ -1,4 +1,4 @@
-package com.app.backend.domain.chat.message.dto.response;
+package com.app.backend.domain.chat.message.dto.response
 
 import com.app.backend.domain.chat.message.entity.Message
 
