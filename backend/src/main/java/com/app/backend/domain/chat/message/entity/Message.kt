@@ -1,65 +1,53 @@
-package com.app.backend.domain.chat.message.entity;
+package com.app.backend.domain.chat.message.entity
 
-import java.time.LocalDateTime;
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.mongodb.core.mapping.Field
 
-import org.bson.types.ObjectId;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
-
-import jakarta.persistence.Id;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId
+import org.springframework.data.annotation.Id
+import java.time.LocalDateTime
 
 @Document(collection = "messages")
-@Getter
-@Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Message {
-
+data class Message(
 	@Id
-	private ObjectId id;
+	val id: ObjectId? = null,
 
 	@Field("chat_room_id")
-	private Long chatRoomId;
+	val chatRoomId: Long,
 
 	@Field("member_id")
-	private Long senderId;
+	val senderId: Long,
 
 	@Field("member_nickname")
-	private String senderNickname;
+	val senderNickname: String,
 
 	@Field("content")
-	private String content;
+	val content: String,
 
 	@Field("disabled")
-	private Boolean disabled;
+	var disabled: Boolean = false,
 
 	@CreatedDate
 	@Field("createdAt")
-	private LocalDateTime createdAt;
+	val createdAt: LocalDateTime? = null,
 
 	@LastModifiedDate
 	@Field("modifiedAt")
-	private LocalDateTime modifiedAt;
-
-
+	val modifiedAt: LocalDateTime? = null
+) {
 	/**
-	 * 메세지 활성화 (디폴트 값)
+	 * 메시지 활성화 (디폴트 값)
 	 */
-	public void activate() {
-		disabled = false;
+	fun activate() {
+		disabled = false
 	}
 
 	/**
-	 * 메세지 삭제
+	 * 메시지 삭제
 	 */
-	public void deactivate() {
-		disabled = true;
+	fun deactivate() {
+		disabled = true
 	}
 }

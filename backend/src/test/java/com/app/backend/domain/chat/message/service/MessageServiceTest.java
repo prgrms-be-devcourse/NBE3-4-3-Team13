@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.bson.types.ObjectId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import com.app.backend.domain.chat.message.MessageUtil;
 import com.app.backend.domain.chat.message.dto.request.MessageRequest;
 import com.app.backend.domain.chat.message.dto.response.MessageResponse;
 import com.app.backend.domain.chat.message.entity.Message;
@@ -41,10 +41,11 @@ class MessageServiceTest {
 
 	@BeforeEach
 	void setUp() {
+		MessageUtil messageUtil = new MessageUtil();
 		messageList = IntStream.rangeClosed(1, 25)
-			.mapToObj(i -> createMessage(
+			.mapToObj(i -> messageUtil.createMessage(
 				100L, // 채팅방 ID
-				(long)((i % 3) + 1), // senderId
+				(i % 3) + 1, // senderId
 				"User" + ((i % 3) + 1), // senderNickname
 				"메시지 " + (26 - i), // content (메시지 1, 메시지 2, 메시지 3)
 				LocalDateTime.now().minusSeconds(i * 10L)
@@ -141,7 +142,8 @@ class MessageServiceTest {
 	void saveMessage_Success() {
 		// given
 		MessageRequest request = new MessageRequest(2L, 1L, "user", "테스트 메세지");
-		Message message = createMessage(2L, 1L, "user", "테스트 메세지", LocalDateTime.now());
+		MessageUtil messageUtil = new MessageUtil();
+		Message message = messageUtil.createMessage(2L, 1L, "user", "테스트 메세지", LocalDateTime.now());
 
 		when(messageRepository.save(any(Message.class))).thenReturn(message);
 
@@ -154,17 +156,5 @@ class MessageServiceTest {
 		assertThat(response.senderNickname()).isEqualTo("user");
 
 		verify(messageRepository, times(1)).save(any(Message.class));
-	}
-
-	private Message createMessage(Long chatRoomId, Long senderId, String senderNickname, String content, LocalDateTime createdAt) {
-		return Message.builder()
-			.id(new ObjectId())
-			.chatRoomId(chatRoomId)
-			.senderId(senderId)
-			.senderNickname(senderNickname)
-			.content(content)
-			.createdAt(createdAt)
-			.disabled(false)
-			.build();
 	}
 }
