@@ -13,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.app.backend.domain.chat.util.Utils;
 import com.app.backend.domain.chat.room.dto.response.ChatRoomListResponse;
 import com.app.backend.domain.chat.room.repository.ChatRoomRepository;
 
@@ -31,19 +32,9 @@ class ChatRoomServiceTest {
 		//given
 		Long MemberId = 1L;
 
-		ChatRoomListResponse chatRoom1 = ChatRoomListResponse.builder()
-			.chatRoomId(1L)
-			.groupId(1L)
-			.groupName("Group 1")
-			.participant(10L) // 가상의 참여 인원 수 추가
-			.build();
-
-		ChatRoomListResponse chatRoom2 = ChatRoomListResponse.builder()
-			.chatRoomId(2L)
-			.groupId(3L)
-			.groupName("Group 2")
-			.participant(5L) // 가상의 참여 인원 수 추가
-			.build();
+		Utils utils = new Utils();
+		ChatRoomListResponse chatRoom1 = utils.createChatRoomResponse(1L, 1L, "Group 1", 10L);
+		ChatRoomListResponse chatRoom2 = utils.createChatRoomResponse(2L, 3L, "Group 2", 5L);
 
 		List<ChatRoomListResponse> chatRooms = List.of(chatRoom1, chatRoom2);
 		when(chatRoomRepository.findAllByMemberId(any(Long.class))).thenReturn(chatRooms);
@@ -54,13 +45,13 @@ class ChatRoomServiceTest {
 		//then
 		assertThat(result).isNotNull();
 		assertThat(result.size()).isEqualTo(2);
-		assertThat(result.get(0).chatRoomId()).isEqualTo(chatRoom1.chatRoomId());
-		assertThat(result.get(0).groupId()).isEqualTo(chatRoom1.groupId());
-		assertThat(result.get(0).groupName()).isEqualTo(chatRoom1.groupName());
-		assertThat(result.get(0).participant()).isEqualTo(chatRoom1.participant());
-		assertThat(result.get(1).chatRoomId()).isEqualTo(chatRoom2.chatRoomId());
-		assertThat(result.get(1).groupId()).isEqualTo(chatRoom2.groupId());
-		assertThat(result.get(1).groupName()).isEqualTo(chatRoom2.groupName());
-		assertThat(result.get(1).participant()).isEqualTo(chatRoom2.participant());
+		assertThat(result.get(0).getChatRoomId()).isEqualTo(chatRoom1.getChatRoomId());
+		assertThat(result.get(0).getGroupId()).isEqualTo(chatRoom1.getGroupId());
+		assertThat(result.get(0).getGroupName()).isEqualTo(chatRoom1.getGroupName());
+		assertThat(result.get(0).getParticipant()).isEqualTo(chatRoom1.getParticipant());
+		assertThat(result.get(1).getChatRoomId()).isEqualTo(chatRoom2.getChatRoomId());
+		assertThat(result.get(1).getGroupId()).isEqualTo(chatRoom2.getGroupId());
+		assertThat(result.get(1).getGroupName()).isEqualTo(chatRoom2.getGroupName());
+		assertThat(result.get(1).getParticipant()).isEqualTo(chatRoom2.getParticipant());
 	}
 }
