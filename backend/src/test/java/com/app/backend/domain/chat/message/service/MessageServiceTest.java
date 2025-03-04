@@ -78,11 +78,11 @@ class MessageServiceTest {
 		assertThat(result.getContent().size()).isEqualTo(20);
 
 		// 최신순 정렬 확인
-		assertThat(result.getContent().get(0).content()).isEqualTo("메시지 25");
-		assertThat(result.getContent().get(1).content()).isEqualTo("메시지 24");
-		assertThat(result.getContent().get(2).content()).isEqualTo("메시지 23");
-		assertThat(result.getContent().get(18).content()).isEqualTo("메시지 7");
-		assertThat(result.getContent().get(19).content()).isEqualTo("메시지 6");
+		assertThat(result.getContent().get(0).getContent()).isEqualTo("메시지 25");
+		assertThat(result.getContent().get(1).getContent()).isEqualTo("메시지 24");
+		assertThat(result.getContent().get(2).getContent()).isEqualTo("메시지 23");
+		assertThat(result.getContent().get(18).getContent()).isEqualTo("메시지 7");
+		assertThat(result.getContent().get(19).getContent()).isEqualTo("메시지 6");
 	}
 
 	@Test
@@ -110,11 +110,11 @@ class MessageServiceTest {
 		assertThat(result.getContent().size()).isEqualTo(5);
 
 		// 최신순 정렬 확인
-		assertThat(result.getContent().get(0).content()).isEqualTo("메시지 5");
-		assertThat(result.getContent().get(1).content()).isEqualTo("메시지 4");
-		assertThat(result.getContent().get(2).content()).isEqualTo("메시지 3");
-		assertThat(result.getContent().get(3).content()).isEqualTo("메시지 2");
-		assertThat(result.getContent().get(4).content()).isEqualTo("메시지 1");
+		assertThat(result.getContent().get(0).getContent()).isEqualTo("메시지 5");
+		assertThat(result.getContent().get(1).getContent()).isEqualTo("메시지 4");
+		assertThat(result.getContent().get(2).getContent()).isEqualTo("메시지 3");
+		assertThat(result.getContent().get(3).getContent()).isEqualTo("메시지 2");
+		assertThat(result.getContent().get(4).getContent()).isEqualTo("메시지 1");
 	}
 
 	@Test
@@ -152,8 +152,8 @@ class MessageServiceTest {
 
 		// then
 		assertThat(response).isNotNull();
-		assertThat(response.content()).isEqualTo("테스트 메세지");
-		assertThat(response.senderNickname()).isEqualTo("user");
+		assertThat(response.getContent()).isEqualTo("테스트 메세지");
+		assertThat(response.getSenderNickname()).isEqualTo("user");
 
 		verify(messageRepository, times(1)).save(any(Message.class));
 	}

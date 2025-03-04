@@ -1,20 +1,25 @@
 package com.app.backend.domain.chat.message.dto.response;
 
-import com.app.backend.domain.chat.message.entity.Message;
-import lombok.Builder;
+import com.app.backend.domain.chat.message.entity.Message
 
-@Builder
-public record MessageResponse(String id, Long chatRoomId, Long senderId, String senderNickname, String content,
-							  String createdAt) {
-
-	public static MessageResponse from(Message message) {
-		return MessageResponse.builder()
-			.id(message.getId().toString())
-			.chatRoomId(message.getChatRoomId())
-			.senderId(message.getSenderId())
-			.senderNickname(message.getSenderNickname())
-			.content(message.getContent())
-			.createdAt(message.getCreatedAt().toString())
-			.build();
+data class MessageResponse(
+	val id: String,
+	val chatRoomId: Long,
+	val senderId: Long,
+	val senderNickname: String,
+	val content: String,
+	val createdAt: String
+) {
+	companion object {
+		fun from(message: Message): MessageResponse {
+			return MessageResponse(
+				id = message.id.toString(),
+				chatRoomId = message.chatRoomId,
+				senderId = message.senderId,
+				senderNickname = message.senderNickname,
+				content = message.content,
+				createdAt = message.createdAt.toString()
+			)
+		}
 	}
 }
