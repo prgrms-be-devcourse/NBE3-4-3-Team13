@@ -33,6 +33,14 @@ public class ChatRoom extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Group group;
 
+	public Group getGroup() {
+		return group;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
 	/**
 	 * 채팅방 삭제
 	 */

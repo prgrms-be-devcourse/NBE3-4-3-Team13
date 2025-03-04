@@ -1,18 +1,21 @@
-package com.app.backend.domain.chat.room.dto.response;
+package com.app.backend.domain.chat.room.dto.response
 
-import com.app.backend.domain.chat.room.entity.ChatRoom;
+import com.app.backend.domain.chat.room.entity.ChatRoom
 
-import lombok.Builder;
-
-@Builder
-public record ChatRoomListResponse(Long chatRoomId, Long groupId, String groupName, Long participant) {
-
-	public static ChatRoomListResponse from(ChatRoom chatRoom, Long participant) {
-		return ChatRoomListResponse.builder()
-			.chatRoomId(chatRoom.getId())
-			.groupId(chatRoom.getGroup().getId())
-			.groupName(chatRoom.getGroup().getName())
-			.participant(participant)
-			.build();
+data class ChatRoomListResponse(
+	val chatRoomId: Long,
+	val groupId: Long,
+	val groupName: String,
+	val participant: Long
+) {
+	companion object {
+		fun from(chatRoom: ChatRoom, participant: Long): ChatRoomListResponse {
+			return ChatRoomListResponse(
+				chatRoomId = chatRoom.id,
+				groupId = chatRoom.group.id,
+				groupName = chatRoom.group.name,
+				participant = participant
+			)
+		}
 	}
 }
