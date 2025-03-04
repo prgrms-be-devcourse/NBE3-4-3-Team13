@@ -75,7 +75,7 @@ public class JwtProvider {
                 null,
                 null
         );
-
+        
         MemberDetails memberDetails = MemberDetails.of(member);
 
         // Authentication 객체 생성 및 반환
