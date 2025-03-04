@@ -10,20 +10,15 @@ import com.app.backend.domain.chat.message.dto.request.MessageRequest;
 import com.app.backend.domain.chat.message.dto.response.MessageResponse;
 import com.app.backend.domain.chat.message.repository.MessageRepository;
 
-import lombok.RequiredArgsConstructor;
-
 @Service
-@RequiredArgsConstructor
-public class MessageService {
+class MessageService(private val messageRepository: MessageRepository) {
 
-	private final MessageRepository messageRepository;
-
-	public Page<MessageResponse> getMessagesByChatRoomId(Long chatRoomId, int page, int size) {
-		Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt")));
-		return messageRepository.findByChatRoomIdAndDisabledFalse(chatRoomId, pageable).map(MessageResponse::from);
+	fun getMessagesByChatRoomId(chatRoomId: Long, page: Int, size: Int): Page<MessageResponse> {
+		val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt")))
+		return messageRepository.findByChatRoomIdAndDisabledFalse(chatRoomId, pageable).map { MessageResponse.from(it) }
 	}
 
-	public MessageResponse saveMessage(MessageRequest messageRequest) {
-		return MessageResponse.from(messageRepository.save(messageRequest.toEntity()));
+	fun saveMessage(messageRequest: MessageRequest): MessageResponse {
+		return MessageResponse.from(messageRepository.save(messageRequest.toEntity()))
 	}
 }
