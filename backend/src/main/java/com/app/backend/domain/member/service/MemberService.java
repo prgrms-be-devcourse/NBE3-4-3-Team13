@@ -28,30 +28,32 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 @Slf4j
 public class MemberService {
-    private final MemberRepository          memberRepository;
+    private final MemberRepository memberRepository;
     private final GroupMembershipRepository groupMembershipRepository;
-    private final PasswordEncoder           passwordEncoder;
-    private final JwtProvider               jwtProvider;
-    private final boolean                   disabled = false;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
+    private final boolean disabled = false;
 
     @Transactional
     public MemberJoinResponseDto createMember(String username, String password, String nickname) {
         memberRepository.findByUsernameAndDisabled(username, disabled)
-                        .ifPresent(a -> {
-                            throw new MemberException(MemberErrorCode.MEMBER_USERNAME_EXISTS);
-                        });
+                .ifPresent(a -> {
+                    throw new MemberException(MemberErrorCode.MEMBER_USERNAME_EXISTS);
+                });
         memberRepository.findByNicknameAndDisabled(nickname, disabled)
-                        .ifPresent(a -> {
-                            throw new MemberException(MemberErrorCode.MEMBER_NICKNAME_EXISTS);
-                        });
+                .ifPresent(a -> {
+                    throw new MemberException(MemberErrorCode.MEMBER_NICKNAME_EXISTS);
+                });
 
-        Member member = Member.builder()
-                              .username(username)
-                              .password(passwordEncoder.encode(password))
-                              .nickname(nickname)
-                              .role("ROLE_ADMIN")
-                              .disabled(false)
-                              .build();
+        Member member = Member.create(
+                username,
+                passwordEncoder.encode(password),
+                nickname,
+                "ROLE_ADMIN",
+                false,
+                null,
+                null
+        );
 
         Member savedMember = memberRepository.save(member);
 
@@ -61,13 +63,13 @@ public class MemberService {
 
     public MemberLoginResponseDto login(MemberLoginRequestDto request) {
         Member member = memberRepository.findByUsernameAndDisabled(request.username(), disabled)
-                                        .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.password(), member.getPassword()))
             throw new MemberException(MemberErrorCode.MEMBER_PASSWORD_NOT_MATCH);
 
         // 토큰 생성
-        String accessToken  = jwtProvider.generateAccessToken(member);
+        String accessToken = jwtProvider.generateAccessToken(member);
         String refreshToken = jwtProvider.generateRefreshToken();
 
         memberRepository.save(member);
@@ -88,28 +90,28 @@ public class MemberService {
 
     public Member getCurrentMember(String accessToken) {
         return Optional.ofNullable(accessToken)
-                       .map(t -> t.startsWith("Bearer ") ? t.substring(7) : t)
-                       .filter(jwtProvider::validateToken)
-                       .map(validateToken -> {
-                           Long memberId = jwtProvider.getMemberId(validateToken);
-                           return this.memberRepository.findByIdAndDisabled(memberId, false)
-                                                       .orElseThrow(() -> new MemberException(
-                                                               MemberErrorCode.MEMBER_NOT_FOUND));
-                       })
-                       .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_UNVALID_TOKEN));  // 토큰 검증
+                .map(t -> t.startsWith("Bearer ") ? t.substring(7) : t)
+                .filter(jwtProvider::validateToken)
+                .map(validateToken -> {
+                    Long memberId = jwtProvider.getMemberId(validateToken);
+                    return this.memberRepository.findByIdAndDisabled(memberId, false)
+                            .orElseThrow(() -> new MemberException(
+                                    MemberErrorCode.MEMBER_NOT_FOUND));
+                })
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_UNVALID_TOKEN));  // 토큰 검증
     }
 
     @Transactional
     public MemberModifyResponseDto modifyMember(Member member, MemberModifyRequestDto request) {
-        Member modifiedMember = Member.builder()
-                                      .id(member.getId())
-                                      .username(member.getUsername())
-                                      .password(request.password() != null ?
-                                                passwordEncoder.encode(request.password()) : member.getPassword())
-                                      .nickname(member.getNickname())
-                                      .role(member.getRole())
-                                      .disabled(member.isDisabled())
-                                      .build();
+        Member modifiedMember = Member.create(
+                member.getUsername(),
+                request.password() != null ? passwordEncoder.encode(request.password()) : member.getPassword(),
+                member.getNickname(),
+                member.getRole(),
+                member.isDisabled(),
+                member.getProvider(),
+                member.getOauthProviderId()
+        );
 
         Member savedMember = Optional.of(
                 memberRepository.save(modifiedMember)
@@ -120,30 +122,29 @@ public class MemberService {
 
     public Optional<List<Member>> findAllMembers(String token) {
         return Optional.ofNullable(token)
-                       .map(t -> t.startsWith("Bearer ") ? t.substring(7) : t)
-                       .filter(jwtProvider::validateToken)
-                       .filter(validateToken -> {
-                           String role = jwtProvider.getRole(validateToken);
-                           if (!role.contains("ADMIN"))
-                               throw new MemberException(MemberErrorCode.MEMBER_NO_ADMIN_PERMISSION);
-                           return true;
-                       })
-                       .map(validateToken -> memberRepository.findAllByOrderByIdDesc());
+                .map(t -> t.startsWith("Bearer ") ? t.substring(7) : t)
+                .filter(jwtProvider::validateToken)
+                .filter(validateToken -> {
+                    String role = jwtProvider.getRole(validateToken);
+                    if (!role.contains("ADMIN"))
+                        throw new MemberException(MemberErrorCode.MEMBER_NO_ADMIN_PERMISSION);
+                    return true;
+                })
+                .map(validateToken -> memberRepository.findAllByOrderByIdDesc());
     }
 
     @Transactional
     public void deleteMember(String token) {
         Member member = getCurrentMember(token);
-        member = Member.builder()
-                       .id(member.getId())
-                       .username(member.getUsername())
-                       .password(member.getPassword())
-                       .nickname(member.getNickname())
-                       .provider(member.getProvider())
-                       .oauthProviderId(member.getOauthProviderId())
-                       .role(member.getRole())
-                       .disabled(true)
-                       .build();
+        member = Member.create(
+                member.getUsername(),
+                member.getPassword(),
+                member.getNickname(),
+                member.getRole(),
+                member.isDisabled(),
+                member.getProvider(),
+                member.getOauthProviderId()
+        );
 
         memberRepository.save(member);
     }
@@ -152,22 +153,22 @@ public class MemberService {
     @Scheduled(fixedRate = 60000 * 30) // 30분마다 실행
     public void cleanupDisabledMembers() {
         log.info("비활성화된 회원 정보 삭제 작업 시작");
-        LocalDateTime cutoffDate   = LocalDateTime.now().minusSeconds(30);
-        int           deletedCount = memberRepository.deleteByDisabledIsTrueAndModifiedAtLessThan(cutoffDate);
+        LocalDateTime cutoffDate = LocalDateTime.now().minusSeconds(30);
+        int deletedCount = memberRepository.deleteByDisabledIsTrueAndModifiedAtLessThan(cutoffDate);
         log.info("삭제된 회원 수: {}", deletedCount);
     }
 
     public List<GroupMembershipResponse.Detail> getMyGroup(String token) {
         return Optional.ofNullable(token)
-                       .map(t -> t.startsWith("Bearer ") ? t.substring(7) : t)
-                       .filter(jwtProvider::validateToken)
-                       .map(validateToken -> {
-                           Long id = jwtProvider.getMemberId(validateToken);
-                           return groupMembershipRepository.findAllByMemberIdAndDisabled(id, false)
-                                                           .stream()
-                                                           .map(GroupMembershipResponse::toDetail)
-                                                           .toList();
-                       })
-                       .orElse(List.of());  // 토큰이 없거나 유효하지 않은 경우 빈 리스트 반환
+                .map(t -> t.startsWith("Bearer ") ? t.substring(7) : t)
+                .filter(jwtProvider::validateToken)
+                .map(validateToken -> {
+                    Long id = jwtProvider.getMemberId(validateToken);
+                    return groupMembershipRepository.findAllByMemberIdAndDisabled(id, false)
+                            .stream()
+                            .map(GroupMembershipResponse::toDetail)
+                            .toList();
+                })
+                .orElse(List.of());  // 토큰이 없거나 유효하지 않은 경우 빈 리스트 반환
     }
 }
