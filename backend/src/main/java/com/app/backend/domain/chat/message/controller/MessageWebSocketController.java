@@ -24,6 +24,6 @@ public class MessageWebSocketController {
 	public void sendMessage(@Payload MessageRequest messageRequest) {
 		// 메세지 저장
 		MessageResponse messageResponse = messageService.saveMessage(messageRequest);
-		chatMessageProducer.sendMessage(messageResponse, "chatroom." + messageRequest.chatRoomId());
+		chatMessageProducer.sendMessage(messageResponse, "chatroom." + messageRequest.getChatRoomId());
 	}
 }
