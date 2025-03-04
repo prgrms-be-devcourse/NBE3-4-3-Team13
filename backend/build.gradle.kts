@@ -19,7 +19,7 @@ version = "0.0.1-SNAPSHOT"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -118,6 +118,13 @@ tasks.withType<Test> {
 
         includeTags?.split(",")?.forEach { tag -> includeTags(tag.trim()) }
         excludeTags?.split(",")?.forEach { tag -> excludeTags(tag.trim()) }
+    }
+}
+
+kotlin {
+    jvmToolchain(21)
+    sourceSets.main {
+        kotlin.srcDir("src/main/java")
     }
 }
 

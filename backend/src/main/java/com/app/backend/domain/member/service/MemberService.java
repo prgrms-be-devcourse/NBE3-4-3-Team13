@@ -12,8 +12,6 @@ import com.app.backend.domain.member.exception.MemberErrorCode;
 import com.app.backend.domain.member.exception.MemberException;
 import com.app.backend.domain.member.jwt.JwtProvider;
 import com.app.backend.domain.member.repository.MemberRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,15 +22,25 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
-@Slf4j
 public class MemberService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MemberService.class);
+    
     private final MemberRepository memberRepository;
     private final GroupMembershipRepository groupMembershipRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final boolean disabled = false;
+
+    public MemberService(MemberRepository memberRepository,
+                        GroupMembershipRepository groupMembershipRepository,
+                        PasswordEncoder passwordEncoder,
+                        JwtProvider jwtProvider) {
+        this.memberRepository = memberRepository;
+        this.groupMembershipRepository = groupMembershipRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtProvider = jwtProvider;
+    }
 
     @Transactional
     public MemberJoinResponseDto createMember(String username, String password, String nickname) {

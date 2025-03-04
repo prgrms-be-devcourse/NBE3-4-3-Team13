@@ -21,7 +21,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
-
+    
     private final MemberRepository memberRepository;
 
     @Override
@@ -32,37 +32,36 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         // String registrationId = userRequest.getClientRegistration().getRegistrationId();
         String userNameAttributeName = userRequest.getClientRegistration()
-                .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
+            .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
 
         Map<String, Object> attributes = oAuth2User.getAttributes();
-
+        
         // 카카오 계정 정보 추출
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
         Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-
+        
         String nickname = (String) profile.get("nickname");
         String oauthId = String.valueOf(attributes.get("id"));
 
         Member member = memberRepository.findByOauthProviderId(oauthId)
-                .orElseGet(() -> createMember(oauthId, nickname));
+            .orElseGet(() -> createMember(oauthId, nickname));
 
         return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority(member.getRole())),
-                attributes,
-                userNameAttributeName
+            Collections.singleton(new SimpleGrantedAuthority(member.getRole())),
+            attributes,
+            userNameAttributeName
         );
     }
 
     private Member createMember(String oauthId, String nickname) {
-        Member member = Member.create(
-                oauthId,
-                "",
-                nickname,
-                "ROLE_USER",
-                false,
-                Member.Provider.KAKAO,
-                oauthId
-        );
+        Member member = Member.builder()
+            .username(oauthId)
+            .nickname(nickname)
+            .provider(Member.Provider.KAKAO)
+            .oauthProviderId(oauthId)
+            .role("USER")
+            .disabled(false)
+            .build();
 
         return memberRepository.save(member);
     }
