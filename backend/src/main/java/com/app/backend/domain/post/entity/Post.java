@@ -56,6 +56,7 @@ public class Post extends BaseEntity {
 //    private Group group;
 
     @OneToMany(mappedBy = "post")
+    @Builder.Default
     private List<PostLike> likes = new ArrayList<>();
 
     @Builder.Default
