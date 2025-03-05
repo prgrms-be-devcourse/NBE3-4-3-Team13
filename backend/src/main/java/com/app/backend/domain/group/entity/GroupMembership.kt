@@ -1,79 +1,81 @@
-package com.app.backend.domain.group.entity;
+package com.app.backend.domain.group.entity
 
-import com.app.backend.domain.member.entity.Member;
-import com.app.backend.global.entity.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.app.backend.domain.member.entity.Member
+import com.app.backend.global.entity.BaseEntity
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "tbl_group_memberships")
-@IdClass(GroupMembershipId.class)
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroupMembership extends BaseEntity {
+@IdClass(GroupMembershipId::class)
+class GroupMembership private constructor(
+    member: Member,
+    group: Group,
+    groupRole: GroupRole,
+    status: MembershipStatus
+) : BaseEntity() {
+    companion object {
+        fun of(
+            member: Member,
+            group: Group,
+            groupRole: GroupRole
+        ) = GroupMembership(
+            member,
+            group,
+            groupRole,
+            if (groupRole == GroupRole.LEADER) MembershipStatus.APPROVED else MembershipStatus.PENDING
+        )
+    }
+
+    init {
+        setRelationshipWithMember(member)
+        setRelationshipWithGroup(group)
+    }
 
     @Id
     @Column(name = "member_id", insertable = false, updatable = false)
-    private Long memberId;  //회원 ID
+    var memberId: Long? = null
+        protected set
 
     @Id
     @Column(name = "group_id", insertable = false, updatable = false)
-    private Long groupId;   //모임 ID
+    var groupId: Long? = null
+        protected set
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", insertable = false, updatable = false)
-    private Member member;  //회원
+    var member: Member = member
+        protected set
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", insertable = false, updatable = false)
-    private Group group;    //모임
+    var group: Group = group
+        protected set
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private GroupRole groupRole;    //모임 내 회원의 권한: LEADER, PARTICIPANT
+    var groupRole: GroupRole = groupRole
+        protected set
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MembershipStatus status;    //모임 내 회원의 상태: PENDING, APPROVED, REJECTED, LEAVE
+    var status: MembershipStatus = status
+        protected set
 
-    @Builder
-    public GroupMembership(@NotNull final Member member,
-                           @NotNull final Group group,
-                           @NotNull final GroupRole groupRole) {
-        setRelationshipWithMember(member);
-        setRelationshipWithGroup(group);
-        this.groupRole = groupRole;
-        this.status = groupRole == GroupRole.LEADER ? MembershipStatus.APPROVED : MembershipStatus.PENDING;
-    }
+    //==================== 연관관계 함수 ====================//
 
-    //============================== 연관관계 메서드 ==============================//
-
-    private void setRelationshipWithMember(@NotNull final Member member) {
-        memberId = member.getId();
-        this.member = member;
+    private fun setRelationshipWithMember(member: Member) {
+        memberId = member.id
+        this.member = member
         //TODO: 필요 시, 회원(Member)과의 연관관계 설정 추가
     }
 
-    private void setRelationshipWithGroup(@NotNull final Group group) {
-        groupId = group.getId();
-        this.group = group;
-        group.getMembers().add(this);
+    private fun setRelationshipWithGroup(group: Group) {
+        groupId = group.id
+        this.group = group
+        group.members.add(this)
     }
 
-    //============================== 모임 멤버십(GroupMembership) 수정 메서드 ==============================//
+    //==================== 모임 멤버십(GroupMembership) 수정 함수 ====================//
 
     /**
      * 모임 내 회원 권한 수정
@@ -81,22 +83,19 @@ public class GroupMembership extends BaseEntity {
      * @param newGroupRole - 새로운 모임 내 권한
      * @return this
      */
-    public GroupMembership modifyGroupRole(@NotNull final GroupRole newGroupRole) {
-        if (groupRole != newGroupRole)
-            groupRole = newGroupRole;
-        return this;
+    fun modifyGroupRole(newGroupRole: GroupRole) = apply {
+        if (this.groupRole == newGroupRole) return@apply
+        this.groupRole = newGroupRole
     }
 
     /**
      * 모임 내 회원 상태 수정
      *
-     * @param newStatus - 새로운 멤버십 상태
+     * @param newMembershipStatus - 새로운 멤버십 상태
      * @return this
      */
-    public GroupMembership modifyStatus(@NotNull final MembershipStatus newStatus) {
-        if (status != newStatus)
-            status = newStatus;
-        return this;
+    fun modifyStatus(newMembershipStatus: MembershipStatus) = apply {
+        if (this.status == newMembershipStatus) return@apply
+        this.status = newMembershipStatus
     }
-
 }

@@ -1,5 +1,5 @@
-package com.app.backend.domain.group.entity;
+package com.app.backend.domain.group.entity
 
-public enum GroupRole {
+enum class GroupRole {
     LEADER, PARTICIPANT
 }

@@ -1,21 +1,13 @@
-package com.app.backend.domain.group.entity;
+package com.app.backend.domain.group.entity
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public enum RecruitStatus {
-
+enum class RecruitStatus private constructor(forceStatus: Boolean = false) {
     RECRUITING(false), CLOSED(false);
 
-    private boolean forceStatus;
+    var forceStatus: Boolean = forceStatus
+        protected set
 
-    public RecruitStatus modifyForceStatus(final boolean newForceStatus) {
-        if (forceStatus != newForceStatus)
-            forceStatus = newForceStatus;
-        return this;
+    fun modifyForceStatus(newForceStatus: Boolean) = apply {
+        if (forceStatus == newForceStatus) return@apply
+        forceStatus = newForceStatus
     }
-
 }
