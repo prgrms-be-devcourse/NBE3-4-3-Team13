@@ -2,7 +2,6 @@ package com.app.backend.domain.group.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.group.dto.request.GroupRequest;
 import com.app.backend.domain.group.entity.Group;
 import com.app.backend.domain.group.entity.GroupMembership;

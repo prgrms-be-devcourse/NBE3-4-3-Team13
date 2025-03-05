@@ -26,6 +26,8 @@ public class BaseEntity {
     @Column(nullable = false)
     public Boolean disabled = false;
 
+
+
     public void activate() {
         disabled = false;
     }

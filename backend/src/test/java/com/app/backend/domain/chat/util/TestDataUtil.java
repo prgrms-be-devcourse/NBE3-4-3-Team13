@@ -2,7 +2,6 @@ package com.app.backend.domain.chat.util;
 
 import org.springframework.stereotype.Component;
 
-import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.category.repository.CategoryRepository;
 import com.app.backend.domain.chat.room.entity.ChatRoom;
 import com.app.backend.domain.chat.room.repository.ChatRoomRepository;
