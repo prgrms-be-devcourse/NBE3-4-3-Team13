@@ -1,20 +1,18 @@
 package com.app.backend.domain.category.service;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.app.backend.domain.category.dto.CategoryDto;
 import com.app.backend.domain.category.dto.CategoryPageDto;
 import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.category.exception.CategoryErrorCode;
 import com.app.backend.domain.category.exception.CategoryException;
 import com.app.backend.domain.category.repository.CategoryRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,9 +26,7 @@ public class CategoryService {
 
 		validateCategoryName(name); // 입력값 검증
 
-		Category category = Category.builder()
-			.name(name)
-			.build();
+		Category category = new Category(name);
 
 		return categoryRepository.save(category);
 	}
