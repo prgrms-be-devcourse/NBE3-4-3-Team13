@@ -26,10 +26,19 @@ class Group private constructor(
             city: String,
             town: String,
             description: String,
-            status: RecruitStatus = RecruitStatus.RECRUITING,
+            status: RecruitStatus? = RecruitStatus.RECRUITING,
             maxRecruitCount: Int,
             category: Category
-        ) = Group(name, province, city, town, description, status, maxRecruitCount, category)
+        ) = Group(
+            name,
+            province,
+            city,
+            town,
+            description,
+            status ?: RecruitStatus.RECRUITING,
+            maxRecruitCount,
+            category
+        )
     }
 
     init {
