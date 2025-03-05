@@ -38,7 +38,6 @@ import com.app.backend.domain.meetingApplication.repository.MeetingApplicationRe
 import com.app.backend.domain.meetingApplication.service.MeetingApplicationService;
 import com.app.backend.domain.member.entity.Member;
 import com.app.backend.domain.member.entity.MemberDetails;
-import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.global.annotation.CustomWithMockUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

@@ -8,7 +8,6 @@ import com.app.backend.domain.group.repository.GroupLikeRepository;
 import com.app.backend.domain.group.repository.GroupRepository;
 import com.app.backend.domain.group.service.GroupLikeService;
 import com.app.backend.domain.member.entity.Member;
-import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.global.annotation.CustomWithMockUser;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;

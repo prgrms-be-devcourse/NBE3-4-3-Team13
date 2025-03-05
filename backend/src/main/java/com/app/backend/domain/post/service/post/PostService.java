@@ -13,7 +13,6 @@ import com.app.backend.domain.group.exception.GroupMembershipErrorCode;
 import com.app.backend.domain.group.exception.GroupMembershipException;
 import com.app.backend.domain.group.repository.GroupMembershipRepository;
 import com.app.backend.domain.member.entity.Member;
-import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.domain.post.dto.req.PostReqDto;
 import com.app.backend.domain.post.dto.resp.PostAttachmentRespDto;
 import com.app.backend.domain.post.dto.resp.PostRespDto;
@@ -29,7 +28,6 @@ import com.app.backend.domain.post.repository.postAttachment.PostAttachmentRepos
 import com.app.backend.global.annotation.CustomCache;
 import com.app.backend.global.annotation.CustomCacheDelete;
 import com.app.backend.global.config.FileConfig;
-import com.app.backend.global.entity.BaseEntity;
 import com.app.backend.global.error.exception.GlobalErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor

@@ -20,7 +20,7 @@ import com.app.backend.domain.meetingApplication.exception.MeetingApplicationErr
 import com.app.backend.domain.meetingApplication.exception.MeetingApplicationException;
 import com.app.backend.domain.meetingApplication.repository.MeetingApplicationRepository;
 import com.app.backend.domain.member.entity.Member;
-import com.app.backend.domain.member.repository.MemberRepository;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
