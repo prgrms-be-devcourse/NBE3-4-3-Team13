@@ -20,7 +20,7 @@ public class ChatMessageConsumer {
 	public void onMessage(MessageResponse messageResponse) { // Queue에서 message를 구독
 		try {
 			log.info("Received message: {}", messageResponse);
-			messagingTemplate.convertAndSend("/exchange/chat.exchange/chat." + messageResponse.chatRoomId(), messageResponse);
+			messagingTemplate.convertAndSend("/exchange/chat.exchange/chat." + messageResponse.getChatRoomId(), messageResponse);
 		} catch (Exception e) {
 			log.error("Error processing message: " + e.getMessage());
 		}
