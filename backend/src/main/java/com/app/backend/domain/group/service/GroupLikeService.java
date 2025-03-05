@@ -7,7 +7,6 @@ import com.app.backend.domain.group.exception.GroupLikeException;
 import com.app.backend.domain.group.repository.GroupLikeRepository;
 import com.app.backend.domain.group.repository.GroupRepository;
 import com.app.backend.domain.member.entity.Member;
-import com.app.backend.domain.member.repository.MemberRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
