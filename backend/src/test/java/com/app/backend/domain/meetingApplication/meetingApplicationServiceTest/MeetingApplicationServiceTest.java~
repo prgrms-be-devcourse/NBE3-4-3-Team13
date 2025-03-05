@@ -3,6 +3,7 @@ package com.app.backend.domain.meetingApplication.meetingApplicationServiceTest;
 import static org.assertj.core.api.AssertionsForClassTypes.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +27,7 @@ import com.app.backend.domain.meetingApplication.exception.MeetingApplicationExc
 import com.app.backend.domain.meetingApplication.repository.MeetingApplicationRepository;
 import com.app.backend.domain.meetingApplication.service.MeetingApplicationService;
 import com.app.backend.domain.member.entity.Member;
+import com.app.backend.domain.member.repository.MemberRepository;
 
 @SpringBootTest
 public class MeetingApplicationServiceTest {

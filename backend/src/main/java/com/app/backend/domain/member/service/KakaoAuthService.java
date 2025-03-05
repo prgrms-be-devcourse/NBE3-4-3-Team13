@@ -6,7 +6,6 @@ import com.app.backend.domain.member.entity.Member;
 import com.app.backend.domain.member.exception.MemberErrorCode;
 import com.app.backend.domain.member.exception.MemberException;
 import com.app.backend.domain.member.jwt.JwtProvider;
-import com.app.backend.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
