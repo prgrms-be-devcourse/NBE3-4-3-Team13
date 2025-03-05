@@ -21,7 +21,6 @@ import com.app.backend.domain.comment.entity.Comment;
 import com.app.backend.domain.comment.repository.CommentRepository;
 import com.app.backend.domain.member.entity.Member;
 import com.app.backend.domain.member.entity.MemberDetails;
-import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.domain.post.entity.Post;
 import com.app.backend.domain.post.entity.PostStatus;
 import com.app.backend.domain.post.repository.post.PostRepository;
