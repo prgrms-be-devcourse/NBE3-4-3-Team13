@@ -1,50 +1,40 @@
-package com.app.backend.domain.group.service;
+package com.app.backend.domain.group.service
 
-import com.app.backend.domain.category.entity.Category;
-import com.app.backend.domain.category.exception.CategoryErrorCode;
-import com.app.backend.domain.category.exception.CategoryException;
-import com.app.backend.domain.category.repository.CategoryRepository;
-import com.app.backend.domain.chat.room.entity.ChatRoom;
-import com.app.backend.domain.chat.room.repository.ChatRoomRepository;
-import com.app.backend.domain.group.dto.request.GroupRequest;
-import com.app.backend.domain.group.dto.response.GroupResponse;
-import com.app.backend.domain.group.entity.*;
-import com.app.backend.domain.group.exception.GroupErrorCode;
-import com.app.backend.domain.group.exception.GroupException;
-import com.app.backend.domain.group.exception.GroupMembershipErrorCode;
-import com.app.backend.domain.group.exception.GroupMembershipException;
-import com.app.backend.domain.group.repository.GroupMembershipRepository;
-import com.app.backend.domain.group.repository.GroupRepository;
-import com.app.backend.domain.member.entity.Member;
-import com.app.backend.domain.member.exception.MemberErrorCode;
-import com.app.backend.global.annotation.CustomLock;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
+import com.app.backend.domain.category.exception.CategoryErrorCode
+import com.app.backend.domain.category.exception.CategoryException
+import com.app.backend.domain.category.repository.CategoryRepository
+import com.app.backend.domain.chat.room.entity.ChatRoom
+import com.app.backend.domain.chat.room.repository.ChatRoomRepository
+import com.app.backend.domain.group.dto.request.GroupRequest
+import com.app.backend.domain.group.dto.response.GroupResponse
+import com.app.backend.domain.group.entity.*
+import com.app.backend.domain.group.exception.GroupErrorCode
+import com.app.backend.domain.group.exception.GroupException
+import com.app.backend.domain.group.exception.GroupMembershipErrorCode
+import com.app.backend.domain.group.exception.GroupMembershipException
+import com.app.backend.domain.group.repository.GroupMembershipRepository
+import com.app.backend.domain.group.repository.GroupRepository
+import com.app.backend.domain.member.exception.MemberErrorCode
+import com.app.backend.domain.member.exception.MemberException
+import com.app.backend.domain.member.repository.MemberRepository
+import com.app.backend.global.annotation.CustomLock
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
+import jakarta.validation.constraints.Min
+import org.springframework.data.domain.Pageable
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
-public class GroupService {
-
-    @PersistenceContext
-    private final EntityManager entityManager;
-
-    private final GroupRepository           groupRepository;
-    private final GroupMembershipRepository groupMembershipRepository;
-    private final MemberRepository          memberRepository;
-    private final ChatRoomRepository        chatRoomRepository;
-    private final CategoryRepository        categoryRepository;
-
+class GroupService(
+    @PersistenceContext private val entityManager: EntityManager,
+    private val groupRepository: GroupRepository,
+    private val groupMembershipRepository: GroupMembershipRepository,
+    private val memberRepository: MemberRepository,
+    private val chatRoomRepository: ChatRoomRepository,
+    private val categoryRepository: CategoryRepository
+) {
     /**
      * 모임(Group) 저장
      *
@@ -53,52 +43,45 @@ public class GroupService {
      * @return 생성된 Group 엔티티 ID
      */
     @Transactional
-    public Long createGroup(@NotNull @Min(1) final Long memberId, @NotNull final GroupRequest.Create dto) {
+    fun createGroup(memberId: Long, dto: GroupRequest.Create): Long {
         //모임을 생성하는 회원 조회
-        Member member = memberRepository.findById(memberId)
-                                        .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+        val member = memberRepository.findByIdAndDisabled(memberId, false)
+            .orElseThrow { MemberException(MemberErrorCode.MEMBER_NOT_FOUND) }
 
         //생성할 모임을 추가할 카테고리 조회
-        Category category = categoryRepository.findByNameAndDisabled(dto.getCategoryName(), false)
-                                              .orElseThrow(() -> new CategoryException(
-                                                      CategoryErrorCode.CATEGORY_NOT_FOUND)
-                                              );
+        val category = categoryRepository.findByNameAndDisabled(dto.categoryName, false)
+            .orElseThrow { CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND) }
 
         //모임 엔티티 생성
-        Group group = Group.builder()
-                           .name(dto.getName())
-                           .province(dto.getProvince())
-                           .city(dto.getCity())
-                           .town(dto.getTown())
-                           .description(dto.getDescription())
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(dto.getMaxRecruitCount())
-                           .category(category)
-                           .build();
+        val group = Group.of(
+            dto.name,
+            dto.province,
+            dto.city,
+            dto.town,
+            dto.description,
+            RecruitStatus.RECRUITING,
+            dto.maxRecruitCount,
+            category
+        )
 
         //모임 채팅방 엔티티 생성
-        ChatRoom chatRoom = ChatRoom.builder()
-                                    .group(group)
-                                    .build();
-        group.setChatRoom(chatRoom);
-        chatRoomRepository.save(chatRoom);
-        groupRepository.save(group);
+        val chatRoom = ChatRoom(group)
+        group.chatRoom = chatRoom
+        chatRoomRepository.save(chatRoom)
+        val groupId = groupRepository.save(group).id!!
 
         //모임 멤버십 엔티티 생성(회원-모임 연결 테이블, 모임 관리자 권한(LEADER) 부여)
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .member(member)
-                                                         .group(group)
-                                                         .groupRole(GroupRole.LEADER)
-                                                         .build();
-        groupMembershipRepository.save(groupMembership);
+        val groupMembership = GroupMembership.of(member, group, GroupRole.LEADER)
+        groupMembershipRepository.save(groupMembership)
 
-        int count = groupMembershipRepository.countByGroupIdAndStatusAndDisabled(group.getId(),
-                                                                                 MembershipStatus.APPROVED,
-                                                                                 false);
-        if (group.getMaxRecruitCount() <= count)
-            group.modifyRecruitStatus(RecruitStatus.CLOSED);
+        val count = groupMembershipRepository.countByGroupIdAndStatusAndDisabled(
+            groupId, MembershipStatus.APPROVED, false
+        )
 
-        return group.getId();
+        if (group.maxRecruitCount <= count)
+            group.modifyRecruitStatus(RecruitStatus.CLOSED)
+
+        return groupId
     }
 
     /**
@@ -107,11 +90,10 @@ public class GroupService {
      * @param groupId - 모임 ID
      * @return 모임 응답 DTO
      */
-    public GroupResponse.Detail getGroup(@NotNull @Min(1) final Long groupId) {
-        Group group = groupRepository.findByIdAndDisabled(groupId, false)
-                                     .orElseThrow(() -> new GroupException(GroupErrorCode.GROUP_NOT_FOUND));
-        return GroupResponse.toDetail(group);
-    }
+    fun getGroup(@Min(1) groupId: Long): GroupResponse.Detail = GroupResponse.toDetail(
+        groupRepository.findByIdAndDisabled(groupId, false)
+            .orElseThrow { GroupException(GroupErrorCode.GROUP_NOT_FOUND) }
+    )
 
     /**
      * 모임(Group) 단 건 조회
@@ -120,32 +102,25 @@ public class GroupService {
      * @param memberId - 회원 ID
      * @return 모임 응답 DTO
      */
-    public GroupResponse.Detail getGroup(@NotNull @Min(1) final Long groupId, @NotNull @Min(1) final Long memberId) {
-        Optional<GroupMembership> opGroupMembership =
-                groupMembershipRepository.findByGroupIdAndMemberIdAndDisabled(groupId,
-                                                                              memberId,
-                                                                              false);
-        if (opGroupMembership.isPresent()) {
-            GroupMembership groupMembership = opGroupMembership.get();
+    fun getGroup(@Min(1) groupId: Long, @Min(1) memberId: Long): GroupResponse.Detail {
+        val opGroupMembership = groupMembershipRepository.findByGroupIdAndMemberIdAndDisabled(
+            groupId, memberId, false
+        )
 
-            boolean isApplying = false;
-            boolean isMember   = false;
-            boolean isLeader   = false;
-            if (groupMembership.getStatus() == MembershipStatus.PENDING)
-                isApplying = true;
-
-            if (groupMembership.getStatus() == MembershipStatus.APPROVED) {
-                isMember = true;
-                if (groupMembership.getGroupRole() == GroupRole.LEADER)
-                    isLeader = true;
-            }
-
-            return GroupResponse.toDetail(groupMembership.getGroup(), isApplying, isMember, isLeader);
+        if (opGroupMembership.isPresent) {
+            val groupMembership = opGroupMembership.get()
+            return GroupResponse.toDetail(
+                groupMembership.group,
+                opGroupMembership.get().status == MembershipStatus.PENDING,
+                opGroupMembership.get().status == MembershipStatus.APPROVED,
+                opGroupMembership.get().status == MembershipStatus.APPROVED && opGroupMembership.get().groupRole == GroupRole.LEADER
+            )
         }
 
-        return GroupResponse.toDetail(groupRepository.findByIdAndDisabled(groupId, false).orElseThrow(
-                () -> new GroupException(GroupErrorCode.GROUP_NOT_FOUND)
-        ));
+        return GroupResponse.toDetail(
+            groupRepository.findByIdAndDisabled(groupId, false)
+                .orElseThrow { GroupException(GroupErrorCode.GROUP_NOT_FOUND) }
+        )
     }
 
     /**
@@ -153,18 +128,15 @@ public class GroupService {
      *
      * @return 모임 응답 DTO 목록(List)
      */
-    public List<GroupResponse.ListInfo> getGroups() {
-        return groupRepository.findAllByDisabled(false).stream().map(GroupResponse::toListInfo).toList();
-    }
+    fun getGroups() = groupRepository.findAllByDisabled(false).map { GroupResponse.toListInfo(it) }
 
     /**
      * 모임(Group) 다 건 조회
      *
      * @return 모임 응답 DTO 목록(Page)
      */
-    public Page<GroupResponse.ListInfo> getGroups(@NotNull final Pageable pageable) {
-        return groupRepository.findAllByDisabled(false, pageable).map(GroupResponse::toListInfo);
-    }
+    fun getGroups(pageable: Pageable) = groupRepository.findAllByDisabled(false, pageable)
+        .map { GroupResponse.toListInfo(it) }
 
     /**
      * 모임 이름으로 모임(Group) 다 건 조회
@@ -172,12 +144,8 @@ public class GroupService {
      * @param name - 모임 이름
      * @return 모임 응답 DTO 목록(List)
      */
-    public List<GroupResponse.ListInfo> getGroupsByNameContaining(final String name) {
-        return groupRepository.findAllByNameContainingAndDisabled(name, false)
-                              .stream()
-                              .map(GroupResponse::toListInfo)
-                              .toList();
-    }
+    fun getGroupsByNameContaining(name: String) = groupRepository.findAllByNameContainingAndDisabled(name, false)
+        .map { GroupResponse.toListInfo(it) }
 
     /**
      * 모임 이름으로 모임(Group) 다 건 조회
@@ -186,9 +154,9 @@ public class GroupService {
      * @param pageable - 페이징 객체
      * @return 모임 응답 DTO 목록(Page)
      */
-    public Page<GroupResponse.ListInfo> getGroupsByNameContaining(final String name, @NotNull final Pageable pageable) {
-        return groupRepository.findAllByNameContainingAndDisabled(name, false, pageable).map(GroupResponse::toListInfo);
-    }
+    fun getGroupsByNameContaining(name: String, pageable: Pageable) =
+        groupRepository.findAllByNameContainingAndDisabled(name, false, pageable)
+            .map { GroupResponse.toListInfo(it) }
 
     /**
      * 상세 주소로 모임(Group) 다 건 조회
@@ -198,12 +166,9 @@ public class GroupService {
      * @param town     - 읍/면/동
      * @return 모임 응답 DTO 목록(List)
      */
-    public List<GroupResponse.ListInfo> getGroupsByRegion(final String province, final String city, final String town) {
-        return groupRepository.findAllByRegion(province, city, town, false)
-                              .stream()
-                              .map(GroupResponse::toListInfo)
-                              .toList();
-    }
+    fun getGroupsByRegion(province: String, city: String, town: String) =
+        groupRepository.findAllByRegion(province, city, town, false)
+            .map { GroupResponse.toListInfo(it) }
 
     /**
      * 상세 주소로 모임(Group) 다 건 조회
@@ -214,12 +179,8 @@ public class GroupService {
      * @param pageable - 페이징 객체
      * @return 모임 응답 DTO 목록(Page)
      */
-    public Page<GroupResponse.ListInfo> getGroupsByRegion(final String province,
-                                                          final String city,
-                                                          final String town,
-                                                          @NotNull final Pageable pageable) {
-        return groupRepository.findAllByRegion(province, city, town, false, pageable).map(GroupResponse::toListInfo);
-    }
+    fun getGroupsByRegion(province: String, city: String, town: String, pageable: Pageable) =
+        groupRepository.findAllByRegion(province, city, town, false, pageable).map { GroupResponse.toListInfo(it) }
 
     /**
      * 모임 이름과 상세 주소로 모임(Group) 다 건 조회
@@ -230,15 +191,9 @@ public class GroupService {
      * @param town     - 읍/면/동
      * @return 모임 응답 DTO 목록(List)
      */
-    public List<GroupResponse.ListInfo> getGroupsByNameContainingAndRegion(final String name,
-                                                                           final String province,
-                                                                           final String city,
-                                                                           final String town) {
-        return groupRepository.findAllByNameContainingAndRegion(name, province, city, town, false)
-                              .stream()
-                              .map(GroupResponse::toListInfo)
-                              .toList();
-    }
+    fun getGroupsByNameContainingAndRegion(name: String, province: String, city: String, town: String) =
+        groupRepository.findAllByNameContainingAndRegion(name, province, city, town, false)
+            .map { GroupResponse.toListInfo(it) }
 
     /**
      * 모임 이름과 상세 주소로 모임(Group) 다 건 조회
@@ -250,14 +205,14 @@ public class GroupService {
      * @param pageable - 페이징 객체
      * @return 모임 응답 DTO 목록(Page)
      */
-    public Page<GroupResponse.ListInfo> getGroupsByNameContainingAndRegion(final String name,
-                                                                           final String province,
-                                                                           final String city,
-                                                                           final String town,
-                                                                           @NotNull final Pageable pageable) {
-        return groupRepository.findAllByNameContainingAndRegion(name, province, city, town, false, pageable)
-                              .map(GroupResponse::toListInfo);
-    }
+    fun getGroupsByNameContainingAndRegion(
+        name: String,
+        province: String,
+        city: String,
+        town: String,
+        pageable: Pageable
+    ) = groupRepository.findAllByNameContainingAndRegion(name, province, city, town, false, pageable)
+        .map { GroupResponse.toListInfo(it) }
 
     /**
      * 카테고리와 모임 이름, 상세 주소로 모임(Group) 다 건 조회
@@ -265,18 +220,16 @@ public class GroupService {
      * @param dto - 모임 검색 요청 DTO
      * @return 모임 응답 DTO 목록(List)
      */
-    public List<GroupResponse.ListInfo> getGroupsBySearch(@NotNull final GroupRequest.Search dto) {
-        return groupRepository.findAllByCategoryAndRecruitStatusAndNameContainingAndRegion(dto.getCategoryName(),
-                                                                                           dto.getRecruitStatus(),
-                                                                                           dto.getName(),
-                                                                                           dto.getProvince(),
-                                                                                           dto.getCity(),
-                                                                                           dto.getTown(),
-                                                                                           false)
-                              .stream()
-                              .map(GroupResponse::toListInfo)
-                              .toList();
-    }
+    fun getGroupsBySearch(dto: GroupRequest.Search) =
+        groupRepository.findAllByCategoryAndRecruitStatusAndNameContainingAndRegion(
+            dto.categoryName,
+            dto.recruitStatus,
+            dto.name,
+            dto.province,
+            dto.city,
+            dto.town,
+            false
+        ).map { GroupResponse.toListInfo(it) }
 
     /**
      * 카테고리와 모임 이름, 상세 주소로 모임(Group) 다 건 조회
@@ -285,18 +238,17 @@ public class GroupService {
      * @param pageable - 페이징 객체
      * @return 모임 응답 DTO 목록(Page)
      */
-    public Page<GroupResponse.ListInfo> getGroupsBySearch(@NotNull final GroupRequest.Search dto,
-                                                          @NotNull final Pageable pageable) {
-        return groupRepository.findAllByCategoryAndRecruitStatusAndNameContainingAndRegion(dto.getCategoryName(),
-                                                                                           dto.getRecruitStatus(),
-                                                                                           dto.getName(),
-                                                                                           dto.getProvince(),
-                                                                                           dto.getCity(),
-                                                                                           dto.getTown(),
-                                                                                           false,
-                                                                                           pageable)
-                              .map(GroupResponse::toListInfo);
-    }
+    fun getGroupsBySearch(dto: GroupRequest.Search, pageable: Pageable) =
+        groupRepository.findAllByCategoryAndRecruitStatusAndNameContainingAndRegion(
+            dto.categoryName,
+            dto.recruitStatus,
+            dto.name,
+            dto.province,
+            dto.city,
+            dto.town,
+            false,
+            pageable
+        ).map { GroupResponse.toListInfo(it) }
 
     /**
      * 모임(Group) 수정
@@ -308,48 +260,43 @@ public class GroupService {
      */
     @CustomLock(key = "'group:' + #groupId")
     @Transactional
-    public GroupResponse.Detail modifyGroup(@NotNull @Min(1) final Long groupId,
-                                            @NotNull @Min(1) final Long memberId,
-                                            @NotNull final GroupRequest.Update dto) {
-        GroupMembership groupMembership = groupMembershipRepository.findByGroupIdAndMemberIdAndDisabled(groupId,
-                                                                                                        memberId,
-                                                                                                        false)
-                                                                   .orElseThrow(
-                                                                           () -> new GroupMembershipException(
-                                                                                   GroupMembershipErrorCode.GROUP_MEMBERSHIP_NOT_FOUND
-                                                                           )
-                                                                   );
+    fun modifyGroup(@Min(1) groupId: Long, @Min(1) memberId: Long, dto: GroupRequest.Update): GroupResponse.Detail {
+        val groupMembership = groupMembershipRepository.findByGroupIdAndMemberIdAndDisabled(
+            groupId,
+            memberId,
+            false
+        ).orElseThrow { GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_NOT_FOUND) }
 
         //회원의 모임 내 권한 확인
-        if (groupMembership.getGroupRole() != GroupRole.LEADER
-            || groupMembership.getStatus() != MembershipStatus.APPROVED)
-            throw new GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_NO_PERMISSION);
+        if (groupMembership.groupRole != GroupRole.LEADER || groupMembership.status != MembershipStatus.APPROVED)
+            throw GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_NO_PERMISSION)
 
-        Group group = groupRepository.findByIdAndDisabled(groupId, false)
-                                     .orElseThrow(() -> new GroupException(GroupErrorCode.GROUP_NOT_FOUND));
+        val group = groupRepository.findByIdAndDisabled(groupId, false)
+            .orElseThrow { GroupException(GroupErrorCode.GROUP_NOT_FOUND) }
 
         //수정할 카테고리 조회
-        Category newCategory = categoryRepository.findByNameAndDisabled(dto.getCategoryName(), false)
-                                                 .orElseThrow(() -> new CategoryException(
-                                                         CategoryErrorCode.CATEGORY_NOT_FOUND
-                                                 ));
+        val newCategory = categoryRepository.findByNameAndDisabled(dto.categoryName, false)
+            .orElseThrow { CategoryException(CategoryErrorCode.CATEGORY_NOT_FOUND) }
 
-        if (dto.getMaxRecruitCount() < groupMembershipRepository.countByGroupIdAndStatusAndDisabled(groupId,
-                                                                                                    MembershipStatus.APPROVED,
-                                                                                                    false))
-            throw new GroupException(GroupErrorCode.GROUP_MAXIMUM_NUMBER_OF_MEMBERS);
+        if (
+            dto.maxRecruitCount < groupMembershipRepository.countByGroupIdAndStatusAndDisabled(
+                groupId,
+                MembershipStatus.APPROVED,
+                false
+            )
+        )
+            throw GroupException(GroupErrorCode.GROUP_MAXIMUM_NUMBER_OF_MEMBERS)
 
-        RecruitStatus newRecruitStatus = RecruitStatus.valueOf(dto.getRecruitStatus());
-        if (newRecruitStatus == RecruitStatus.CLOSED)
-            newRecruitStatus.modifyForceStatus(true);
-        group.modifyName(dto.getName())
-             .modifyRegion(dto.getProvince(), dto.getCity(), dto.getTown())
-             .modifyDescription(dto.getDescription())
-             .modifyRecruitStatus(newRecruitStatus)
-             .modifyMaxRecruitCount(dto.getMaxRecruitCount())
-             .modifyCategory(newCategory);
+        val newRecruitStatus = RecruitStatus.valueOf(dto.recruitStatus)
+        if (newRecruitStatus == RecruitStatus.CLOSED) newRecruitStatus.modifyForceStatus(true)
+        group.modifyName(dto.name)
+            .modifyRegion(dto.province, dto.city, dto.town)
+            .modifyDescription(dto.description)
+            .modifyRecruitStatus(newRecruitStatus)
+            .modifyMaxRecruitCount(dto.maxRecruitCount)
+            .modifyCategory(newCategory)
 
-        return GroupResponse.toDetail(group);
+        return GroupResponse.toDetail(group)
     }
 
     /**
@@ -361,32 +308,29 @@ public class GroupService {
      */
     @CustomLock(key = "'group:' + #groupId")
     @Transactional
-    public boolean deleteGroup(@NotNull @Min(1) final Long groupId, @NotNull @Min(1) final Long memberId) {
-        GroupMembership groupMembership = groupMembershipRepository.findByGroupIdAndMemberIdAndDisabled(groupId,
-                                                                                                        memberId,
-                                                                                                        false)
-                                                                   .orElseThrow(
-                                                                           () -> new GroupMembershipException(
-                                                                                   GroupMembershipErrorCode
-                                                                                           .GROUP_MEMBERSHIP_NOT_FOUND
-                                                                           )
-                                                                   );
+    fun deleteGroup(@Min(1) groupId: Long, @Min(1) memberId: Long): Boolean {
+        val groupMembership = groupMembershipRepository.findByGroupIdAndMemberIdAndDisabled(
+            groupId,
+            memberId,
+            false
+        ).orElseThrow { GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_NOT_FOUND) }
 
         //회원의 모임 내 권한 확인
-        if (groupMembership.getGroupRole() != GroupRole.LEADER
-            || groupMembership.getStatus() != MembershipStatus.APPROVED)
-            throw new GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_NO_PERMISSION);
+        if (groupMembership.groupRole != GroupRole.LEADER || groupMembership.status != MembershipStatus.APPROVED)
+            throw GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_NO_PERMISSION)
 
-        Group group = groupRepository.findByIdAndDisabled(groupId, false)
-                                     .orElseThrow(() -> new GroupException(GroupErrorCode.GROUP_NOT_FOUND));
+        val group = groupRepository.findByIdAndDisabled(groupId, false)
+            .orElseThrow { GroupException(GroupErrorCode.GROUP_NOT_FOUND) }
 
-        group.deactivate();
-        groupMembershipRepository.updateDisabledForAllGroupMembership(groupId,
-                                                                      true); //해당 모임 ID를 갖는 멤버십 일괄 삭제(Soft Delete)
-        entityManager.flush();
-        entityManager.clear();  //벌크 연산 후 영속성 컨텍스트 초기화
+        group.deactivate()
+        groupMembershipRepository.updateDisabledForAllGroupMembership(
+            groupId,
+            true
+        )    //해당 모임 ID를 갖는 멤버십 일괄 삭제(Soft Delete)
 
-        return group.getDisabled();
+        entityManager.flush()
+        entityManager.clear()   //벌크 연산 후 영속성 컨텍스트 초기화
+
+        return group.disabled
     }
-
 }
