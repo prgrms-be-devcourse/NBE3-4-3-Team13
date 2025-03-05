@@ -1,34 +1,27 @@
-package com.app.backend.domain.comment.entity;
+package com.app.backend.domain.comment.entity
 
-import com.app.backend.domain.member.entity.Member;
-import com.app.backend.global.entity.BaseEntity;
-
-import jakarta.persistence.*;
-import lombok.*;
+import com.app.backend.domain.member.entity.Member
+import com.app.backend.global.entity.BaseEntity
+import jakarta.persistence.*
 
 @Entity
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 @Table(name = "tbl_comment_likes")
-public class CommentLike extends BaseEntity {
+class CommentLike(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "comment_like_id")
+    val id: Long? = null,
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "comment_like_id")
-	private Long id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comment_id")
+    val comment: Comment,
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "comment_id")
-	private Comment comment;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    val member: Member
+) : BaseEntity() {
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "member_id")
-	private Member member;
-
-
-	public void delete() {
-		this.deactivate();
-	}
+    fun delete() {
+        deactivate()
+    }
 }
