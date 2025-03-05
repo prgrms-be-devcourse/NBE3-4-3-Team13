@@ -8,7 +8,6 @@ import com.app.backend.domain.group.exception.GroupMembershipException;
 import com.app.backend.domain.group.repository.GroupMembershipRepository;
 import com.app.backend.domain.group.repository.GroupRepository;
 import com.app.backend.domain.notification.dto.NotificationEvent;
-import com.app.backend.domain.notification.service.NotificationService;
 import com.app.backend.global.annotation.CustomLock;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
