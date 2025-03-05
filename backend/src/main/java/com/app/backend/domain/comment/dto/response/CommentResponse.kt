@@ -9,7 +9,7 @@ class CommentResponse {
         val id: Long?,
         val content: String,
         val memberId: Long?,
-        val nickname: String,
+        val nickname: String?,
         val createdAt: LocalDateTime,
         val replyCount: Int,
         val likeCount: Long,
@@ -36,7 +36,7 @@ class CommentResponse {
         val content: String,
         val postId: Long?,
         val memberId: Long?,
-        val nickname: String,
+        val nickname: String?,
         val parentId: Long?,
         val createdAt: LocalDateTime,
         val modifiedAt: LocalDateTime
@@ -62,7 +62,7 @@ class CommentResponse {
         val content: String,
         val postId: Long?,
         val memberId: Long?,
-        val nickname: String,
+        val nickname: String?,
         val createdAt: LocalDateTime,
         val modifiedAt: LocalDateTime,
         val replyCount: Int
@@ -87,7 +87,7 @@ class CommentResponse {
         val id: Long?,
         val content: String,
         val memberId: Long?,
-        val nickname: String,
+        val nickname: String?,
         val parentId: Long?,
         val createdAt: LocalDateTime,
         val modifiedAt: LocalDateTime
