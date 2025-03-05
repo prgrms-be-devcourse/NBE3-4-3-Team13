@@ -26,7 +26,12 @@ public class ChatRoomService {
 
 	public ChatRoomDetailResponse getChatRoomDetailsWithApprovedMembers(Long chatRoomId) {
 		// TODO DTO 로 매핑해서 바로 가져올 때, 필드 값으로 null 이 들어가서 NullPointerException 이 터질 가능 성이 있는 부분이 있으면 추가적으로 예외 로직 추가
-		return chatRoomRepository.findByIdWithApprovedMembers(chatRoomId)
-			.orElseThrow(() -> new ChatRoomException(ChatRoomErrorCode.CHAT_ROOM_NOT_FOUND));
+		ChatRoomDetailResponse chatRoomDetailResponse = chatRoomRepository.findByIdWithApprovedMembers(chatRoomId);
+
+		if(chatRoomDetailResponse == null) {
+			throw new ChatRoomException(ChatRoomErrorCode.CHAT_ROOM_NOT_FOUND);
+		}
+
+		return chatRoomDetailResponse;
 	}
 }

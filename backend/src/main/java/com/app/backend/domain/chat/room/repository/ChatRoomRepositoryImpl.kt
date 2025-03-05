@@ -13,7 +13,6 @@ import com.querydsl.core.types.Projections
 import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import org.springframework.stereotype.Repository
-import java.util.*
 
 @Repository
 class ChatRoomRepositoryImpl(
@@ -46,7 +45,7 @@ class ChatRoomRepositoryImpl(
 			.fetch()
 	}
 
-	override fun findByIdWithApprovedMembers(id: Long): Optional<ChatRoomDetailResponse> {
+	override fun findByIdWithApprovedMembers(id: Long): ChatRoomDetailResponse? {
 		val chatRoom = QChatRoom.chatRoom
 		val group = QGroup.group
 		val groupMembership = QGroupMembership.groupMembership
@@ -70,7 +69,7 @@ class ChatRoomRepositoryImpl(
 			.where(chatRoom.id.eq(id))
 			.groupBy(chatRoom.id, group.id, group.name)
 			.fetchOne()
-			?: return Optional.empty()
+			?: return null
 
 		val members = jpaQueryFactory
 			.select(Projections.constructor(MemberChatResponseDto::class.java,
@@ -86,6 +85,6 @@ class ChatRoomRepositoryImpl(
 			)
 			.fetch()
 
-		return Optional.of(chatRoomDetailResponse.apply { addMembers(members) })
+		return chatRoomDetailResponse.apply { addMembers(members) }
 	}
 }
