@@ -113,7 +113,7 @@ public class MemberService {
     public MemberModifyResponseDto modifyMember(Member member, MemberModifyRequestDto request) {
         Member modifiedMember = Member.create(
                 member.getUsername(),
-                request.password() != null ? passwordEncoder.encode(request.password()) : member.getPassword(),
+                request.getPassword() != null ? passwordEncoder.encode(request.getPassword()) : member.getPassword(),
                 member.getNickname(),
                 member.getRole(),
                 member.isDisabled(),
@@ -125,7 +125,7 @@ public class MemberService {
                 memberRepository.save(modifiedMember)
         ).orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_FAILED_TO_MODIFY));
 
-        return MemberModifyResponseDto.of(savedMember);
+        return MemberModifyResponseDto.Companion.of(savedMember);
     }
 
     public Optional<List<Member>> findAllMembers(String token) {

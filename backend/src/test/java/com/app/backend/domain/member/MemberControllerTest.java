@@ -174,7 +174,7 @@ public class MemberControllerTest {
 			.orElseThrow(() -> new IllegalArgumentException("가입되지 않은 사용자입니다"));
 
 		assertAll(
-			() -> assertNotEquals(request.nickname(), savedMember.getNickname()),
+			() -> assertNotEquals(request.getNickname(), savedMember.getNickname()),
 			() -> assertNotNull(savedMember.getPassword())
 		);
 	}
