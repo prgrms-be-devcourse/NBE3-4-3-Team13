@@ -22,7 +22,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.category.repository.CategoryRepository;
 import com.app.backend.domain.group.entity.Group;
 import com.app.backend.domain.group.entity.GroupMembership;
