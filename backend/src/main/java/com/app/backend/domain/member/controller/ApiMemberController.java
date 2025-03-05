@@ -54,7 +54,7 @@ public class ApiMemberController {
     ) throws IOException {
         MemberLoginResponseDto loginResult = memberService.login(request);
         // 쿠키 설정
-        Cookie refreshTokenCookie = new Cookie("refreshToken", loginResult.refreshToken());
+        Cookie refreshTokenCookie = new Cookie("refreshToken", loginResult.getRefreshToken());
 
         util.setCookies(refreshTokenCookie, response);
 

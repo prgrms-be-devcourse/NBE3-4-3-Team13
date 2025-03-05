@@ -70,10 +70,10 @@ public class MemberService {
     }
 
     public MemberLoginResponseDto login(MemberLoginRequestDto request) {
-        Member member = memberRepository.findByUsernameAndDisabled(request.username(), disabled)
+        Member member = memberRepository.findByUsernameAndDisabled(request.getUsername(), disabled)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        if (!passwordEncoder.matches(request.password(), member.getPassword()))
+        if (!passwordEncoder.matches(request.getPassword(), member.getPassword()))
             throw new MemberException(MemberErrorCode.MEMBER_PASSWORD_NOT_MATCH);
 
         // 토큰 생성
@@ -83,7 +83,7 @@ public class MemberService {
         memberRepository.save(member);
 
         // 응답
-        return MemberLoginResponseDto.of(member, accessToken, refreshToken);
+        return MemberLoginResponseDto.Companion.of(member, accessToken, refreshToken);
     }
 
     @Transactional
