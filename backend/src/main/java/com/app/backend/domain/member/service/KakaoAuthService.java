@@ -51,7 +51,7 @@ public class KakaoAuthService {
 
             memberRepository.save(member);
 
-            return new TokenDto(userInfo.id(), accessToken, refreshToken, "USER");
+            return new TokenDto(userInfo.getId(), accessToken, refreshToken, "USER");
         } catch (Exception e) {
             log.error("카카오 로그인 처리 중 오류: {}", e.getMessage());
             if (e.getMessage().contains("authorization code not found")) {
@@ -125,15 +125,15 @@ public class KakaoAuthService {
     }
 
     private Member saveOrUpdate(KakaoUserInfo userInfo) {
-        return memberRepository.findByOauthProviderId(userInfo.id())
+        return memberRepository.findByOauthProviderId(userInfo.getId())
                 .orElseGet(() -> memberRepository.save(Member.create(
-                        userInfo.id(),
+                        userInfo.getId(),
                         "",
-                        userInfo.nickname(),
+                        userInfo.getNickname(),
                         "ROLE_USER",
                         false,
                         Member.Provider.KAKAO,
-                        userInfo.id()
+                        userInfo.getId()
                 )));
     }
 }
