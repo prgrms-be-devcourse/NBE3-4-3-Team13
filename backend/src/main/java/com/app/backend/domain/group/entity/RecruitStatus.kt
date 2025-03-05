@@ -7,7 +7,7 @@ enum class RecruitStatus private constructor(forceStatus: Boolean = false) {
         protected set
 
     fun modifyForceStatus(newForceStatus: Boolean) = apply {
-        if (forceStatus == newForceStatus) return@apply
-        forceStatus = newForceStatus
+        if (this.forceStatus == newForceStatus) return@apply
+        this.forceStatus = newForceStatus
     }
 }
