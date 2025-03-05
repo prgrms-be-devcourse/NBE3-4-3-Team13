@@ -14,7 +14,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.chat.room.entity.ChatRoom;
 import com.app.backend.domain.chat.util.TestDataUtil;
 import com.app.backend.domain.group.entity.Group;
