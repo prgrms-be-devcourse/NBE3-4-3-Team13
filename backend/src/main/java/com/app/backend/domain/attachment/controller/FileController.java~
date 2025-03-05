@@ -1,0 +1,36 @@
+package com.app.backend.domain.attachment.controller;
+
+import com.app.backend.domain.attachment.dto.resp.FileRespDto;
+import com.app.backend.domain.post.service.postAttachment.PostAttachmentService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/download")
+public class FileController {
+
+    private final PostAttachmentService postAttachmentService;
+
+    @GetMapping("/post/{id}")
+    public ResponseEntity<?> downloadFile(
+            @PathVariable final Long id,
+            Principal principal
+    ) {
+        Long memberId = Long.parseLong(principal.getName());
+        FileRespDto.downloadDto downloadFile = postAttachmentService.downloadFile(id, memberId);
+
+        String contentType = downloadFile.getAttachment().getContentType();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + downloadFile.getAttachment().getOriginalFileName() + "\"")
+                .contentType(contentType == null ? MediaType.APPLICATION_OCTET_STREAM : MediaType.parseMediaType(contentType))
+                .body(downloadFile.getResource());
+    }
+
+}
