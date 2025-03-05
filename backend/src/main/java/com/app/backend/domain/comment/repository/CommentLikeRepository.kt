@@ -1,17 +1,16 @@
 package com.app.backend.domain.comment.repository;
 
-import java.util.Optional;
+import com.app.backend.domain.comment.entity.CommentLike
+import jakarta.persistence.LockModeType
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Lock
+import java.util.*
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
-
-import com.app.backend.domain.comment.entity.CommentLike;
-
-import jakarta.persistence.LockModeType;
-
-public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> {
-
-	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	Optional<CommentLike> findByCommentIdAndMemberIdAndDisabled(Long commentId, Long memberId, boolean disabled);
-
+interface CommentLikeRepository : JpaRepository<CommentLike, Long> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    fun findByCommentIdAndMemberIdAndDisabled(
+        commentId: Long,
+        memberId: Long,
+        disabled: Boolean
+    ): Optional<CommentLike>
 }
