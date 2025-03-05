@@ -2,8 +2,8 @@ package com.app.backend.domain.member.oauth;
 
 import com.app.backend.domain.member.entity.Member;
 import com.app.backend.domain.member.exception.MemberErrorCode;
-import com.app.backend.domain.member.exception.MemberException;
 import com.app.backend.domain.member.jwt.JwtProvider;
+import com.app.backend.domain.member.repository.MemberRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
