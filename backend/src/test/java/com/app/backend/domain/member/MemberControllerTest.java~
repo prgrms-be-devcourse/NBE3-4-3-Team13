@@ -84,8 +84,8 @@ public class MemberControllerTest {
 			.orElseThrow(() -> new RuntimeException("회원이 저장되지 않았습니다."));
 
 		assertAll(
-			() -> assertEquals(request.getUsername(), savedMember.getUsername()),
-			() -> assertEquals(request.getNickname(), savedMember.getNickname()),
+			() -> assertEquals(request.username(), savedMember.getUsername()),
+			() -> assertEquals(request.nickname(), savedMember.getNickname()),
 			// 비밀번호는 암호화되어 저장되므로 직접 비교는 하지 않음
 			() -> assertNotNull(savedMember.getPassword())
 		);

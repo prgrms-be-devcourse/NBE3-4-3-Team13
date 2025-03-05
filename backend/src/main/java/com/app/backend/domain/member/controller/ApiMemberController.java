@@ -36,8 +36,8 @@ public class ApiMemberController {
     public ApiResponse<MemberJoinResponseDto> join(
             @RequestBody @Valid MemberJoinRequestDto request
     ) {
-        MemberJoinResponseDto response = memberService.createMember(request.username(), request.password(),
-                                                                    request.nickname());
+        MemberJoinResponseDto response = memberService.createMember(request.getUsername(), request.getPassword(),
+                                                                    request.getNickname());
         return ApiResponse.of(
                 true,
                 "MEMBER_CREATE_SUCCESS",
