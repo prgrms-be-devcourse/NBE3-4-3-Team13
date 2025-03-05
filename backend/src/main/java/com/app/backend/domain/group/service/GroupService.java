@@ -21,7 +21,6 @@ import com.app.backend.domain.group.repository.GroupMembershipRepository;
 import com.app.backend.domain.group.repository.GroupRepository;
 import com.app.backend.domain.member.entity.Member;
 import com.app.backend.domain.member.exception.MemberErrorCode;
-import com.app.backend.domain.member.exception.MemberException;
 import com.app.backend.global.annotation.CustomLock;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
