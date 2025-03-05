@@ -1,7 +1,5 @@
-package com.app.backend.domain.member.dto.response;
+package com.app.backend.domain.member.dto.response
 
-import com.app.backend.domain.group.entity.GroupRole;
+import com.app.backend.domain.group.entity.GroupRole
 
-public record MemberChatResponseDto(Long memberId, String memberNickname, GroupRole groupRole) {
-
-}
+data class MemberChatResponseDto(val memberId: Long, val memberNickname: String, val groupRole: GroupRole)
