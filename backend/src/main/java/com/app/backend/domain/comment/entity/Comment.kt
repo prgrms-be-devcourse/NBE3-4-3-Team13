@@ -1,84 +1,56 @@
-package com.app.backend.domain.comment.entity;
+package com.app.backend.domain.comment.entity
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.app.backend.domain.member.entity.Member;
-import com.app.backend.domain.post.entity.Post;
-import com.app.backend.global.entity.BaseEntity;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.app.backend.domain.member.entity.Member
+import com.app.backend.domain.post.entity.Post
+import com.app.backend.global.entity.BaseEntity
+import jakarta.persistence.*
 
 @Entity
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 @Table(name = "tbl_comments")
-public class Comment extends BaseEntity {
-
+class Comment(
 	@Id
 	@Column(name = "comment_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
-
+	val id: Long? = null,
 
 	@Column(nullable = false)
-	private String content;
+	var content: String,
 
 	@ManyToOne
 	@JoinColumn(name = "post_id")
-	private Post post;
+	val post: Post,
 
 	@ManyToOne
 	@JoinColumn(name = "member_id")
-	private Member member;
+	val member: Member,
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "parent_id")
-	private Comment parent;
+	var parent: Comment? = null,
 
-	@Builder.Default
 	@OneToMany(mappedBy = "parent")
-	private List<Comment> children = new ArrayList<>();
+	val children: MutableList<Comment> = mutableListOf()
+) : BaseEntity() {
 
-
-	public void delete() {
-		this.deactivate();
+	fun delete() {
+		deactivate()
 	}
 
-	public void update(String content) {
-		this.content = content;
+	fun update(content: String) {
+		this.content = content
 	}
 
-	public void addReply(Comment reply) {
-		this.children.add(reply);
-		reply.parent = this;
+	fun addReply(reply: Comment) {
+		children.add(reply)
+		reply.parent = this
 	}
 
-	public void removeReply(Comment reply) {
-		this.children.remove(reply);
-		reply.parent = null;
+	fun removeReply(reply: Comment) {
+		children.remove(reply)
+		reply.parent = null
 	}
 
-	public List<Comment> getChildren() {
-		return this.children.stream()
-			.filter(child -> !child.getDisabled())
-			.collect(Collectors.toList());
+	fun getActiveChildren(): List<Comment> {
+		return children.filter { !it.disabled }
 	}
 }
