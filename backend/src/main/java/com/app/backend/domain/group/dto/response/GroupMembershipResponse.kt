@@ -1,42 +1,32 @@
-package com.app.backend.domain.group.dto.response;
+package com.app.backend.domain.group.dto.response
 
-import com.app.backend.domain.group.entity.GroupMembership;
-import com.app.backend.domain.group.entity.GroupRole;
-import com.app.backend.domain.group.entity.MembershipStatus;
-import com.app.backend.global.util.AppUtil;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import com.app.backend.domain.group.entity.GroupMembership
+import com.app.backend.domain.group.entity.GroupRole
+import com.app.backend.domain.group.entity.MembershipStatus
+import com.app.backend.global.util.AppUtil
 
-public class GroupMembershipResponse {
-
-    public static Detail toDetail(final GroupMembership groupMembership) {
-        return Detail.builder()
-                     .groupId(groupMembership.getGroupId())
-                     .categoryName(groupMembership.getGroup().getCategory().getName())
-                     .name(groupMembership.getGroup().getName())
-                     .modifiedAt(AppUtil.localDateTimeToString(groupMembership.getModifiedAt()))
-                     .isApplying(groupMembership.getStatus() == MembershipStatus.PENDING ? true : null)
-                     .isRejected(groupMembership.getStatus() == MembershipStatus.REJECTED ? true : null)
-                     .isMember(groupMembership.getStatus() == MembershipStatus.APPROVED ? true : null)
-                     .isAdmin(groupMembership.getStatus() == MembershipStatus.APPROVED
-                              && groupMembership.getGroupRole() == GroupRole.LEADER)
-                     .build();
+class GroupMembershipResponse {
+    companion object {
+        fun toDetail(groupMembership: GroupMembership) = Detail(
+            groupId = groupMembership.groupId!!,
+            categoryName = groupMembership.group.category.name,
+            name = groupMembership.group.name,
+            modifiedAt = AppUtil.localDateTimeToString(groupMembership.modifiedAt),
+            isApplying = if (groupMembership.status == MembershipStatus.PENDING) true else null,
+            isRejected = if (groupMembership.status == MembershipStatus.REJECTED) true else null,
+            isMember = if (groupMembership.status == MembershipStatus.APPROVED) true else null,
+            isAdmin = groupMembership.status == MembershipStatus.APPROVED && groupMembership.groupRole == GroupRole.LEADER
+        )
     }
 
-    @Getter
-    @Builder(access = AccessLevel.PRIVATE)
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class Detail {
-        private Long    groupId;
-        private String  categoryName;
-        private String  name;
-        private String  modifiedAt;
-        private Boolean isApplying;
-        private Boolean isRejected;
-        private Boolean isMember;
-        private Boolean isAdmin;
-    }
-
+    data class Detail(
+        val groupId: Long,
+        val categoryName: String,
+        val name: String,
+        val modifiedAt: String,
+        val isApplying: Boolean?,
+        val isRejected: Boolean?,
+        val isMember: Boolean?,
+        val isAdmin: Boolean?
+    )
 }
