@@ -77,12 +77,12 @@ public class MeetingApplicationService {
                                            .orElseGet(() -> {
                                                return meetingApplicationRepository.save(
                                                        MeetingApplication.builder()
-                                                                         .context(request.context())
+                                                                         .context(request.context)
                                                                          .group(group)
                                                                          .member(member)
                                                                          .build()
                                                );
-                                           }).modifyContext(request.context());
+                                           }).modifyContext(request.context);
     }
 
     // 리스트 조회
