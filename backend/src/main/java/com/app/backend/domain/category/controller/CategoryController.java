@@ -25,7 +25,7 @@ public class CategoryController {
 	public ApiResponse<CategoryDto> createCategory(
 		@RequestBody CategoryReqBody request
 	) {
-		Category category = categoryService.create(request.name());
+		Category category = categoryService.create(request.name);
 
 		CategoryDto categoryDto = CategoryDto.from(category);
 
@@ -59,7 +59,7 @@ public class CategoryController {
 
 		Category category = categoryService.findById(id);
 
-		categoryService.modify(category, modifyRequest.name());
+		categoryService.modify(category, modifyRequest.name);
 
 		CategoryDto categoryDto = CategoryDto.from(category);
 
