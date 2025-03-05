@@ -1,10 +1,6 @@
-package com.app.backend.domain.group.exception;
+package com.app.backend.domain.group.exception
 
-import com.app.backend.global.error.exception.DomainErrorCode;
-import com.app.backend.global.error.exception.DomainException;
+import com.app.backend.global.error.exception.DomainErrorCode
+import com.app.backend.global.error.exception.DomainException
 
-public class GroupException extends DomainException {
-    public GroupException(final DomainErrorCode domainErrorCode) {
-        super(domainErrorCode);
-    }
-}
+class GroupException(domainErrorCode: DomainErrorCode) : DomainException(domainErrorCode)
