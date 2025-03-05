@@ -7,22 +7,22 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "tbl_meeting_applications")
-class MeetingApplication : BaseEntity() {
+class MeetingApplication(
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "group_id", nullable = false)
+    val group: Group,
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "member_id", nullable = false)
+    val member: Member,
+
+    @Column(columnDefinition = "TEXT", nullable = false)
+    var context: String
+) : BaseEntity() {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "meeting_application_id", nullable = false)
-    private var id: Long? = null
-
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private var context: String? = null
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id", nullable = false)
-    private val group: Group? = null
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private val member: Member? = null
+    val id: Long? = null
 
     fun modifyContext(newContext: String): MeetingApplication {
         if (context != newContext) context = newContext

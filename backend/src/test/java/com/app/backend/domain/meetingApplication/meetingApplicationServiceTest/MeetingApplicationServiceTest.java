@@ -181,7 +181,7 @@ public class MeetingApplicationServiceTest {
 		MeetingApplication application = applications.get(0);
 		assertThat(application.getMember().getId()).isEqualTo(member.getId());
 		assertThat(application.getGroup().getId()).isEqualTo(group.getId());
-		assertThat(application.getContext()).isEqualTo(request.context());
+		assertThat(application.getContext()).isEqualTo(request.context);
 	}
 
 
@@ -217,7 +217,7 @@ public class MeetingApplicationServiceTest {
 		MeetingApplication application = applications.get(0);
 		assertThat(application.getMember().getId()).isEqualTo(member.getId());
 		assertThat(application.getGroup().getId()).isEqualTo(group.getId());
-		assertThat(application.getContext()).isEqualTo(request.context());
+		assertThat(application.getContext()).isEqualTo(request.context);
 	}
 
 }
