@@ -1,64 +1,49 @@
-package com.app.backend.domain.group.repository;
+package com.app.backend.domain.group.repository
 
-import com.app.backend.domain.group.entity.GroupMembership;
-import com.app.backend.domain.group.entity.GroupMembershipId;
-import com.app.backend.domain.group.entity.GroupRole;
-import com.app.backend.domain.group.entity.MembershipStatus;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import com.app.backend.domain.group.entity.GroupMembership
+import com.app.backend.domain.group.entity.GroupMembershipId
+import com.app.backend.domain.group.entity.GroupRole
+import com.app.backend.domain.group.entity.MembershipStatus
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
+import java.util.*
 
-public interface GroupMembershipRepository extends JpaRepository<GroupMembership, GroupMembershipId>,
-                                                   GroupMembershipRepositoryCustom {
+interface GroupMembershipRepository : JpaRepository<GroupMembership, GroupMembershipId>,
+    GroupMembershipRepositoryCustom {
+    fun findByGroupIdAndMemberId(groupId: Long, memberId: Long): Optional<GroupMembership>
+    fun findByGroupIdAndMemberIdAndDisabled(groupId: Long, memberId: Long, disabled: Boolean): Optional<GroupMembership>
+    fun findAllByGroupId(groupId: Long): List<GroupMembership>
+    fun findAllByGroupIdAndDisabled(groupId: Long, disabled: Boolean): List<GroupMembership>
+    fun findAllByGroupRole(groupRole: GroupRole): List<GroupMembership>
+    fun findAllByGroupRoleAndDisabled(groupRole: GroupRole, disabled: Boolean): List<GroupMembership>
+    fun findAllByGroupIdAndGroupRole(groupId: Long, groupRole: GroupRole): List<GroupMembership>
 
-    Optional<GroupMembership> findByGroupIdAndMemberId(Long groupId, Long memberId);
+    fun findAllByGroupIdAndGroupRoleAndDisabled(
+        groupId: Long,
+        groupRole: GroupRole,
+        disabled: Boolean
+    ): List<GroupMembership>
 
-    Optional<GroupMembership> findByGroupIdAndMemberIdAndDisabled(Long groupId, Long memberId, Boolean disabled);
+    fun findAllByMemberIdAndGroupRole(memberId: Long, groupRole: GroupRole): List<GroupMembership>
 
-    List<GroupMembership> findAllByGroupId(Long groupId);
+    fun findAllByMemberIdAndGroupRoleAndDisabled(
+        memberId: Long,
+        groupRole: GroupRole,
+        disabled: Boolean
+    ): List<GroupMembership>
 
-    List<GroupMembership> findAllByGroupIdAndDisabled(Long groupId, Boolean disabled);
-
-    List<GroupMembership> findAllByMemberId(Long memberId);
-
-    List<GroupMembership> findAllByMemberIdAndDisabled(Long memberId, Boolean disabled);
-
-    List<GroupMembership> findAllByGroupRole(GroupRole groupRole);
-
-    List<GroupMembership> findAllByGroupRoleAndDisabled(GroupRole groupRole, Boolean disabled);
-
-    List<GroupMembership> findAllByGroupIdAndGroupRole(Long groupId, GroupRole groupRole);
-
-    List<GroupMembership> findAllByGroupIdAndGroupRoleAndDisabled(Long groupId, GroupRole groupRole, Boolean disabled);
-
-    List<GroupMembership> findAllByMemberIdAndGroupRole(Long memberId, GroupRole groupRole);
-
-    List<GroupMembership> findAllByMemberIdAndGroupRoleAndDisabled(Long memberId,
-                                                                   GroupRole groupRole,
-                                                                   Boolean disabled);
-
-    boolean existsByGroupIdAndMemberId(Long groupId, Long memberId);
-
-    boolean existsByGroupIdAndMemberIdAndDisabled(Long groupId, Long memberId, Boolean disabled);
-
-    int countByGroupIdAndGroupRole(Long groupId, GroupRole groupRole);
-
-    int countByGroupIdAndGroupRoleAndDisabled(Long groupId, GroupRole groupRole, Boolean disabled);
-
-    int countByGroupIdAndGroupRoleIn(Long groupId, Set<GroupRole> groupRoles);
-
-    int countByGroupIdAndGroupRoleInAndDisabled(Long groupId, Set<GroupRole> groupRoles, Boolean disabled);
-
-    int countByGroupIdAndStatus(Long groupId, MembershipStatus status);
-
-    int countByGroupIdAndStatusAndDisabled(Long groupId, MembershipStatus status, Boolean disabled);
+    fun existsByGroupIdAndMemberId(groupId: Long, memberId: Long): Boolean
+    fun existsByGroupIdAndMemberIdAndDisabled(groupId: Long, memberId: Long, disabled: Boolean): Boolean
+    fun countByGroupIdAndGroupRole(groupId: Long, groupRole: GroupRole): Int
+    fun countByGroupIdAndGroupRoleAndDisabled(groupId: Long, groupRole: GroupRole, disabled: Boolean): Int
+    fun countByGroupIdAndGroupRoleIn(groupId: Long, groupRoles: Set<GroupRole>): Int
+    fun countByGroupIdAndGroupRoleInAndDisabled(groupId: Long, groupRoles: Set<GroupRole>, disabled: Boolean): Int
+    fun countByGroupIdAndStatus(groupId: Long, status: MembershipStatus): Int
+    fun countByGroupIdAndStatusAndDisabled(groupId: Long, status: MembershipStatus, disabled: Boolean): Int
 
     @Modifying
     @Query("UPDATE GroupMembership g SET g.disabled = :disabled WHERE g.groupId = :groupId")
-    int updateDisabledForAllGroupMembership(@Param("groupId") Long groupId, @Param("disabled") Boolean disabled);
-
+    fun updateDisabledForAllGroupMembership(@Param("groupId") groupId: Long, @Param("disabled") disabled: Boolean): Int
 }

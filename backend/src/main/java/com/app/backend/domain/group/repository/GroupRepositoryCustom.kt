@@ -1,36 +1,79 @@
-package com.app.backend.domain.group.repository;
+package com.app.backend.domain.group.repository
 
-import com.app.backend.domain.group.entity.Group;
-import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.app.backend.domain.group.entity.Group
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 
-public interface GroupRepositoryCustom {
+interface GroupRepositoryCustom {
+    fun findAllByRegion(
+        province: String?,
+        city: String?,
+        town: String?,
+        disabled: Boolean
+    ): List<Group>
 
-    List<Group> findAllByRegion(String province, String city, String town, Boolean disabled);
+    fun findAllByRegion(
+        province: String?,
+        city: String?,
+        town: String?,
+        disabled: Boolean,
+        pageable: Pageable
+    ): Page<Group>
 
-    Page<Group> findAllByRegion(String province, String city, String town, Boolean disabled, Pageable pageable);
+    fun findAllByNameContainingAndRegion(
+        name: String?,
+        province: String?,
+        city: String?,
+        town: String?,
+        disabled: Boolean
+    ): List<Group>
 
-    List<Group> findAllByNameContainingAndRegion(String name, String province, String city, String town,
-                                                 Boolean disabled);
+    fun findAllByNameContainingAndRegion(
+        name: String?,
+        province: String?,
+        city: String?,
+        town: String?,
+        disabled: Boolean,
+        pageable: Pageable
+    ): Page<Group>
 
-    Page<Group> findAllByNameContainingAndRegion(String name, String province, String city, String town,
-                                                 Boolean disabled, Pageable pageable);
+    fun findAllByCategoryAndNameContainingAndRegion(
+        categoryName: String?,
+        name: String?,
+        province: String?,
+        city: String?,
+        town: String?,
+        disabled: Boolean
+    ): List<Group>
 
-    List<Group> findAllByCategoryAndNameContainingAndRegion(String categoryName, String name, String province,
-                                                            String city, String town, Boolean disabled);
+    fun findAllByCategoryAndNameContainingAndRegion(
+        categoryName: String?,
+        name: String?,
+        province: String?,
+        city: String?,
+        town: String?,
+        disabled: Boolean,
+        pageable: Pageable
+    ): Page<Group>
 
-    Page<Group> findAllByCategoryAndNameContainingAndRegion(String categoryName, String name, String province,
-                                                            String city, String town, Boolean disabled,
-                                                            Pageable pageable);
+    fun findAllByCategoryAndRecruitStatusAndNameContainingAndRegion(
+        categoryName: String?,
+        recruitStatus: String?,
+        name: String?,
+        province: String?,
+        city: String?,
+        town: String?,
+        disabled: Boolean
+    ): List<Group>
 
-    List<Group> findAllByCategoryAndRecruitStatusAndNameContainingAndRegion(String categoryName, String recruitStatus,
-                                                                            String name, String province,
-                                                                            String city, String town, Boolean disabled);
-
-    Page<Group> findAllByCategoryAndRecruitStatusAndNameContainingAndRegion(String categoryName, String recruitStatus,
-                                                                            String name, String province,
-                                                                            String city, String town, Boolean disabled,
-                                                                            Pageable pageable);
-
+    fun findAllByCategoryAndRecruitStatusAndNameContainingAndRegion(
+        categoryName: String?,
+        recruitStatus: String?,
+        name: String?,
+        province: String?,
+        city: String?,
+        town: String?,
+        disabled: Boolean,
+        pageable: Pageable
+    ): Page<Group>
 }

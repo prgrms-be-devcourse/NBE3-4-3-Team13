@@ -1,4 +1,3 @@
-package com.app.backend.domain.group.repository;
+package com.app.backend.domain.group.repository
 
-public interface GroupMembershipRepositoryCustom {
-}
+interface GroupMembershipRepositoryCustom 
