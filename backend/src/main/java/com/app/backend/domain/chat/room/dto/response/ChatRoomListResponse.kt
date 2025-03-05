@@ -3,7 +3,7 @@ package com.app.backend.domain.chat.room.dto.response
 import com.app.backend.domain.chat.room.entity.ChatRoom
 
 data class ChatRoomListResponse(
-	val chatRoomId: Long,
+	val chatRoomId: Long?,
 	val groupId: Long,
 	val groupName: String,
 	val participant: Long
