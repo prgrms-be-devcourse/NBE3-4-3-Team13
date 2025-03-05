@@ -80,7 +80,7 @@ class ChatRoomRepositoryImpl(
 			.from(groupMembership)
 			.join(groupMembership.member, member)
 			.where(
-				groupMembership.group.id.eq(chatRoomDetailResponse.group.groupId())
+				groupMembership.group.id.eq(chatRoomDetailResponse.group.groupId)
 					.and(groupMembership.status.eq(MembershipStatus.APPROVED))
 			)
 			.fetch()
