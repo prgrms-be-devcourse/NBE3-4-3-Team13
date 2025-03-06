@@ -126,7 +126,7 @@ public class CategoryControllerTest {
 			categoryRepository.save(category);
 		}
 
-		ResultActions resultActions = mvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/categories")
+		mvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/categories")
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -151,7 +151,7 @@ public class CategoryControllerTest {
 			categoryRepository.save(category);
 		}
 
-		ResultActions resultActions = mvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/categories?page=1")
+		mvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/categories?page=1")
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -203,7 +203,7 @@ public class CategoryControllerTest {
 			.build();
 		categoryRepository.save(category);
 
-		ResultActions resultActions = mvc.perform(MockMvcRequestBuilders.delete("/api/v1/admin/categories/{id}", category.getId())
+		mvc.perform(MockMvcRequestBuilders.delete("/api/v1/admin/categories/{id}", category.getId())
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -230,7 +230,7 @@ public class CategoryControllerTest {
 		category1.softDelete();
 		categoryRepository.save(category1);
 
-		ResultActions resultActions = mvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/categories")
+		mvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/categories")
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
