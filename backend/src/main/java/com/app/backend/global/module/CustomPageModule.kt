@@ -1,60 +1,38 @@
-package com.app.backend.global.module;
+package com.app.backend.global.module
 
-import com.app.backend.global.annotation.CustomPageJsonSerializer;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import java.io.IOException;
-import org.springframework.data.domain.Page;
+import com.app.backend.global.annotation.CustomPageJsonSerializer
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.databind.SerializerProvider
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.databind.ser.std.StdSerializer
+import org.springframework.data.domain.Page
 
-public class CustomPageModule extends SimpleModule {
-
-    public CustomPageModule(CustomPageJsonSerializer annotation) {
-        addSerializer(Page.class, new PageSerializer(annotation));
+class CustomPageModule(annotation: CustomPageJsonSerializer) : SimpleModule() {
+    init {
+        addSerializer(Page::class.java, PageSerializer(annotation))
     }
 
-    private static class PageSerializer extends StdSerializer<Page> {
-
-        private final CustomPageJsonSerializer annotation;
-
-        private PageSerializer(CustomPageJsonSerializer annotation) {
-            super(Page.class);
-            this.annotation = annotation;
+    private class PageSerializer(private val annotation: CustomPageJsonSerializer) :
+        StdSerializer<Page<*>>(Page::class.java) {
+        override fun serialize(value: Page<*>, gen: JsonGenerator, provider: SerializerProvider) {
+            gen.run {
+                writeStartObject()
+                annotation.content.takeIf { it }?.let { writeObjectField("content", value.content) }
+                annotation.hasContent.takeIf { it }?.let { writeBooleanField("hasContent", value.hasContent()) }
+                annotation.totalPages.takeIf { it }?.let { writeNumberField("totalPages", value.totalPages) }
+                annotation.totalElements.takeIf { it }?.let { writeNumberField("totalElements", value.totalElements) }
+                annotation.numberOfElements.takeIf { it }
+                    ?.let { writeNumberField("numberOfElements", value.numberOfElements) }
+                annotation.size.takeIf { it }?.let { writeNumberField("size", value.size) }
+                annotation.number.takeIf { it }?.let { writeNumberField("number", value.number) }
+                annotation.hasPrevious.takeIf { it }?.let { writeBooleanField("hasPrevious", value.hasPrevious()) }
+                annotation.hasNext.takeIf { it }?.let { writeBooleanField("hasNext", value.hasNext()) }
+                annotation.isFirst.takeIf { it }?.let { writeBooleanField("isFirst", value.isFirst) }
+                annotation.isLast.takeIf { it }?.let { writeBooleanField("isLast", value.isLast) }
+                annotation.sort.takeIf { it }?.let { writeObjectField("sort", value.sort) }
+                annotation.empty.takeIf { it }?.let { writeBooleanField("empty", value.isEmpty) }
+                writeEndObject()
+            }
         }
-
-        @Override
-        public void serialize(Page value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-            gen.writeStartObject();
-            if (annotation.content())
-                gen.writeObjectField("content", value.getContent());
-            if (annotation.hasContent())
-                gen.writeBooleanField("hasContent", value.hasContent());
-            if (annotation.totalPages())
-                gen.writeNumberField("totalPages", value.getTotalPages());
-            if (annotation.totalElements())
-                gen.writeNumberField("totalElements", value.getTotalElements());
-            if (annotation.numberOfElements())
-                gen.writeNumberField("numberOfElements", value.getNumberOfElements());
-            if (annotation.size())
-                gen.writeNumberField("size", value.getSize());
-            if (annotation.number())
-                gen.writeNumberField("number", value.getNumber());
-            if (annotation.hasPrevious())
-                gen.writeBooleanField("hasPrevious", value.hasPrevious());
-            if (annotation.hasNext())
-                gen.writeBooleanField("hasNext", value.hasNext());
-            if (annotation.isFirst())
-                gen.writeBooleanField("isFirst", value.isFirst());
-            if (annotation.isLast())
-                gen.writeBooleanField("isLast", value.isLast());
-            if (annotation.sort())
-                gen.writeObjectField("sort", value.getSort());
-            if (annotation.empty())
-                gen.writeBooleanField("empty", value.isEmpty());
-            gen.writeEndObject();
-        }
-
     }
-
 }
