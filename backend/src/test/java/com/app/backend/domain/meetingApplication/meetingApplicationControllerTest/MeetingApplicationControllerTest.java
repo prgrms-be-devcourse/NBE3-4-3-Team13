@@ -82,9 +82,7 @@ public class MeetingApplicationControllerTest {
 		categoryRepository.deleteAll();
 		memberRepository.deleteAll();
 
-		category = categoryRepository.save(Category.builder()
-			.name("category")
-			.build());
+		category = categoryRepository.save(new Category("category"));
 
 		group = groupRepository.save(Group.builder()
 			.name("test group")
