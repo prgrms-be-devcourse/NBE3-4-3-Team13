@@ -18,7 +18,7 @@ interface MeetingApplicationRepository : JpaRepository<MeetingApplication, Long>
 
     fun findByGroup_IdAndMember_IdAndDisabled(
         groupId: Long,
-        memberId: Long,
+        memberId: Long?,
         disabled: Boolean
     ): Optional<MeetingApplication>
 }

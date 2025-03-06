@@ -7,8 +7,6 @@ import com.app.backend.domain.group.exception.GroupMembershipErrorCode
 import com.app.backend.domain.group.exception.GroupMembershipException
 import com.app.backend.domain.group.repository.GroupMembershipRepository
 import com.app.backend.domain.group.repository.GroupRepository
-import com.app.backend.domain.meetingApplication.dto.MeetingApplicationDto
-import com.app.backend.domain.meetingApplication.dto.MeetingApplicationListDto
 import com.app.backend.domain.meetingApplication.dto.MeetingApplicationReqBody
 import com.app.backend.domain.meetingApplication.dto.response.MeetingApplicationResponse
 import com.app.backend.domain.meetingApplication.entity.MeetingApplication
@@ -32,7 +30,7 @@ class MeetingApplicationService(
 ) {
 
     @Transactional
-    fun create(groupId: Long, request: MeetingApplicationReqBody, memberId: Long): MeetingApplication {
+    fun create(groupId: Long, request: MeetingApplicationReqBody, memberId: Long?): MeetingApplication {
         val group = groupRepository.findByIdAndDisabled(groupId, false)
             .orElseThrow { MeetingApplicationException(MeetingApplicationErrorCode.GROUP_NOT_FOUND) }
         val member = memberRepository.findByIdAndDisabled(memberId, false)
@@ -84,7 +82,7 @@ class MeetingApplicationService(
         }
     }
 
-    fun getMeetingApplicationById(groupId: Long, meetingApplicationId: Long, memberId: Long): MeetingApplicationResponse.Detail {
+    fun getMeetingApplicationById(groupId: Long, meetingApplicationId: Long, memberId: Long?): MeetingApplicationResponse.Detail {
         val groupLeaderMembership = groupMembershipRepository.findByGroupIdAndMemberIdAndDisabled(groupId, memberId, false)
             .orElseThrow { GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_NOT_FOUND) }
 
@@ -108,7 +106,7 @@ class MeetingApplicationService(
         )
     }
 
-    fun getMeetingApplications(groupId: Long, memberId: Long, pageable: Pageable): Page<MeetingApplicationResponse.Detail> {
+    fun getMeetingApplications(groupId: Long, memberId: Long?, pageable: Pageable): Page<MeetingApplicationResponse.Detail> {
         val groupMembership = groupMembershipRepository.findByGroupIdAndMemberIdAndDisabled(groupId, memberId, false)
             .orElseThrow { GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_NOT_FOUND) }
 

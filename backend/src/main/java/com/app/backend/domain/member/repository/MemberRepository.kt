@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 interface MemberRepository : JpaRepository<Member, Long> {
-    fun findByIdAndDisabled(id: Long, disabled: Boolean): Optional<Member>
+    fun findByIdAndDisabled(id: Long?, disabled: Boolean): Optional<Member>
 
     fun findByUsernameAndDisabled(username: String, disabled: Boolean): Optional<Member>
 

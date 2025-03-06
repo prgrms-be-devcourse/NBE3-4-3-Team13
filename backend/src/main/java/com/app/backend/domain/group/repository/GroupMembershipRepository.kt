@@ -13,7 +13,7 @@ import java.util.*
 interface GroupMembershipRepository : JpaRepository<GroupMembership, GroupMembershipId>,
     GroupMembershipRepositoryCustom {
     fun findByGroupIdAndMemberId(groupId: Long, memberId: Long): Optional<GroupMembership>
-    fun findByGroupIdAndMemberIdAndDisabled(groupId: Long, memberId: Long, disabled: Boolean): Optional<GroupMembership>
+    fun findByGroupIdAndMemberIdAndDisabled(groupId: Long, memberId: Long?, disabled: Boolean): Optional<GroupMembership>
     fun findAllByGroupId(groupId: Long): List<GroupMembership>
     fun findAllByGroupIdAndDisabled(groupId: Long, disabled: Boolean): List<GroupMembership>
     fun findAllByGroupRole(groupRole: GroupRole): List<GroupMembership>
