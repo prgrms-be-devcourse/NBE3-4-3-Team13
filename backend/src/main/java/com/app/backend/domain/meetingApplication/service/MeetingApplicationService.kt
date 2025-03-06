@@ -68,6 +68,7 @@ class MeetingApplicationService(
                     )
                 )
             }
+            .modifyContext(request.context)
     }
 
     fun validateGroupMemberLimit(groupId: Long) {
