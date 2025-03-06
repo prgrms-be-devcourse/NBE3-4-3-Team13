@@ -97,7 +97,7 @@ class PostScheduler(
         val files = postAttachmentRepository.findAllByModifiedAtAndDisabled(deleteDay, true)
 
         if (files.isNotEmpty()) {
-            val deleteFilePaths = files.map { "${fileConfig.basE_DIR}/${it.storeFilePath}" }
+            val deleteFilePaths = files.map { "${fileConfig.getBaseDir()}/${it.storeFilePath}" }
             val deleteFileIds = files.mapNotNull { it.id }
 
             postAttachmentRepository.deleteByFileIdList(deleteFileIds)

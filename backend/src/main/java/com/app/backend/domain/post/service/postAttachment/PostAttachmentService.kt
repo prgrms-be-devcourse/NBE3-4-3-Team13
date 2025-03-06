@@ -43,7 +43,7 @@ class PostAttachmentService(
         }
 
         return try {
-            val filePath: Path = Path.of(fileConfig.basE_DIR, file.storeFilePath!!)
+            val filePath: Path = Path.of(fileConfig.getBaseDir(), file.storeFilePath!!)
             val resource: Resource = UrlResource(filePath.toUri())
 
             if (!resource.exists() || !resource.isFile) {

@@ -30,7 +30,7 @@ class PostController(private val postService: PostService) {  // ✅ lateinit va
         @PathVariable id: Long,
         @AuthenticationPrincipal memberDetails: MemberDetails
     ): ApiResponse<PostRespDto.GetPostDto> {  // ✅ ApiResponse에 제네릭 명시
-        val post = postService.getPost(id, memberDetails.id)
+        val post = postService.getPost(id, memberDetails.id!!)
         return ApiResponse.of(true, HttpStatus.OK, "게시글을 성공적으로 불러왔습니다", post)
     }
 
@@ -58,7 +58,7 @@ class PostController(private val postService: PostService) {  // ✅ lateinit va
         @RequestPart(value = "file", required = false) files: Array<MultipartFile?>?,
         @AuthenticationPrincipal memberDetails: MemberDetails
     ): ApiResponse<GetPostIdDto> {  // ✅ BindingResult 제거 (Spring이 자동 처리)
-        val post = postService.savePost(memberDetails.id, savePost, files ?: emptyArray())
+        val post = postService.savePost(memberDetails.id!!, savePost, files ?: emptyArray())
         return ApiResponse.of(true, HttpStatus.OK, "게시글이 성공적으로 저장되었습니다", GetPostIdDto(post.id!!))
     }
 
@@ -69,7 +69,7 @@ class PostController(private val postService: PostService) {  // ✅ lateinit va
         @RequestPart(value = "file", required = false) files: Array<MultipartFile?>?,
         @AuthenticationPrincipal memberDetails: MemberDetails
     ): ApiResponse<GetPostIdDto> {
-        val post = postService.updatePost(memberDetails.id, id, modifyPost, files ?: emptyArray())
+        val post = postService.updatePost(memberDetails.id!!, id, modifyPost, files ?: emptyArray())
         return ApiResponse.of(true, HttpStatus.OK, "게시글이 성공적으로 수정되었습니다", GetPostIdDto(post.id!!))
     }
 
@@ -78,7 +78,7 @@ class PostController(private val postService: PostService) {  // ✅ lateinit va
         @PathVariable id: Long,
         @AuthenticationPrincipal memberDetails: MemberDetails
     ): ApiResponse<Unit> {  // ✅ `Unit`을 사용하여 명확한 반환 타입 지정
-        postService.deletePost(memberDetails.id, id)
+        postService.deletePost(memberDetails.id!!, id)
         return ApiResponse.of(true, HttpStatus.OK, "게시글이 성공적으로 삭제되었습니다")
     }
 
@@ -89,7 +89,7 @@ class PostController(private val postService: PostService) {  // ✅ lateinit va
         @PageableDefault pageable: Pageable,
         @AuthenticationPrincipal memberDetails: MemberDetails
     ): ApiResponse<Page<PostRespDto.GetPostListDto>> {
-        val posts = postService.getPostsByUser(searchPost, pageable, memberDetails.id)
+        val posts = postService.getPostsByUser(searchPost, pageable, memberDetails.id!!)
         return ApiResponse.of(true, HttpStatus.OK, "게시물 목록을 성공적으로 불러왔습니다", posts)
     }
 
@@ -98,7 +98,7 @@ class PostController(private val postService: PostService) {  // ✅ lateinit va
         @PathVariable postId: Long,
         @AuthenticationPrincipal memberDetails: MemberDetails
     ): ApiResponse<Unit> {
-        postService.PostLike(postId, memberDetails.id)
+        postService.PostLike(postId, memberDetails.id!!)
         return ApiResponse.of(true, HttpStatus.OK, "게시글 좋아요 토글 성공")
     }
 
@@ -107,7 +107,7 @@ class PostController(private val postService: PostService) {  // ✅ lateinit va
         @PathVariable postId: Long,
         @AuthenticationPrincipal memberDetails: MemberDetails
     ): ApiResponse<Boolean> {
-        val liked = postService.isLiked(postId, memberDetails.id)
+        val liked = postService.isLiked(postId, memberDetails.id!!)
         return ApiResponse.of(true, HttpStatus.OK, "좋아요 여부 확인 성공", liked)
     }
 }
