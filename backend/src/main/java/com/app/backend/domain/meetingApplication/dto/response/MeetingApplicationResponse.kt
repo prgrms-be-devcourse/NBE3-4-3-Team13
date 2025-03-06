@@ -1,6 +1,6 @@
 package com.app.backend.domain.meetingApplication.dto.response
 
-import com.app.backend.domain.meetingApplication.entity.MeetingApplication
+import com.app.backend.domain.chat.room.controller.MeetingApplication
 import com.app.backend.global.util.AppUtil
 
 object MeetingApplicationResponse {

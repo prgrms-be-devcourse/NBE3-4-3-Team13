@@ -1,6 +1,6 @@
 package com.app.backend.domain.meetingApplication.dto
 
-import com.app.backend.domain.meetingApplication.entity.MeetingApplication
+import com.app.backend.domain.chat.room.controller.MeetingApplication
 
 data class MeetingApplicationDto(
     val id: Long,

@@ -1,5 +1,6 @@
 package com.app.backend.domain.meetingApplication.entity
 
+import com.app.backend.domain.chat.room.controller.MeetingApplication
 import com.app.backend.domain.group.entity.Group
 import com.app.backend.domain.member.entity.Member
 import com.app.backend.global.entity.BaseEntity
@@ -25,7 +26,7 @@ class MeetingApplication (
     @Column(name = "meeting_application_id")
     val id: Long? = null
 
-    fun modifyContext(newContext: String): MeetingApplication {
+    fun modifyContext(newContext: String): com.app.backend.domain.meetingApplication.entity.MeetingApplication {
         if (context != newContext) context = newContext
         return this
     }
