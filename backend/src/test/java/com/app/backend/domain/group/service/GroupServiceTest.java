@@ -1,6 +1,5 @@
 package com.app.backend.domain.group.service;
 
-import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.chat.room.entity.ChatRoom;
 import com.app.backend.domain.group.dto.request.GroupRequest;
 import com.app.backend.domain.group.dto.response.GroupResponse;

@@ -6,7 +6,6 @@ import com.app.backend.domain.group.entity.*;
 import com.app.backend.domain.group.repository.GroupMembershipRepository;
 import com.app.backend.domain.group.repository.GroupRepository;
 import com.app.backend.domain.member.entity.Member;
-import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.domain.post.dto.req.PostReqDto;
 import com.app.backend.domain.post.dto.resp.PostRespDto;
 import com.app.backend.domain.post.entity.Post;
@@ -39,7 +38,6 @@ import java.io.File;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
