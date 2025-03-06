@@ -1,38 +1,19 @@
-package com.app.backend.global.annotation;
+package com.app.backend.global.annotation
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface CustomPageJsonSerializer {
-
-    boolean content() default true;
-
-    boolean hasContent() default true;
-
-    boolean totalPages() default true;
-
-    boolean totalElements() default true;
-
-    boolean numberOfElements() default true;
-
-    boolean size() default true;
-
-    boolean number() default true;
-
-    boolean hasPrevious() default true;
-
-    boolean hasNext() default true;
-
-    boolean isFirst() default true;
-
-    boolean isLast() default true;
-
-    boolean sort() default true;
-
-    boolean empty() default true;
-
-}
+@Target(AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class CustomPageJsonSerializer(
+    val content: Boolean = true,
+    val hasContent: Boolean = true,
+    val totalPages: Boolean = true,
+    val totalElements: Boolean = true,
+    val numberOfElements: Boolean = true,
+    val size: Boolean = true,
+    val number: Boolean = true,
+    val hasPrevious: Boolean = true,
+    val hasNext: Boolean = true,
+    val isFirst: Boolean = true,
+    val isLast: Boolean = true,
+    val sort: Boolean = true,
+    val empty: Boolean = true
+)
