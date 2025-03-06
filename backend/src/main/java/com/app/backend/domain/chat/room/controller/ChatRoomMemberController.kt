@@ -1,4 +1,4 @@
-package com.app.backend.domain.meetingApplication.entity
+package com.app.backend.domain.chat.room.controller
 
 import com.app.backend.domain.group.entity.Group
 import com.app.backend.domain.member.entity.Member
