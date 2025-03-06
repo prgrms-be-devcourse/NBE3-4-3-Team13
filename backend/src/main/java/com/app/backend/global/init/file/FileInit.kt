@@ -1,27 +1,23 @@
-package com.app.backend.global.init.file;
+package com.app.backend.global.init.file
 
-import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import java.io.File;
+import jakarta.annotation.PostConstruct
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
+import java.io.File
 
 @Component
-public class FileInit {
-
-    @Value("${spring.file.base-dir}")
-    private String BASE_DIR;
-
+class FileInit(
+    @Value("\${spring.file.base-dir}") private val BASE_DIR: String
+) {
     @PostConstruct
-    public void init() {
-        File uploadDir = new File(BASE_DIR);
+    fun init() {
+        val uploadDir = File(BASE_DIR)
 
         if (!uploadDir.exists()) {
-            boolean created = uploadDir.mkdirs();
+            val created = uploadDir.mkdirs()
             if (created) {
-                System.out.println("Upload directory created at: " + uploadDir.getAbsolutePath());
+                println("Upload directory created at: " + uploadDir.absolutePath)
             }
         }
-
     }
 }
