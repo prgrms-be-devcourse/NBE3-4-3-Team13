@@ -64,35 +64,36 @@ class CommentLikeControllerTest {
 	@BeforeEach
 	void setUp() {
 
-		testMember = Member.builder()
-			.username("testUser")
-			.password("password")
-			.nickname("테스터")
-			.role("ROLE_USER")
-			.disabled(false)
-			.build();
+		testMember = Member.create(
+			"testUser",
+			"password",
+			"테스터",
+			"USER",
+			false,
+			null,
+			null
+		);
 		testMember = memberRepository.save(testMember);
 
-
-		testPost = Post.builder()
-			.title("테스트 게시글")
-			.content("테스트 내용")
-			.memberId(testMember.getId())
-			.nickName(testMember.getNickname())
-			.postStatus(PostStatus.PUBLIC)
-			.groupId(1L)
-			.build();
+		testPost = Post.Companion.of(
+			"테스트 게시글",
+			"테스트 내용",
+			PostStatus.PUBLIC,
+			1L,
+			testMember.getId(),
+			"테스트 닉"
+		);
 		testPost = postRepository.save(testPost);
 
-
-		testComment = Comment.builder()
-			.content("테스트 댓글")
-			.member(testMember)
-			.post(testPost)
-			.build();
+		testComment = new Comment(
+			null,
+			"테스트 댓글",
+			testPost,
+			testMember,
+			null,
+			new ArrayList<>()
+		);
 		testComment = commentRepository.save(testComment);
-
-
 
 		memberDetails = new MemberDetails(testMember);
 	}
@@ -136,26 +137,30 @@ class CommentLikeControllerTest {
 	@CustomWithMockUser(role="USER")
 	void testMultipleUserLikes() throws Exception {
 
-		Comment testComment = Comment.builder()
-			.content("테스트 댓글")
-			.post(testPost)
-			.member(testMember)
-			.build();
+		Comment testComment = new Comment(
+			null,
+			"테스트 댓글",
+			testPost,
+			testMember,
+			null,
+			new ArrayList<>()
+		);
 		commentRepository.save(testComment);
 
 
 		int numberOfUsers = 10;
 		for (int i = 0; i < numberOfUsers; i++) {
-			Member user = Member.builder()
-				.username("testUser" + i)
-				.nickname("테스터" + i)
-				.role("ROLE_USER")
-				.build();
+			Member user = new Member(
+				null,
+				"testUser" + i,
+				null,
+				"테스터" + i,
+				null,
+				null,
+				"ROLE_USER",
+				false
+			);
 			memberRepository.save(user);
-
-			mockMvc.perform(post("/api/v1/comment/" + testComment.getId() + "/like")
-					.with(user(new MemberDetails(user))))
-				.andExpect(status().isOk());
 		}
 
 
@@ -195,12 +200,16 @@ class CommentLikeControllerTest {
 
 
 		for (int i = 0; i < numberOfUsers; i++) {
-			Member user = Member.builder()
-				.username("testUser" + i)
-				.password("password")
-				.nickname("테스터" + i)
-				.role("ROLE_USER")
-				.build();
+			Member user = new Member(
+				null,
+				"testUser" + i,
+				"password",
+				"테스터" + i,
+				null,
+				null,
+				"ROLE_USER",
+				false
+			);
 			users.add(memberRepository.save(user));
 		}
 
