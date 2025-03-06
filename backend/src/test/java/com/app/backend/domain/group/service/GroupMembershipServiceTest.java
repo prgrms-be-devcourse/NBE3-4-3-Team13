@@ -3,6 +3,8 @@ package com.app.backend.domain.group.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.app.backend.config.TestKafkaConfig;
+import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.group.entity.Group;
 import com.app.backend.domain.group.entity.GroupMembership;
 import com.app.backend.domain.group.entity.GroupMembershipId;
@@ -15,29 +17,18 @@ import com.app.backend.domain.group.exception.GroupMembershipErrorCode;
 import com.app.backend.domain.group.exception.GroupMembershipException;
 import com.app.backend.domain.group.supporter.SpringBootTestSupporter;
 import com.app.backend.domain.member.entity.Member;
+import com.app.backend.domain.member.entity.Member.Provider;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import com.app.backend.config.TestKafkaConfig;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @Transactional
 @Import(TestKafkaConfig.class)
 class GroupMembershipServiceTest extends SpringBootTestSupporter {
-
-    private Category category;
-
-    @BeforeEach
-    void beforeEach() {
-        category = Category.builder()
-                           .name("category")
-                           .build();
-        em.persist(category);
-    }
 
     @AfterEach
     void afterEach() {
@@ -49,44 +40,43 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 Member ID 2개(모임 관리자, 모임 참가 신청자)로 모임 신청을 허가")
     void approveJoining_acceptTrue() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
+
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberLeader);
         em.persist(memberParticipant);
         Long leaderId  = memberLeader.getId();
         Long joiningId = memberParticipant.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupLeaderMembership = GroupMembership.builder()
-                                                               .member(memberLeader)
-                                                               .group(group)
-                                                               .groupRole(GroupRole.LEADER)
-                                                               .build();
-        GroupMembership groupJoiningMembership = GroupMembership.builder()
-                                                                .member(memberParticipant)
-                                                                .group(group)
-                                                                .groupRole(GroupRole.PARTICIPANT)
-                                                                .build();
+        GroupMembership groupLeaderMembership = GroupMembership.Companion.of(memberLeader, group, GroupRole.LEADER);
+        GroupMembership groupJoiningMembership =
+                GroupMembership.Companion.of(memberParticipant, group, GroupRole.PARTICIPANT);
         em.persist(groupLeaderMembership);
         em.persist(groupJoiningMembership);
         afterEach();
@@ -96,10 +86,8 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
         afterEach();
 
         //Then
-        GroupMembership updatedGroupMembership = em.find(GroupMembership.class, GroupMembershipId.builder()
-                                                                                                 .memberId(joiningId)
-                                                                                                 .groupId(groupId)
-                                                                                                 .build());
+        GroupMembership updatedGroupMembership =
+                em.find(GroupMembership.class, new GroupMembershipId(joiningId, groupId));
 
         assertThat(flag).isTrue();
         assertThat(updatedGroupMembership.getStatus()).isEqualTo(MembershipStatus.APPROVED);
@@ -109,44 +97,42 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 Member ID 2개(모임 관리자, 모임 참가 신청자)로 모임 신청을 거부")
     void approveJoining_acceptFalse() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberLeader);
         em.persist(memberParticipant);
         Long leaderId  = memberLeader.getId();
         Long joiningId = memberParticipant.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupLeaderMembership = GroupMembership.builder()
-                                                               .member(memberLeader)
-                                                               .group(group)
-                                                               .groupRole(GroupRole.LEADER)
-                                                               .build();
-        GroupMembership groupJoiningMembership = GroupMembership.builder()
-                                                                .member(memberParticipant)
-                                                                .group(group)
-                                                                .groupRole(GroupRole.PARTICIPANT)
-                                                                .build();
+        GroupMembership groupLeaderMembership = GroupMembership.Companion.of(memberLeader, group, GroupRole.LEADER);
+        GroupMembership groupJoiningMembership =
+                GroupMembership.Companion.of(memberParticipant, group, GroupRole.PARTICIPANT);
         em.persist(groupLeaderMembership);
         em.persist(groupJoiningMembership);
         afterEach();
@@ -156,10 +142,8 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
         afterEach();
 
         //Then
-        GroupMembership updatedGroupMembership = em.find(GroupMembership.class, GroupMembershipId.builder()
-                                                                                                 .memberId(joiningId)
-                                                                                                 .groupId(groupId)
-                                                                                                 .build());
+        GroupMembership updatedGroupMembership =
+                em.find(GroupMembership.class, new GroupMembershipId(joiningId, groupId));
 
         assertThat(flag).isFalse();
         assertThat(updatedGroupMembership.getStatus()).isEqualTo(MembershipStatus.REJECTED);
@@ -169,16 +153,20 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[예외] 존재하지 않는 Group ID로 모임 신청 허가/거부 시도")
     void approveJoining_unknownGroupId() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberLeader);
         em.persist(memberParticipant);
         Long leaderId  = memberLeader.getId();
@@ -202,44 +190,42 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[예외] 모임의 모집 상태가 닫혀있을 때 모임 신청 허가/거부 시도")
     void approveJoining_closedGroup() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberLeader);
         em.persist(memberParticipant);
         Long leaderId  = memberLeader.getId();
         Long joiningId = memberParticipant.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupLeaderMembership = GroupMembership.builder()
-                                                               .member(memberLeader)
-                                                               .group(group)
-                                                               .groupRole(GroupRole.LEADER)
-                                                               .build();
-        GroupMembership groupJoiningMembership = GroupMembership.builder()
-                                                                .member(memberParticipant)
-                                                                .group(group)
-                                                                .groupRole(GroupRole.PARTICIPANT)
-                                                                .build();
+        GroupMembership groupLeaderMembership = GroupMembership.Companion.of(memberLeader, group, GroupRole.LEADER);
+        GroupMembership groupJoiningMembership =
+                GroupMembership.Companion.of(memberParticipant, group, GroupRole.PARTICIPANT);
         em.persist(groupLeaderMembership);
         em.persist(groupJoiningMembership);
 
@@ -261,44 +247,42 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[예외] 모임이 최대 가입 한도에 도달한 상태에서 모임 신청 허가/거부 시도")
     void approveJoining_maximumMembers() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberLeader);
         em.persist(memberParticipant);
         Long leaderId  = memberLeader.getId();
         Long joiningId = memberParticipant.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(1)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         1,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupLeaderMembership = GroupMembership.builder()
-                                                               .member(memberLeader)
-                                                               .group(group)
-                                                               .groupRole(GroupRole.LEADER)
-                                                               .build();
-        GroupMembership groupJoiningMembership = GroupMembership.builder()
-                                                                .member(memberParticipant)
-                                                                .group(group)
-                                                                .groupRole(GroupRole.PARTICIPANT)
-                                                                .build();
+        GroupMembership groupLeaderMembership = GroupMembership.Companion.of(memberLeader, group, GroupRole.LEADER);
+        GroupMembership groupJoiningMembership =
+                GroupMembership.Companion.of(memberParticipant, group, GroupRole.PARTICIPANT);
         em.persist(groupLeaderMembership);
         em.persist(groupJoiningMembership);
         afterEach();
@@ -318,44 +302,43 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[예외] 모임 가입 신청 승인/거절을 모임의 관리자 권한이 없는 회원이 시도")
     void approveJoining_notALeader() {
         //Given
-        Member memberFakeLeader = Member.builder()
-                                        .username("testUsernameLeader")
-                                        .password("testPasswordLeader")
-                                        .nickname("testNicknameLeader")
-                                        .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member memberFakeLeader = Member.create("testUsernameLeader",
+                                                "testPasswordLeader",
+                                                "testNicknameLeader",
+                                                "ROLE_USER",
+                                                false,
+                                                Provider.LOCAL,
+                                                null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberFakeLeader);
         em.persist(memberParticipant);
         Long fakeLeaderId = memberFakeLeader.getId();
         Long joiningId    = memberParticipant.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupFakeLeaderMembership = GroupMembership.builder()
-                                                                   .member(memberFakeLeader)
-                                                                   .group(group)
-                                                                   .groupRole(GroupRole.PARTICIPANT)
-                                                                   .build();
-        GroupMembership groupJoiningMembership = GroupMembership.builder()
-                                                                .member(memberParticipant)
-                                                                .group(group)
-                                                                .groupRole(GroupRole.PARTICIPANT)
-                                                                .build();
+        GroupMembership groupFakeLeaderMembership =
+                GroupMembership.Companion.of(memberFakeLeader, group, GroupRole.PARTICIPANT);
+        GroupMembership groupJoiningMembership =
+                GroupMembership.Companion.of(memberParticipant, group, GroupRole.PARTICIPANT);
         em.persist(groupFakeLeaderMembership);
         em.persist(groupJoiningMembership);
         afterEach();
@@ -375,44 +358,42 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[예외] 모임 가입을 희망하는 회원이 이미 가입/탈퇴한 상태인 경우")
     void approveJoining_unacceptableStatus() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberLeader);
         em.persist(memberParticipant);
         Long leaderId  = memberLeader.getId();
         Long joiningId = memberParticipant.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupLeaderMembership = GroupMembership.builder()
-                                                               .member(memberLeader)
-                                                               .group(group)
-                                                               .groupRole(GroupRole.LEADER)
-                                                               .build();
-        GroupMembership groupJoiningMembership = GroupMembership.builder()
-                                                                .member(memberParticipant)
-                                                                .group(group)
-                                                                .groupRole(GroupRole.PARTICIPANT)
-                                                                .build();
+        GroupMembership groupLeaderMembership = GroupMembership.Companion.of(memberLeader, group, GroupRole.LEADER);
+        GroupMembership groupJoiningMembership =
+                GroupMembership.Companion.of(memberParticipant, group, GroupRole.PARTICIPANT);
         em.persist(groupLeaderMembership);
         em.persist(groupJoiningMembership);
 
@@ -434,44 +415,42 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모임의 관리자가 모임 내 특정 회원의 권한을 변경(LEADER <-> PARTICIPANT)")
     void modifyGroupRole() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberLeader);
         em.persist(memberParticipant);
         Long leaderId = memberLeader.getId();
         Long memberId = memberParticipant.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupLeaderMembership = GroupMembership.builder()
-                                                               .member(memberLeader)
-                                                               .group(group)
-                                                               .groupRole(GroupRole.LEADER)
-                                                               .build();
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .member(memberParticipant)
-                                                         .group(group)
-                                                         .groupRole(GroupRole.PARTICIPANT)
-                                                         .build();
+        GroupMembership groupLeaderMembership = GroupMembership.Companion.of(memberLeader, group, GroupRole.LEADER);
+        GroupMembership groupMembership =
+                GroupMembership.Companion.of(memberParticipant, group, GroupRole.PARTICIPANT);
         em.persist(groupLeaderMembership);
         em.persist(groupMembership);
 
@@ -483,10 +462,8 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
         afterEach();
 
         //Then
-        GroupMembership updatedGroupMembership = em.find(GroupMembership.class, GroupMembershipId.builder()
-                                                                                                 .groupId(groupId)
-                                                                                                 .memberId(memberId)
-                                                                                                 .build());
+        GroupMembership updatedGroupMembership =
+                em.find(GroupMembership.class, new GroupMembershipId(memberId, groupId));
 
         assertThat(updatedGroupMembership.getGroupRole()).isNotEqualTo(GroupRole.PARTICIPANT);
         assertThat(updatedGroupMembership.getGroupRole()).isEqualTo(GroupRole.LEADER);
@@ -496,16 +473,20 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[예외] 존재하지 않는 Group ID로 회원 권한 변경 시도")
     void modifyGroupRole_unknownGroupId() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberLeader);
         em.persist(memberParticipant);
         Long leaderId = memberLeader.getId();
@@ -529,43 +510,41 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[예외] 존재하지 않는 Member ID(모임 관리자)로 회원 권한 변경 시도")
     void modifyGroupRole_unknownLeaderId() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberLeader);
         em.persist(memberParticipant);
         Long memberId = memberParticipant.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupLeaderMembership = GroupMembership.builder()
-                                                               .member(memberLeader)
-                                                               .group(group)
-                                                               .groupRole(GroupRole.LEADER)
-                                                               .build();
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .member(memberParticipant)
-                                                         .group(group)
-                                                         .groupRole(GroupRole.PARTICIPANT)
-                                                         .build();
+        GroupMembership groupLeaderMembership = GroupMembership.Companion.of(memberLeader, group, GroupRole.LEADER);
+        GroupMembership groupMembership =
+                GroupMembership.Companion.of(memberParticipant, group, GroupRole.PARTICIPANT);
         em.persist(groupLeaderMembership);
         em.persist(groupMembership);
 
@@ -589,44 +568,43 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[예외] 모임 내 회원 권한 변경을 모임의 관리자 권한이 없는 회원이 시도")
     void modifyGroupRole_notALeader() {
         //Given
-        Member memberFakeLeader = Member.builder()
-                                        .username("testUsernameLeader")
-                                        .password("testPasswordLeader")
-                                        .nickname("testNicknameLeader")
-                                        .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member memberFakeLeader = Member.create("testUsernameLeader",
+                                                "testPasswordLeader",
+                                                "testNicknameLeader",
+                                                "ROLE_USER",
+                                                false,
+                                                Provider.LOCAL,
+                                                null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberFakeLeader);
         em.persist(memberParticipant);
         Long fakeLeaderId = memberFakeLeader.getId();
         Long memberId     = memberParticipant.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupFakeLeaderMembership = GroupMembership.builder()
-                                                                   .member(memberFakeLeader)
-                                                                   .group(group)
-                                                                   .groupRole(GroupRole.PARTICIPANT)
-                                                                   .build();
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .member(memberParticipant)
-                                                         .group(group)
-                                                         .groupRole(GroupRole.PARTICIPANT)
-                                                         .build();
+        GroupMembership groupFakeLeaderMembership =
+                GroupMembership.Companion.of(memberFakeLeader, group, GroupRole.PARTICIPANT);
+        GroupMembership groupMembership =
+                GroupMembership.Companion.of(memberParticipant, group, GroupRole.PARTICIPANT);
         em.persist(groupFakeLeaderMembership);
         em.persist(groupMembership);
         afterEach();
@@ -646,43 +624,41 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[예외] 존재하지 않는 Member ID(모임 회원)의 회원 권한 변경 시도")
     void modifyGroupRole_unknownMemberId() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberLeader);
         em.persist(memberParticipant);
         Long leaderId = memberLeader.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupLeaderMembership = GroupMembership.builder()
-                                                               .member(memberLeader)
-                                                               .group(group)
-                                                               .groupRole(GroupRole.LEADER)
-                                                               .build();
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .member(memberParticipant)
-                                                         .group(group)
-                                                         .groupRole(GroupRole.PARTICIPANT)
-                                                         .build();
+        GroupMembership groupLeaderMembership = GroupMembership.Companion.of(memberLeader, group, GroupRole.LEADER);
+        GroupMembership groupMembership =
+                GroupMembership.Companion.of(memberParticipant, group, GroupRole.PARTICIPANT);
         em.persist(groupLeaderMembership);
         em.persist(groupMembership);
 
@@ -706,44 +682,42 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[예외] 모임 가입 상태가 아닌 회원의 모임 권한을 변경 시도")
     void modifyGroupRole_notChangeableState() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberLeader);
         em.persist(memberParticipant);
         Long leaderId = memberLeader.getId();
         Long memberId = memberParticipant.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupLeaderMembership = GroupMembership.builder()
-                                                               .member(memberLeader)
-                                                               .group(group)
-                                                               .groupRole(GroupRole.LEADER)
-                                                               .build();
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .member(memberParticipant)
-                                                         .group(group)
-                                                         .groupRole(GroupRole.PARTICIPANT)
-                                                         .build();
+        GroupMembership groupLeaderMembership = GroupMembership.Companion.of(memberLeader, group, GroupRole.LEADER);
+        GroupMembership groupMembership =
+                GroupMembership.Companion.of(memberParticipant, group, GroupRole.PARTICIPANT);
         em.persist(groupLeaderMembership);
         em.persist(groupMembership);
         afterEach();
@@ -763,43 +737,41 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모임에서 탈퇴")
     void leaveGroup() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberLeader);
         em.persist(memberParticipant);
         Long memberId = memberParticipant.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupLeaderMembership = GroupMembership.builder()
-                                                               .member(memberLeader)
-                                                               .group(group)
-                                                               .groupRole(GroupRole.LEADER)
-                                                               .build();
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .member(memberParticipant)
-                                                         .group(group)
-                                                         .groupRole(GroupRole.PARTICIPANT)
-                                                         .build();
+        GroupMembership groupLeaderMembership = GroupMembership.Companion.of(memberLeader, group, GroupRole.LEADER);
+        GroupMembership groupMembership =
+                GroupMembership.Companion.of(memberParticipant, group, GroupRole.PARTICIPANT);
         em.persist(groupLeaderMembership);
         em.persist(groupMembership);
 
@@ -811,10 +783,7 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
         afterEach();
 
         //Then
-        GroupMembership leaveGroupMembership = em.find(GroupMembership.class, GroupMembershipId.builder()
-                                                                                               .groupId(groupId)
-                                                                                               .memberId(memberId)
-                                                                                               .build());
+        GroupMembership leaveGroupMembership = em.find(GroupMembership.class, new GroupMembershipId(memberId, groupId));
 
         assertThat(flag).isTrue();
         assertThat(leaveGroupMembership.getStatus()).isEqualTo(MembershipStatus.LEAVE);
@@ -824,16 +793,20 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[예외] 존재하지 않는 Group ID로 모임 탈퇴 시도")
     void leaveGroup_unknownGroupId() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
-        Member memberParticipant = Member.builder()
-                                         .username("testUsernameParticipant")
-                                         .password("testPasswordParticipant")
-                                         .nickname("testNicknameParticipant")
-                                         .build();
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
+        Member memberParticipant = Member.create("testUsernameParticipant",
+                                                 "testPasswordParticipant",
+                                                 "testNicknameParticipant",
+                                                 "ROLE_USER",
+                                                 false,
+                                                 Provider.LOCAL,
+                                                 null);
         em.persist(memberLeader);
         em.persist(memberParticipant);
         Long memberId = memberParticipant.getId();
@@ -856,16 +829,17 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[예외] 존재하지 않는 Member ID로 모임 탈퇴 시도")
     void leaveGroup_unknownMemberId() {
         //Given
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
         afterEach();
@@ -886,32 +860,31 @@ class GroupMembershipServiceTest extends SpringBootTestSupporter {
     @DisplayName("[예외] 모임 관리자가 1명뿐인 모임에서 관리자가 탈퇴를 시도하는 경우")
     void leaveGroup_unableToLeave() {
         //Given
-        Member memberLeader = Member.builder()
-                                    .username("testUsernameLeader")
-                                    .password("testPasswordLeader")
-                                    .nickname("testNicknameLeader")
-                                    .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member memberLeader = Member.create("testUsernameLeader",
+                                            "testPasswordLeader",
+                                            "testNicknameLeader",
+                                            "ROLE_USER",
+                                            false,
+                                            Provider.LOCAL,
+                                            null);
         em.persist(memberLeader);
         Long leaderId = memberLeader.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupLeaderMembership = GroupMembership.builder()
-                                                               .member(memberLeader)
-                                                               .group(group)
-                                                               .groupRole(GroupRole.LEADER)
-                                                               .build();
+        GroupMembership groupLeaderMembership = GroupMembership.Companion.of(memberLeader, group, GroupRole.LEADER);
         em.persist(groupLeaderMembership);
         afterEach();
 
