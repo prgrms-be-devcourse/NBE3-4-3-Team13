@@ -2,6 +2,7 @@ package com.app.backend.domain.group.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.group.entity.Group;
 import com.app.backend.domain.group.entity.RecruitStatus;
 import com.app.backend.domain.group.supporter.SpringBootTestSupporter;
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
@@ -19,16 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class GroupRepositoryTest extends SpringBootTestSupporter {
-
-    private Category category;
-
-    @BeforeEach
-    void beforeEach() {
-        category = Category.builder()
-                           .name("category")
-                           .build();
-        em.persist(category);
-    }
 
     @AfterEach
     void afterEach() {
@@ -40,16 +30,17 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group 엔티티 저장")
     void save() {
         //Given
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
 
         //When
         Long id = groupRepository.save(group).getId();
@@ -72,16 +63,17 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] ID로 Group 엔티티 조회")
     void findById() {
         //Given
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long id = group.getId();
         afterEach();
@@ -118,16 +110,17 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] ID와 Disabled = false로 Group 엔티티 조회")
     void findByIdAndDisabled() {
         //Given
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long id = group.getId();
         afterEach();
@@ -151,16 +144,17 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] ID와 Disabled = true로 Group 엔티티 조회")
     void findByIdAndDisabled_disabled() {
         //Given
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long id = group.getId();
         afterEach();
@@ -189,19 +183,20 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Diabled = false로 Group 엔티티 목록 조회")
     void findAllListByDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -230,18 +225,19 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] Diabled = true로 Group 엔티티 목록 조회")
     void findAllListByDisabled_disabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int size = 20;
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             em.persist(group);
         }
         afterEach();
@@ -257,19 +253,20 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Diabled = false로 Group 엔티티 페이징 목록 조회")
     void findAllPageByDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -302,18 +299,19 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] Diabled = true로 Group 엔티티 페이징 목록 조회")
     void findAllPageByDisabled_disabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int size = 20;
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             em.persist(group);
         }
         Pageable pageable = PageRequest.of(0, 10);
@@ -330,19 +328,20 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모임 이름과 Diabled = false로 Group 엔티티 목록 조회")
     void findAllListByNameContainingAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -375,18 +374,19 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] 알 수 없는 모임 이름과 Disabled = false로 Gruop 엔티티 목록 조회")
     void findAllListByNameContainingAndDisabled_unknownName() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int size = 20;
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             em.persist(group);
         }
         afterEach();
@@ -404,18 +404,19 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] 모임 이름과 Disabled = true로 Gruop 엔티티 목록 조회")
     void findAllListByNameContainingAndDisabled_disabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int size = 20;
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             em.persist(group);
         }
         afterEach();
@@ -433,19 +434,20 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모임 이름과 Diabled로 Group 엔티티 페이징 목록 조회")
     void findAllPageByNameContainingAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -480,18 +482,19 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] 알 수 없는 모임 이름과 Disabled = false로 Gruop 엔티티 페이징 목록 조회")
     void findAllPageByNameContainingAndDisabled_unknownName() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int size = 20;
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             em.persist(group);
         }
         Pageable pageable = PageRequest.of(0, 10);
@@ -512,18 +515,19 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] 모임 이름과 Disabled = true Gruop 엔티티 페이징 목록 조회")
     void findAllPageByNameContainingAndDisabled_disabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int size = 20;
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             em.persist(group);
         }
         Pageable pageable = PageRequest.of(0, 10);
@@ -544,19 +548,20 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 상세 주소와 Disabled로 Group 엔티티 목록 조회")
     void findAllListByRegionAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -593,19 +598,20 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 상세 주소와 Disabled로 Group 엔티티 페이징 목록 조회")
     void findAllPageByRegionAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -644,19 +650,20 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모임 이름, 상세 주소와 Disabled로 Group 엔티티 목록 조회")
     void findAllListByNameContainingAndRegionAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -695,19 +702,20 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모임 이름, 상세 주소와 Disabled로 Group 엔티티 페이징 목록 조회")
     void findAllPageByNameContainingAndRegionAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -749,21 +757,21 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 카테고리명으로 Group 엔티티 목록 조회")
     void findAllListByCategory_Name() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
         String categoryName = category.getName();
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -794,21 +802,21 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 카테고리명으로 Group 엔티티 페이징 목록 조회")
     void findAllPageByCategory_Name() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
         String categoryName = category.getName();
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -841,21 +849,21 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 카테고리명과 Disabled로 Group 엔티티 목록 조회")
     void findAllListByCategory_NameAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
         String categoryName = category.getName();
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -887,21 +895,21 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 카테고리명과 Disabled로 Group 엔티티 페이징 목록 조회")
     void findAllPageByCategory_NameAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
         String categoryName = category.getName();
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -937,21 +945,21 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 카테고리명, 모임 이름과 Disabled로 Group 엔티티 목록 조회")
     void findAllListByCategory_NameAndNameContainingAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
         String categoryName = category.getName();
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -988,21 +996,21 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 카테고리명, 모임 이름과 Disabled로 Group 엔티티 페이징 목록 조회")
     void findAllPageByCategory_NameAndNameContainingAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
         String categoryName = category.getName();
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -1042,21 +1050,21 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 카테고리명, 모임 이름과 상세 주소, Disabled로 Group 엔티티 목록 조회")
     void findAllListByCategoryAndNameContainingAndRegion() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
         String categoryName = category.getName();
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -1101,21 +1109,21 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 카테고리명, 모임 이름과 상세 주소, Disabled로 Group 엔티티 페이징 목록 조회")
     void findAllPageByCategoryAndNameContainingAndRegion() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
         String categoryName = category.getName();
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -1163,21 +1171,21 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 카테고리명, 모집 상태, 모임 이름과 상세 주소, Disabled로 Group 엔티티 목록 조회")
     void findAllListByCategoryAndRecruitStatusAndNameContainingAndRegion() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
         String categoryName = category.getName();
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -1225,21 +1233,21 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 카테고리명, 모집 상태, 모임 이름과 상세 주소, Disabled로 Group 엔티티 페이징 목록 조회")
     void findAllPageByCategoryAndRecruitStatusAndNameContainingAndRegion() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
         String categoryName = category.getName();
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -1290,16 +1298,17 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] ID로 Group 엔티티 조회 후 값 수정")
     void update() {
         //Given
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long id = group.getId();
         afterEach();
@@ -1338,16 +1347,17 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] ID로 Group 엔티티 Hard Delete")
     void deleteById() {
         //Given
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long id = group.getId();
         afterEach();
@@ -1365,16 +1375,17 @@ class GroupRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] ID로 Group 엔티티 조회 후 Soft Delete")
     void softDelete() {
         //Given
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long id = group.getId();
         afterEach();
