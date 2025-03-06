@@ -1,84 +1,72 @@
-package com.app.backend.global.aop;
+package com.app.backend.global.aop
 
-import com.app.backend.global.annotation.CustomLock;
-import com.app.backend.global.annotation.CustomPageJsonSerializer;
-import com.app.backend.global.dto.response.ApiResponse;
-import com.app.backend.global.util.LockKeyGenerator;
-import com.app.backend.global.util.LockManager;
-import com.app.backend.global.util.LockManager.LockWrapper;
-import com.app.backend.global.util.PageUtil;
-import java.lang.reflect.Method;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
+import com.app.backend.global.annotation.CustomLock
+import com.app.backend.global.annotation.CustomPageJsonSerializer
+import com.app.backend.global.dto.response.ApiResponse
+import com.app.backend.global.util.LockKeyGenerator
+import com.app.backend.global.util.LockManager
+import com.app.backend.global.util.PageUtil
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.aspectj.lang.ProceedingJoinPoint
+import org.aspectj.lang.annotation.Around
+import org.aspectj.lang.annotation.Aspect
+import org.aspectj.lang.reflect.MethodSignature
+import org.springframework.data.domain.Page
+import org.springframework.http.ResponseEntity
+import org.springframework.transaction.support.TransactionSynchronizationManager
 
-@Slf4j
-public class AppAspect {
+class AppAspect {
+    companion object {
+        private val log: KLogger = KotlinLogging.logger { }
 
-    @Aspect
-    public static class PageJsonSerializerAspect {
+        @Aspect
+        class PageJsonSerializerAspect {
+            @Around("@annotation(com.app.backend.global.annotation.CustomPageJsonSerializer)")
+            @Throws(Throwable::class)
+            fun execute(joinPoint: ProceedingJoinPoint): Any? {
+                val signature = joinPoint.signature as MethodSignature
+                val method = signature.method ?: return joinPoint.proceed()
+                val annotation = method.getAnnotation(CustomPageJsonSerializer::class.java)
+                    ?: return joinPoint.proceed()
 
-        @Around("@annotation(com.app.backend.global.annotation.CustomPageJsonSerializer)")
-        public Object execute(ProceedingJoinPoint joinPoint) throws Throwable {
-            MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-            Method          method    = signature.getMethod();
-            if (method == null)
-                return joinPoint.proceed();
-
-            CustomPageJsonSerializer annotation = method.getAnnotation(CustomPageJsonSerializer.class);
-            if (annotation == null)
-                return joinPoint.proceed();
-
-            Object result = joinPoint.proceed();
-
-            if (result instanceof Page<?> page)
-                return PageUtil.processPageJson(page, annotation);
-            else if (result instanceof ApiResponse<?> apiResponse)
-                return PageUtil.processApiResponse(apiResponse, annotation);
-            else if (result instanceof ResponseEntity<?> responseEntity)
-                return PageUtil.processResponseEntity(responseEntity, annotation);
-            else
-                return result;
+                return when (val result = joinPoint.proceed()) {
+                    is Page<*> -> PageUtil.processPageJson(result, annotation)
+                    is ApiResponse<*> -> PageUtil.processApiResponse(result, annotation)
+                    is ResponseEntity<*> -> PageUtil.processResponseEntity(result, annotation)
+                    else -> result
+                }
+            }
         }
 
-    }
+        @Aspect
+        class LockAspect(private val lockManager: LockManager) {
+            @Around("@annotation(customLock)")
+            @Throws(Throwable::class)
+            fun execute(joinPoint: ProceedingJoinPoint, customLock: CustomLock): Any? {
+                val lockKey = LockKeyGenerator.generateLockKey(joinPoint, customLock.key)
+                val lockWrapper = lockManager.acquireLock(
+                    lockKey,
+                    customLock.timeUnit.toMillis(customLock.maxWaitTime),
+                    customLock.timeUnit.toMillis(customLock.leaseTime)
+                )
 
-    @Aspect
-    @RequiredArgsConstructor
-    public static class LockAspect {
+                if (!lockWrapper.locked)
+                    throw RuntimeException("Failed to acquire lock: $lockKey")
 
-        private final LockManager lockManager;
+                try {
+                    val result = joinPoint.proceed()
 
-        @Around("@annotation(customLock)")
-        public Object execute(ProceedingJoinPoint joinPoint, CustomLock customLock) throws Throwable {
-            String lockKey = LockKeyGenerator.generateLockKey(joinPoint, customLock.key());
-            LockWrapper lockWrapper = lockManager.acquireLock(lockKey,
-                                                              customLock.timeUnit().toMillis(customLock.maxWaitTime()),
-                                                              customLock.timeUnit().toMillis(customLock.leaseTime()));
+                    if (TransactionSynchronizationManager.isActualTransactionActive())
+                        lockManager.registerLockReleaseAfterTransaction(lockWrapper)
+                    else lockManager.releaseLock(lockWrapper)
 
-            if (!lockWrapper.isLocked())
-                throw new RuntimeException("Failed to acquire lock: " + lockKey);
-
-            try {
-                Object result = joinPoint.proceed();
-
-                if (TransactionSynchronizationManager.isActualTransactionActive())
-                    lockManager.registerLockReleaseAfterTransaction(lockWrapper);
-                else
-                    lockManager.releaseLock(lockWrapper);
-
-                return result;
-            } catch (Throwable e) {
-                lockManager.releaseLock(lockWrapper);
-                throw e;
+                    return result
+                } catch (e: Throwable) {
+                    lockManager.releaseLock(lockWrapper)
+                    throw e
+                }
             }
         }
     }
-
 }
