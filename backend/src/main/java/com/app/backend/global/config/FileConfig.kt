@@ -13,6 +13,9 @@ class FileConfig : WebMvcConfigurer {
     @Value("\${spring.file.img-dir}")
     private lateinit var iMAGE_DIR: String
 
+    fun getBaseDir(): String = bASE_DIR
+    fun getImageDir(): String = iMAGE_DIR
+
     // 정적 리소스 방식
     override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
         registry.addResourceHandler("/images/**")
