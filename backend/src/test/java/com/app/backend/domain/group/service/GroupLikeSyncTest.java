@@ -1,5 +1,6 @@
 package com.app.backend.domain.group.service;
 
+import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.category.repository.CategoryRepository;
 import com.app.backend.domain.group.entity.Group;
 import com.app.backend.domain.group.entity.RecruitStatus;
@@ -8,6 +9,7 @@ import com.app.backend.domain.group.exception.GroupLikeException;
 import com.app.backend.domain.group.repository.GroupLikeRepository;
 import com.app.backend.domain.group.repository.GroupRepository;
 import com.app.backend.domain.member.entity.Member;
+import com.app.backend.domain.member.repository.MemberRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,18 +56,27 @@ public class GroupLikeSyncTest {
         CountDownLatch latch = new CountDownLatch(threadCount);
 
         // given
-        Category category = categoryRepository.save(Category.builder().name("카테고리").build());
-        Group group = groupRepository.save(Group.builder()
-                .name("test group")
-                .province("test province")
-                .city("test city")
-                .town("test town")
-                .description("test description")
-                .recruitStatus(RecruitStatus.RECRUITING)
-                .maxRecruitCount(300)
-                .category(category)
-                .build());
-        Member member = memberRepository.save(Member.builder().username("user0").build());
+        Category category = categoryRepository.save(new Category("카테고리"));
+        Group group = groupRepository.save(Group.Companion.of(
+                "test group",
+                "test province",
+                "test city",
+                "test town",
+                "test description",
+                RecruitStatus.RECRUITING,
+                300,
+                category
+        ));
+
+        Member member = memberRepository.save(Member.create(
+                "testUser1",
+                "password123",
+                "nickname1",
+                "USER",
+                false,
+                Member.Provider.LOCAL,
+                null
+        ));
 
         Long memberId = member.getId();
         Long groupId = group.getId();
@@ -97,20 +108,29 @@ public class GroupLikeSyncTest {
         CountDownLatch latch = new CountDownLatch(threadCount);
 
         // given
-        Category category = categoryRepository.save(Category.builder().name("카테고리").build());
-        Group group = groupRepository.save(Group.builder()
-                .name("test group")
-                .province("test province")
-                .city("test city")
-                .town("test town")
-                .description("test description")
-                .recruitStatus(RecruitStatus.RECRUITING)
-                .maxRecruitCount(300)
-                .category(category)
-                .build());
+        Category category = categoryRepository.save(new Category("카테고리"));
+
+        Group group = groupRepository.save(Group.Companion.of(
+                "test group",
+                "test province",
+                "test city",
+                "test town",
+                "test description",
+                RecruitStatus.RECRUITING,
+                300,
+                category
+        ));
 
         for (int i = 0; i < threadCount; i++) {
-            Member member = memberRepository.save(Member.builder().username("user" + i).build());
+            Member member = memberRepository.save(Member.create(
+                    "testUser" + i,
+                    "password123",
+                    "nickname" + i,
+                    "USER",
+                    false,
+                    Member.Provider.LOCAL,
+                    null
+            ));
             Long memberId = member.getId();
 
             executorService.submit(() -> {
