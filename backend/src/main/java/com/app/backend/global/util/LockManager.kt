@@ -8,68 +8,60 @@ import org.redisson.client.RedisConnectionException
 import org.springframework.stereotype.Component
 import org.springframework.transaction.support.TransactionSynchronization
 import org.springframework.transaction.support.TransactionSynchronizationManager
+import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.locks.ReentrantLock
 
 @Component
-class LockManager(
-    private val redissonClient: RedissonClient?
-) {
-    companion object {
-        private const val MAX_UNLOCK_RETRY_COUNT = 3
-        private const val RETRY_DELAY = 100L
-
-        private val localLockMap: ConcurrentMap<String, ReentrantLock> = ConcurrentHashMap<String, ReentrantLock>()
-    }
-
-    private val executorService: ExecutorService = Executors.newFixedThreadPool(10)
-    private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
+class LockManager(private val redissonClient: Optional<RedissonClient>) {
     private val log = KotlinLogging.logger {}
+    private val MAX_UNLOCK_RETRY_COUNT = 3
+    private val RETRY_DELAY = 100L
 
-    fun acquireLock(lockKey: String, maxWaitTime: Long, leaseTime: Long): LockWrapper? {
+    private val localLockMap = ConcurrentHashMap<String, ReentrantLock>()
+
+    private val executorService = Executors.newFixedThreadPool(10)
+    private val scheduler = Executors.newScheduledThreadPool(1)
+
+    fun acquireLock(lockKey: String, maxWaitTime: Long, leaseTime: Long): LockWrapper {
         val isRedisAvailable = isRedisRunning()
 
-        val redisLock: RLock? = if (isRedisAvailable) redissonClient?.getLock(lockKey) else null
+        val redisLock: RLock? = if (isRedisAvailable) redissonClient.get().getLock(lockKey) else null
         val localLock: ReentrantLock? = if (isRedisAvailable) null else getLock(lockKey)
 
-        val locked = if (isRedisAvailable) {
-            redisLock?.let { tryRedissonLock(it, maxWaitTime, leaseTime) }
-        } else {
-            localLock?.let { tryLocalLock(it, maxWaitTime) }
-        }
+        val locked = if (isRedisAvailable) tryRedissonLock(redisLock!!, maxWaitTime, leaseTime)
+        else tryLocalLock(localLock!!, maxWaitTime)
 
-        return locked?.let { LockWrapper.of(lockKey, redisLock, localLock, isRedisAvailable && locked, it) }
+        return LockWrapper.of(lockKey, redisLock, localLock, isRedisAvailable && locked, locked)
     }
 
-    fun releaseLock(lockWrapper: LockWrapper) {
-        if (lockWrapper.usingRedisLock) {
+    fun releaseLock(lockWrapper: LockWrapper) =
+        if (lockWrapper.usingRedisLock)
             lockWrapper.redisLock?.let { unlockRedissonLock(it, 0) }
-        } else {
+        else {
             lockWrapper.localLock?.let { unlockLocalLock(it) }
-            lockWrapper.localLock?.let { releaseLock(lockWrapper.lockKey, it) }
+            releaseLock(lockWrapper.lockKey, lockWrapper.localLock!!)
         }
-    }
 
-    fun registerLockReleaseAfterTransaction(lockWrapper: LockWrapper) {
+    fun registerLockReleaseAfterTransaction(lockWrapper: LockWrapper) =
         TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
             override fun afterCompletion(status: Int) {
                 releaseLock(lockWrapper)
             }
         })
-    }
 
-    private fun isRedisRunning(): Boolean {
-        return try {
-            redissonClient?.keys?.count()
+    private fun isRedisRunning() = redissonClient.map {
+        try {
+            it.keys.count()
             true
         } catch (e: RedisConnectionException) {
             log.warn(e) { "Redis server is not available. Switching to local lock" }
             false
         }
-    }
+    }.orElse(false)
 
-    private fun tryRedissonLock(lock: RLock, maxWaitTime: Long, leaseTime: Long): Boolean {
-        return try {
+    private fun tryRedissonLock(lock: RLock, maxWaitTime: Long, leaseTime: Long) =
+        try {
             CompletableFuture.supplyAsync({
                 var baseDelay = 100L
                 var elapsedTime = 0L
@@ -98,10 +90,9 @@ class LockManager(
             log.error(e) { "Execution exception occurred" }
             false
         }
-    }
 
-    private fun tryLocalLock(lock: ReentrantLock, maxWaitTime: Long): Boolean {
-        return try {
+    private fun tryLocalLock(lock: ReentrantLock, maxWaitTime: Long) =
+        try {
             CompletableFuture.supplyAsync {
                 var baseDelay = 100L
                 var elapsedTime = 0L
@@ -130,21 +121,22 @@ class LockManager(
             log.error(e) { "Execution exception occurred" }
             false
         }
-    }
 
     private fun unlockRedissonLock(lock: RLock, retryCount: Int) {
         if (lock.isLocked && lock.isHeldByCurrentThread) {
             lock.unlockAsync().whenComplete { _, throwable ->
                 if (throwable != null) {
-                    log.warn { "${"Failed to unlock redisson lock, retrying {}/{}"} ${retryCount + 1} $MAX_UNLOCK_RETRY_COUNT" }
+                    log.warn { "Failed to unlock redisson lock, retrying ${retryCount + 1}/${MAX_UNLOCK_RETRY_COUNT}" }
                     if (retryCount < MAX_UNLOCK_RETRY_COUNT) {
-                        scheduler.schedule({ unlockRedissonLock(lock, retryCount + 1) }, RETRY_DELAY, TimeUnit.MILLISECONDS)
-                    } else {
+                        scheduler.schedule(
+                            { unlockRedissonLock(lock, retryCount + 1) },
+                            RETRY_DELAY,
+                            TimeUnit.MILLISECONDS
+                        )
+                    } else
                         forceUnlockRedissonLock(lock)
-                    }
-                } else {
+                } else
                     log.info { "Redisson lock successfully unlocked" }
-                }
             }
         }
     }
@@ -153,9 +145,8 @@ class LockManager(
         if (lock.isLocked && lock.isHeldByCurrentThread) {
             lock.forceUnlock()
             log.warn { "Redisson lock forcefully unlocked after max retries" }
-        } else {
+        } else
             log.warn { "Skipping force unlock, lock is not held by current thread" }
-        }
     }
 
     private fun unlockLocalLock(lock: ReentrantLock) {
@@ -176,9 +167,8 @@ class LockManager(
     }
 
     private fun releaseLock(key: String, lock: ReentrantLock) {
-        if (!lock.hasQueuedThreads()) {
+        if (!lock.hasQueuedThreads())
             localLockMap.remove(key)
-        }
     }
 
     @PreDestroy
@@ -218,17 +208,7 @@ class LockManager(
                 localLock: ReentrantLock?,
                 usingRedisLock: Boolean,
                 locked: Boolean
-            ): LockWrapper {
-                return LockWrapper(lockKey, redisLock, localLock, usingRedisLock, locked)
-            }
-        }
-
-        fun isLocked(): Boolean {
-            return if (usingRedisLock) {
-                redisLock?.isLocked ?: false
-            } else {
-                localLock?.isLocked ?: false
-            }
+            ) = LockWrapper(lockKey, redisLock, localLock, usingRedisLock, locked)
         }
     }
 }

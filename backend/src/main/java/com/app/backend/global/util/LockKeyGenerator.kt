@@ -9,58 +9,50 @@ import java.lang.reflect.Array
 import java.time.LocalDateTime
 import java.util.*
 
-object LockKeyGenerator {
-    private val PARSER: ExpressionParser = SpelExpressionParser()
+class LockKeyGenerator {
+    companion object {
+        private val parser: ExpressionParser = SpelExpressionParser()
 
-    @JvmStatic
-    fun generateLockKey(joinPoint: ProceedingJoinPoint, spelExpression: String): String {
-        val signature = joinPoint.signature as MethodSignature
-        val args = joinPoint.args
-        val method = signature.method
-        val parameterNames = signature.parameterNames
+        fun generateLockKey(joinPoint: ProceedingJoinPoint, spelExpression: String): String {
+            val signature = joinPoint.signature as MethodSignature
+            val args = joinPoint.args
+            val method = signature.method
+            val parameterNames = signature.parameterNames
 
-        val context = StandardEvaluationContext()
-        parameterNames?.forEachIndexed { index, paramName ->
-            context.setVariable(paramName, args[index])
+            val context = StandardEvaluationContext()
+            parameterNames.forEachIndexed { index, parameterName -> context.setVariable(parameterName, args[index]) }
+
+            val value = parser.parseExpression(spelExpression).getValue(context)
+                ?: throw IllegalArgumentException("Lock key cannot be null")
+
+            return "${method.name}:${convertToKey(value)}"
         }
 
-        val value = PARSER.parseExpression(spelExpression).getValue(context)
-            ?: throw IllegalArgumentException("Lock key cannot be null")
-
-        return "${method.name}:${convertToKey(value)}"
-    }
-
-    private fun convertToKey(value: Any): String = when (value) {
-        is String -> value
-        is Number, is Boolean -> value.toString()
-        is Enum<*> -> value.name
-        is LocalDateTime -> AppUtil.localDateTimeToString(value)
-        is Date -> AppUtil.DateToString(value)
-        else -> when {
-            value.javaClass.isArray -> arrayToString(value)
-            value is Collection<*> -> collectionToString(value)
-            value is Map<*, *> -> mapToString(value)
+        private fun convertToKey(value: Any): String = when (value) {
+            is String -> value
+            is Number, is Boolean -> value.toString()
+            is Enum<*> -> value.name
+            is LocalDateTime -> AppUtil.localDateTimeToString(value)
+            is Date -> AppUtil.DateToString(value)
+            is Array -> arrayToString(value)
+            is Collection<*> -> collectionToString(value)
+            is Map<*, *> -> mapToString(value)
             else -> value.toString()
         }
-    }
 
-    private fun arrayToString(array: Any): String {
-        val elements = mutableListOf<String>()
-        for (i in 0 until Array.getLength(array)) {
-            elements.add(convertToKey(Array.get(array, i)))
-        }
-        return "[${elements.joinToString(",")}]"
-    }
+        private fun arrayToString(array: Any): String =
+            (0 until Array.getLength(array)).joinToString(",", prefix = "[", postfix = "]") {
+                convertToKey(Array.get(array, it))
+            }
 
-    private fun collectionToString(collection: Collection<*>): String {
-        val elements = collection.map { convertToKey(it ?: "null") }
-        return "[${elements.joinToString(",")}]"
-    }
+        private fun collectionToString(collection: Collection<*>): String =
+            collection.joinToString(",", prefix = "[", postfix = "]") { convertToKey(it!!) }
 
-    private fun mapToString(map: Map<*, *>): String {
-        val entries = map.entries.map {
-            "${it.key?.let { it1 -> convertToKey(it1) }}=${it.value?.let { it1 -> convertToKey(it1) }}"
-        }
-        return "{${entries.joinToString(",")}}"
+        private fun mapToString(map: Map<*, *>): String =
+            map.entries.joinToString(
+                ",",
+                prefix = "[",
+                postfix = "]"
+            ) { "${convertToKey(it.key!!)}=${convertToKey(it.value!!)}" }
     }
 }
