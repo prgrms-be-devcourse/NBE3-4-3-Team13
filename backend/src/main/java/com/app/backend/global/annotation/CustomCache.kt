@@ -1,31 +1,17 @@
-package com.app.backend.global.annotation;
+package com.app.backend.global.annotation
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeUnit
 
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface CustomCache {
-
-    String prefix() default "global";
-
-    String key() default "";
-
-    String id() default "";
-
-    long ttl() default 5;
-
-    TimeUnit ttlUnit() default TimeUnit.MINUTES;
-
-    boolean viewCount() default false;
-
-    long viewCountTtl() default 5;
-
-    TimeUnit viewCountTtlUnit() default TimeUnit.MINUTES;
-
-    boolean history() default false;
-
-}
+@Target(AnnotationTarget.FUNCTION)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class CustomCache(
+    val prefix: String = "global",
+    val key: String = "",
+    val id: String = "",
+    val ttl: Long = 5,
+    val ttlUnit: TimeUnit = TimeUnit.MINUTES,
+    val viewCount: Boolean = false,
+    val viewCountTtl: Long = 5,
+    val viewCountTtlUnit: TimeUnit = TimeUnit.MINUTES,
+    val history: Boolean = false
+)
