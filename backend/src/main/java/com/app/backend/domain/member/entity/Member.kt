@@ -41,7 +41,7 @@ data class Member(
 
     @Column(nullable = false)
     @get:JvmName("isDisabled")
-    val disabled: Boolean = false
+    override var disabled: Boolean = false
 ) : BaseEntity() {
 
     override fun activate() {

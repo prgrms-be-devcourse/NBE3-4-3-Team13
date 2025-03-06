@@ -20,7 +20,7 @@ class Notification(
     val type: NotificationEvent.NotificationType,
 
     val targetId: Long,
-    val createdAt: LocalDateTime
+    override var createdAt: LocalDateTime
 ) : BaseEntity() {
 
     fun markAsRead() {
