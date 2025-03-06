@@ -1,15 +1,13 @@
-package com.app.backend;
+package com.app.backend
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.runApplication
+import org.springframework.scheduling.annotation.EnableScheduling
 
 @SpringBootApplication
 @EnableScheduling
-public class BackendApplication {
+class BackendApplication
 
-    public static void main(String[] args) {
-        SpringApplication.run(BackendApplication.class, args);
-    }
-
+fun main(args: Array<String>) {
+    runApplication<BackendApplication>(*args)
 }
