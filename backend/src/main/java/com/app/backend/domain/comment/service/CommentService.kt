@@ -29,13 +29,13 @@ class CommentService(
     // 댓글 조회
     private fun getCommentValidate(id: Long): Comment {
         return commentRepository.findByIdAndDisabled(id, false)
-            .orElseThrow { CommentException(CommentErrorCode.COMMENT_NOT_FOUND) }
+            ?: throw CommentException(CommentErrorCode.COMMENT_NOT_FOUND)
     }
 
     // 게시물 조회
     private fun getPostValidate(postId: Long): Post {
         return postRepository.findByIdAndDisabled(postId, false)
-            .orElseThrow { PostException(PostErrorCode.POST_NOT_FOUND) }
+            ?: throw PostException(PostErrorCode.POST_NOT_FOUND)
     }
 
     // 댓글 작성자만 수정과 삭제 가능
