@@ -1,15 +1,3 @@
-package com.app.backend.global.error.exception;
+package com.app.backend.global.error.exception
 
-import lombok.Getter;
-
-@Getter
-public class DomainException extends RuntimeException {
-
-    private final DomainErrorCode domainErrorCode;
-
-    public DomainException(DomainErrorCode domainErrorCode) {
-        super(domainErrorCode.getMessage());
-        this.domainErrorCode = domainErrorCode;
-    }
-
-}
+open class DomainException(val domainErrorCode: DomainErrorCode) : RuntimeException(domainErrorCode.message)

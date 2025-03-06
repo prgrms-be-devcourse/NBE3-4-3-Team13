@@ -1,13 +1,9 @@
-package com.app.backend.global.error.exception;
+package com.app.backend.global.error.exception
 
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatus
 
-public interface DomainErrorCode {
-
-    HttpStatus getStatus();
-
-    String getCode();
-
-    String getMessage();
-
+interface DomainErrorCode {
+    val status: HttpStatus
+    val code: String
+    val message: String
 }

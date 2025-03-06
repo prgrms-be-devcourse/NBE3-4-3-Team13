@@ -1,21 +1,20 @@
-package com.app.backend.global.error;
+package com.app.backend.global.error
 
-import com.app.backend.global.dto.response.ApiResponse;
-import com.app.backend.global.error.exception.DomainErrorCode;
-import com.app.backend.global.error.exception.DomainException;
-import com.app.backend.global.error.exception.GlobalErrorCode;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindException;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.method.annotation.HandlerMethodValidationException;
-import org.springframework.web.server.MethodNotAllowedException;
+import com.app.backend.global.dto.response.ApiResponse
+import com.app.backend.global.error.exception.DomainException
+import com.app.backend.global.error.exception.GlobalErrorCode
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.http.ResponseEntity
+import org.springframework.validation.BindException
+import org.springframework.web.HttpRequestMethodNotSupportedException
+import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.RestControllerAdvice
 
-@Slf4j
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+class GlobalExceptionHandler {
+    private val log: KLogger = KotlinLogging.logger { }
 
     /**
      * 지원하지 않는 HTTP 메서드 호출 시
@@ -23,12 +22,12 @@ public class GlobalExceptionHandler {
      * @param e
      * @return
      */
-    @ExceptionHandler(MethodNotAllowedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMethodNotAllowedException(MethodNotAllowedException e) {
-        log.error("handleMethodNotAllowedException", e);
-        final DomainErrorCode errorCode = GlobalErrorCode.METHOD_NOT_ALLOWED;
-        return ResponseEntity.status(errorCode.getStatus())
-                             .body(ApiResponse.of(false, errorCode.getCode(), errorCode.getMessage()));
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleMethodArgumentNotValidException(e: MethodArgumentNotValidException): ResponseEntity<ApiResponse<Unit>> {
+        log.error(e) { "handleMethodArgumentNotValidException" }
+        val errorCode = GlobalErrorCode.METHOD_NOT_ALLOWED
+        return ResponseEntity.status(errorCode.status)
+            .body(ApiResponse.of(false, errorCode.code, errorCode.message))
     }
 
     /**
@@ -37,29 +36,12 @@ public class GlobalExceptionHandler {
      * @param e
      * @return
      */
-    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    private ResponseEntity<ApiResponse<Void>> handleHttpRequestMethodNotSupportedException(
-            HttpRequestMethodNotSupportedException e
-    ) {
-        log.error("handleHttpRequestMethodNotSupportedException", e);
-        final DomainErrorCode errorCode = GlobalErrorCode.METHOD_NOT_ALLOWED;
-        return ResponseEntity.status(errorCode.getStatus())
-                             .body(ApiResponse.of(false, errorCode.getCode(), errorCode.getMessage()));
-    }
-
-    /**
-     * HandlerMethodValidationException 발생 시(단일 값, @Valid 또는 @Validated 에서 바인딩 에러)
-     *
-     * @param e
-     * @return
-     */
-    @ExceptionHandler(HandlerMethodValidationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleHandlerMethodValidationException(
-            HandlerMethodValidationException e) {
-        log.error("handleHandlerMethodValidationException", e);
-        final DomainErrorCode errorCode = GlobalErrorCode.INVALID_INPUT_VALUE;
-        return ResponseEntity.status(errorCode.getStatus())
-                             .body(ApiResponse.of(false, errorCode.getCode(), errorCode.getMessage()));
+    @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
+    fun handleHttpRequestMethodNotSupportedException(e: HttpRequestMethodNotSupportedException): ResponseEntity<ApiResponse<Unit>> {
+        log.error(e) { "handleHttpRequestMethodNotSupportedException" }
+        val errorCode = GlobalErrorCode.METHOD_NOT_ALLOWED
+        return ResponseEntity.status(errorCode.status)
+            .body(ApiResponse.of(false, errorCode.code, errorCode.message))
     }
 
     /**
@@ -68,29 +50,27 @@ public class GlobalExceptionHandler {
      * @param e
      * @return
      */
-    @ExceptionHandler(BindException.class)
-    public ResponseEntity<ApiResponse<Void>> handleBindException(BindException e) {
-        log.error("handleBindException", e);
-        final DomainErrorCode errorCode = GlobalErrorCode.INVALID_INPUT_VALUE;
-        return ResponseEntity.status(errorCode.getStatus())
-                             .body(ApiResponse.of(false, errorCode.getCode(), errorCode.getMessage()));
+    @ExceptionHandler(BindException::class)
+    fun handleBindException(e: BindException): ResponseEntity<ApiResponse<Unit>> {
+        log.error(e) { "handleBindException" }
+        val errorCode = GlobalErrorCode.INVALID_INPUT_VALUE
+        return ResponseEntity.status(errorCode.status)
+            .body(ApiResponse.of(false, errorCode.code, errorCode.message))
     }
 
-    @ExceptionHandler(DomainException.class)
-    public ResponseEntity<ApiResponse<Void>> handleDomainException(DomainException e) {
-        log.error("handleDomainException", e);
-        return ResponseEntity.status(e.getDomainErrorCode().getStatus())
-                             .body(ApiResponse.of(false,
-                                                  e.getDomainErrorCode().getCode(),
-                                                  e.getDomainErrorCode().getMessage()));
+    @ExceptionHandler(DomainException::class)
+    fun handleDomainException(e: DomainException): ResponseEntity<ApiResponse<Unit>> {
+        log.error(e) { "handleDomainException" }
+        val errorCode = e.domainErrorCode
+        return ResponseEntity.status(e.domainErrorCode.status)
+            .body(ApiResponse.of(false, e.domainErrorCode.code, e.domainErrorCode.message))
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
-        log.error("handleException", e);
-        final DomainErrorCode errorCode = GlobalErrorCode.INTERNAL_SERVER_ERROR;
-        return ResponseEntity.status(errorCode.getStatus())
-                             .body(ApiResponse.of(false, errorCode.getCode(), errorCode.getMessage()));
+    @ExceptionHandler(Exception::class)
+    fun handleException(e: Exception): ResponseEntity<ApiResponse<Unit>> {
+        log.error(e) { "handleException" }
+        val errorCode = GlobalErrorCode.INTERNAL_SERVER_ERROR
+        return ResponseEntity.status(errorCode.status)
+            .body(ApiResponse.of(false, errorCode.code, errorCode.message))
     }
-
 }

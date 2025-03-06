@@ -4,9 +4,9 @@ import com.app.backend.global.error.exception.DomainErrorCode
 import org.springframework.http.HttpStatus
 
 enum class MemberErrorCode(
-    private val httpStatus: HttpStatus,
-    private val errorCode: String,
-    private val errorMessage: String
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
 ) : DomainErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MB001", "회원을 찾지 못함"),
     MEMBER_USERNAME_EXISTS(HttpStatus.BAD_REQUEST, "MB002", "이미 존재하는 아이디"),
@@ -19,8 +19,4 @@ enum class MemberErrorCode(
     MEMBER_FAILED_TO_KAKAO_TOKEN(HttpStatus.BAD_REQUEST, "MB008", "카카오 토큰 발급 실패"),
     MEMBER_FAILED_TO_KAKAO_AUTH(HttpStatus.BAD_REQUEST, "MB009", "카카오 인증 실패"),
     MEMBER_FAILED_LOGOUT(HttpStatus.BAD_REQUEST, "MB010", "로그아웃 실패");
-
-    override fun getStatus(): HttpStatus = httpStatus
-    override fun getCode(): String = errorCode
-    override fun getMessage(): String = errorMessage
 }
