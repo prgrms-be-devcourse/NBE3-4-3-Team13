@@ -20,7 +20,7 @@ class GroupResponse {
             currentMemberCount = group.members.count { it.status == MembershipStatus.APPROVED && !it.disabled },
             createdAt = AppUtil.localDateTimeToString(group.createdAt),
             groupLeaders = group.members.filter { it.status == MembershipStatus.APPROVED && it.groupRole == GroupRole.LEADER && !it.disabled }
-                .map { it.member.nickname }.toList()
+                .map { it.member.nickname!! }
         )
 
         fun toDetail(group: Group, isApplying: Boolean, isMember: Boolean, isAdmin: Boolean) = Detail(
@@ -39,7 +39,7 @@ class GroupResponse {
             isMember = isMember,
             isAdmin = isAdmin,
             groupLeaders = group.members.filter { it.status == MembershipStatus.APPROVED && it.groupRole == GroupRole.LEADER && !it.disabled }
-                .map { it.member.nickname }
+                .map { it.member.nickname!! }
         )
 
         fun toListInfo(group: Group) = ListInfo(
@@ -54,7 +54,7 @@ class GroupResponse {
             currentMemberCount = group.members.count { it.status == MembershipStatus.APPROVED && !it.disabled },
             createdAt = AppUtil.localDateTimeToString(group.createdAt),
             groupLeaders = group.members.filter { it.status == MembershipStatus.APPROVED && it.groupRole == GroupRole.LEADER && !it.disabled }
-                .map { it.member.nickname }
+                .map { it.member.nickname!! }
         )
     }
 
