@@ -35,7 +35,7 @@ class SecurityConfig(
     private val customOAuth2UserService: CustomOAuth2UserService,
     private val oAuth2SuccessHandler: OAuth2SuccessHandler
 ) {
-    private val allowedOrigins = arrayOf(
+    private val origins = arrayOf(
         "http://localhost:3000", // React
         "http://localhost:8080"  // Spring Boot
     )
@@ -108,7 +108,7 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration().apply {
-            allowedOrigins = allowedOrigins!!.toList()
+            allowedOrigins = origins.toList()
             allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
             allowedHeaders = listOf(
                 "Authorization",
