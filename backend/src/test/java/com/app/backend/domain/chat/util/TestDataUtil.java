@@ -2,6 +2,7 @@ package com.app.backend.domain.chat.util;
 
 import org.springframework.stereotype.Component;
 
+import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.category.repository.CategoryRepository;
 import com.app.backend.domain.chat.room.entity.ChatRoom;
 import com.app.backend.domain.chat.room.repository.ChatRoomRepository;
@@ -12,6 +13,7 @@ import com.app.backend.domain.group.entity.RecruitStatus;
 import com.app.backend.domain.group.repository.GroupMembershipRepository;
 import com.app.backend.domain.group.repository.GroupRepository;
 import com.app.backend.domain.member.entity.Member;
+import com.app.backend.domain.member.repository.MemberRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -28,42 +30,24 @@ public class TestDataUtil {
 	private final CategoryRepository categoryRepository;
 
 	public Member createAndSaveMember(String username, String nickname) {
-		Member member = Member.builder()
-			.username(username)
-			.nickname(nickname)
-			.role("USER")
-			.build();
+		Member member = Member.create(username, null, nickname, "USER", false, null, null);
 		return memberRepository.save(member);
 	}
 
 	public Category createAndSaveCategory(String categoryName) {
-		Category category = Category.builder()
-			.name(categoryName)
-			.build();
+		Category category = new Category(categoryName);
 		return categoryRepository.save(category);
 	}
 
 	public Group createAndSaveGroup(String name, String province, String city, String town, String description,
 		Category category) {
-		Group group = Group.builder()
-			.name(name)
-			.province(province)
-			.city(city)
-			.town(town)
-			.description(description)
-			.recruitStatus(RecruitStatus.RECRUITING)
-			.maxRecruitCount(10)
-			.category(category)
-			.build();
+		Group group = Group.Companion.of(name, province, city, town, description, RecruitStatus.RECRUITING, 10,
+			category);
 		return groupRepository.save(group);
 	}
 
 	public GroupMembership createAndSaveGroupMembership(Member member, Group group, GroupRole groupRole) {
-		GroupMembership groupMembership = GroupMembership.builder()
-			.member(member)
-			.group(group)
-			.groupRole(groupRole)
-			.build();
+		GroupMembership groupMembership = GroupMembership.Companion.of(member, group, groupRole);
 		groupMembershipRepository.save(groupMembership);
 		return groupMembership;
 	}
@@ -73,7 +57,7 @@ public class TestDataUtil {
 	}
 
 	public ChatRoom createAndSaveChatRoom(Group group) {
-		ChatRoom chatRoom = ChatRoom.builder().group(group).build();
+		ChatRoom chatRoom = new ChatRoom(group);
 		return chatRoomRepository.save(chatRoom);
 	}
 }

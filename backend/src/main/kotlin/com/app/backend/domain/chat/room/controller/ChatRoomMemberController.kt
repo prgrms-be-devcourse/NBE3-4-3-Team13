@@ -1,34 +1,30 @@
 package com.app.backend.domain.chat.room.controller
 
-import com.app.backend.domain.group.entity.Group
-import com.app.backend.domain.member.entity.Member
-import com.app.backend.global.entity.BaseEntity
-import jakarta.persistence.*
+import org.springframework.http.HttpStatus
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+import com.app.backend.domain.chat.room.dto.response.ChatRoomListResponse
+import com.app.backend.domain.chat.room.dto.response.ChatRoomResponseMessage
+import com.app.backend.domain.chat.room.service.ChatRoomService
+import com.app.backend.domain.member.entity.MemberDetails
+import com.app.backend.global.dto.response.ApiResponse
 
-@Entity
-@Table(name = "tbl_meeting_applications")
-class MeetingApplication(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "meeting_application_id", nullable = false)
-    val id: Long? = null,
+@RestController
+@RequestMapping("/api/v1/members")
+class ChatRoomMemberController (
+    private val chatRoomService: ChatRoomService
+) {
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    var context: String,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id", nullable = false)
-    val group: Group,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    val member: Member
-) : BaseEntity() {
-
-    fun modifyContext(newContext: String): MeetingApplication {
-        if (context != newContext) {
-            context = newContext
-        }
-        return this
+    @GetMapping("/chatrooms")
+    fun getChatRoomsByMemberId(@AuthenticationPrincipal memberDetails: MemberDetails): ApiResponse<List<ChatRoomListResponse>> {
+        val chatRoomsByMemberId = memberDetails.id?.let { chatRoomService.getChatRoomsByMemberId(it) }
+        return ApiResponse.of(
+            true,
+            HttpStatus.OK,
+            ChatRoomResponseMessage.READ_CHAT_ROOMS_SUCCESS.message,
+            chatRoomsByMemberId
+        )
     }
 }
