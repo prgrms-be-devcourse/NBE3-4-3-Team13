@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.util.ArrayList;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,6 +26,7 @@ import com.app.backend.domain.comment.repository.CommentLikeRepository;
 import com.app.backend.domain.comment.repository.CommentRepository;
 import com.app.backend.domain.member.entity.Member;
 import com.app.backend.domain.member.entity.MemberDetails;
+import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.domain.post.entity.Post;
 import com.app.backend.domain.post.entity.PostStatus;
 import com.app.backend.domain.post.repository.post.PostRepository;
@@ -57,27 +60,28 @@ public class CommentControllerTest {
 	@BeforeEach
 	void setUp() {
 
-		// 테스트용
-		testMember = Member.builder()
-			.username("testUser")
-			.password("password")
-			.nickname("테스터")
-			.role("USER")
-			.disabled(false)
-			.build();
-
-		memberRepository.save(testMember);
+		// 테스트용 멤버 생성
+		testMember = Member.create(
+			"testUser",
+			"password",
+			"테스터",
+			"USER",
+			false,
+			null,
+			null
+		);
+		testMember = memberRepository.save(testMember);
 		memberDetails = new MemberDetails(testMember);
 
-		testPost = Post.builder()
-				.title("테스트 게시글")
-				.content("테스트 내용")
-				.postStatus(PostStatus.PUBLIC)
-				.groupId(1L)
-				.memberId(testMember.getId())
-				.nickName("테스트 닉")
-			.build();
-
+		// 테스트용 게시물 생성
+		testPost = Post.Companion.of(
+			"테스트 게시글",
+			"테스트 내용",
+			PostStatus.PUBLIC,
+			1L,
+			testMember.getId(),
+			"테스트 닉"
+		);
 		testPost = postRepository.save(testPost);
 		testPostId = testPost.getId();
 
@@ -132,11 +136,14 @@ public class CommentControllerTest {
 	@Test
 	@DisplayName("댓글 삭제")
 	void deleteComment() throws Exception {
-		Comment testComment = Comment.builder()
-			.content("test")
-			.post(testPost)
-			.member(testMember)
-			.build();
+		Comment testComment = new Comment(
+			null,
+			"test",
+			testPost,
+			testMember,
+			null,
+			new ArrayList<>()
+		);
 		testComment = commentRepository.save(testComment);
 
 		ResultActions resultActions = mvc
@@ -177,21 +184,26 @@ public class CommentControllerTest {
 	@Test
 	@DisplayName("댓글 삭제 실패 (작성자만 삭제 가능)")
 	void deleteComment3() throws Exception {
-		Comment testComment = Comment.builder()
-			.content("test")
-			.post(testPost)
-			.member(testMember)
-			.build();
+		Comment testComment = new Comment(
+			null,
+			"test",
+			testPost,
+			testMember,
+			null,
+			new ArrayList<>()
+		);
 		testComment = commentRepository.save(testComment);
 
 		// 다른 사용자 생성
-		Member Member2 = Member.builder()
-			.username("other")
-			.password("password")
-			.nickname("다른사용자")
-			.role("USER")
-			.build();
-
+		Member Member2 = Member.create(
+			"other",
+			"password",
+			"다른사용자",
+			"USER",
+			false,
+			null,
+			null
+		);
 		memberRepository.save(Member2);
 		MemberDetails otherMemberDetails = new MemberDetails(Member2);
 
@@ -214,11 +226,14 @@ public class CommentControllerTest {
 	@Test
 	@DisplayName("댓글 수정")
 	void updateComment() throws Exception {
-		Comment testComment = Comment.builder()
-			.content("test")
-			.post(testPost)
-			.member(testMember)
-			.build();
+		Comment testComment = new Comment(
+			null,
+			"test",
+			testPost,
+			testMember,
+			null,
+			new ArrayList<>()
+		);
 		testComment = commentRepository.save(testComment);
 
 		CommentCreateRequest request = new CommentCreateRequest("수정 댓글");
@@ -244,11 +259,14 @@ public class CommentControllerTest {
 	@Test
 	@DisplayName("댓글 수정 실패 (내용 공백)")
 	void updateComment2() throws Exception {
-		Comment testComment = Comment.builder()
-			.content("test")
-			.post(testPost)
-			.member(testMember)
-			.build();
+		Comment testComment = new Comment(
+			null,
+			"test",
+			testPost,
+			testMember,
+			null,
+			new ArrayList<>()
+		);
 		testComment = commentRepository.save(testComment);
 
 		CommentCreateRequest request = new CommentCreateRequest("");
@@ -297,19 +315,25 @@ public class CommentControllerTest {
 	@Test
 	@DisplayName("댓글 수정 실패 (작성자만 수정 가능)")
 	void updateComment4() throws Exception {
-		Comment testComment = Comment.builder()
-			.content("test")
-			.post(testPost)
-			.member(testMember)
-			.build();
+		Comment testComment = new Comment(
+			null,
+			"test",
+			testPost,
+			testMember,
+			null,
+			new ArrayList<>()
+		);
 		testComment = commentRepository.save(testComment);
 
-		Member Member2 = Member.builder()
-			.username("other")
-			.password("password")
-			.nickname("다른사용자")
-			.role("USER")
-			.build();
+		Member Member2 = Member.create(
+			"other",
+			"password",
+			"다른사용자",
+			"USER",
+			false,
+			null,
+			null
+		);
 		memberRepository.save(Member2);
 		MemberDetails otherMemberDetails = new MemberDetails(Member2);
 
@@ -339,11 +363,14 @@ public class CommentControllerTest {
 	void getCommentsWithPaging() throws Exception {
 
 		for (int i = 1; i <= 15; i++) {
-			Comment comment = Comment.builder()
-				.content("test comment " + i)
-				.post(testPost)
-				.member(testMember)
-				.build();
+			Comment comment = new Comment(
+				null,
+				"test comment " + i,
+				testPost,
+				testMember,
+				null,
+				new ArrayList<>()
+			);
 			commentRepository.save(comment);
 		}
 
@@ -433,18 +460,22 @@ public class CommentControllerTest {
 	@CustomWithMockUser(role="USER")
 	void getCommentsLike() throws Exception {
 
-		Comment testComment = Comment.builder()
-			.content("테스트 댓글")
-			.post(testPost)
-			.member(testMember)
-			.build();
-		commentRepository.save(testComment);
+		Comment testComment = new Comment(
+			null,
+			"test",
+			testPost,
+			testMember,
+			null,
+			new ArrayList<>()
+		);
+		testComment = commentRepository.save(testComment);
 
 		for (int i = 0; i < 3; i++) {
-			CommentLike like = CommentLike.builder()
-				.comment(testComment)
-				.member(testMember)
-				.build();
+			CommentLike like = new CommentLike(
+				null,
+				testComment,
+				testMember
+			);
 			commentLikeRepository.save(like);
 		}
 
