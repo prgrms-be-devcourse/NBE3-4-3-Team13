@@ -59,27 +59,28 @@ public class GroupLikeControllerTest {
         groupRepository.deleteAll();
         categoryRepository.deleteAll();
 
-        category = categoryRepository.save(Category.builder()
-                .name("category")
-                .build());
+        category = categoryRepository.save(new Category("category"));
 
-        group = groupRepository.save(Group.builder()
-                .name("test group")
-                .province("test province")
-                .city("test city")
-                .town("test town")
-                .description("test description")
-                .recruitStatus(RecruitStatus.RECRUITING)
-                .maxRecruitCount(10)
-                .category(category)
-                .build());
+        group = groupRepository.save(Group.Companion.of(
+                "test limited group",
+                "test province",
+                "test city",
+                "test town",
+                "test description",
+                RecruitStatus.RECRUITING,
+                1,
+                category
+        ));
 
-        member = memberRepository.save(Member.builder()
-                .username("testUser")
-                .nickname("testNickname")
-                .role("USER")
-                .disabled(false)
-                .build());
+        member = memberRepository.save(Member.create(
+                "testUser1",
+                "password123",
+                "nickname1",
+                "USER",
+                false,
+                Member.Provider.LOCAL,
+                null
+        ));
     }
 
     @Test

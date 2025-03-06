@@ -39,18 +39,27 @@ public class GroupLikeServiceTest {
     @DisplayName("그룹 좋아요 추가")
     void likeGroupTest() {
         // given
-        Category category = categoryRepository.save(Category.builder().name("카테고리").build());
-        Group group = groupRepository.save(Group.builder()
-                .name("test group")
-                .province("test province")
-                .city("test city")
-                .town("test town")
-                .description("test description")
-                .recruitStatus(RecruitStatus.RECRUITING)
-                .maxRecruitCount(300)
-                .category(category)
-                .build());
-        Member member = memberRepository.save(Member.builder().username("user0").build());
+        Category category = categoryRepository.save(new Category("카테고리"));
+        Group group = groupRepository.save(Group.Companion.of(
+                "test group",
+                "test province",
+                "test city",
+                "test town",
+                "test description",
+                RecruitStatus.RECRUITING,
+                300,
+                category
+        ));
+
+        Member member = memberRepository.save(Member.create(
+                "testUser1",
+                "password123",
+                "nickname1",
+                "USER",
+                false,
+                Member.Provider.LOCAL,
+                null
+        ));
 
         Long memberId = member.getId();
         Long groupId = group.getId();
@@ -67,18 +76,27 @@ public class GroupLikeServiceTest {
     @DisplayName("그룹 좋아요 취소")
     void unlikeGroupTest() {
         // given
-        Category category = categoryRepository.save(Category.builder().name("카테고리").build());
-        Group group = groupRepository.save(Group.builder()
-                .name("test group")
-                .province("test province")
-                .city("test city")
-                .town("test town")
-                .description("test description")
-                .recruitStatus(RecruitStatus.RECRUITING)
-                .maxRecruitCount(300)
-                .category(category)
-                .build());
-        Member member = memberRepository.save(Member.builder().username("user0").build());
+        Category category = categoryRepository.save(new Category("카테고리"));
+        Group group = groupRepository.save(Group.Companion.of(
+                "test group",
+                "test province",
+                "test city",
+                "test town",
+                "test description",
+                RecruitStatus.RECRUITING,
+                300,
+                category
+        ));
+
+        Member member = memberRepository.save(Member.create(
+                "testUser1",
+                "password123",
+                "nickname1",
+                "USER",
+                false,
+                Member.Provider.LOCAL,
+                null
+        ));
 
         Long memberId = member.getId();
         Long groupId = group.getId();
