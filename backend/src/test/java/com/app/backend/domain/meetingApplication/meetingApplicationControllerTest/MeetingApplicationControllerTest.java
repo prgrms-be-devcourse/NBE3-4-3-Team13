@@ -2,7 +2,6 @@ package com.app.backend.domain.meetingApplication.meetingApplicationControllerTe
 
 import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.category.repository.CategoryRepository;
-import com.app.backend.domain.chat.room.controller.MeetingApplication;
 import com.app.backend.domain.group.entity.Group;
 import com.app.backend.domain.group.entity.GroupMembership;
 import com.app.backend.domain.group.entity.GroupRole;
@@ -10,6 +9,7 @@ import com.app.backend.domain.group.entity.RecruitStatus;
 import com.app.backend.domain.group.repository.GroupMembershipRepository;
 import com.app.backend.domain.group.repository.GroupRepository;
 import com.app.backend.domain.meetingApplication.dto.MeetingApplicationReqBody;
+import com.app.backend.domain.meetingApplication.entity.MeetingApplication;
 import com.app.backend.domain.meetingApplication.exception.MeetingApplicationErrorCode;
 import com.app.backend.domain.meetingApplication.exception.MeetingApplicationException;
 import com.app.backend.domain.meetingApplication.repository.MeetingApplicationRepository;
@@ -84,23 +84,28 @@ public class MeetingApplicationControllerTest {
 
 		category = categoryRepository.save(new Category("category"));
 
-		group = groupRepository.save(Group.builder()
-			.name("test group")
-			.province("test province")
-			.city("test city")
-			.town("test town")
-			.description("test description")
-			.recruitStatus(RecruitStatus.RECRUITING)
-			.maxRecruitCount(10)
-			.category(category)
-			.build());
+		group = Group.Companion.of(
+				"test group",
+				"test province",
+				"test city",
+				"test town",
+				"test description",
+				RecruitStatus.RECRUITING,
+				10,
+				category
+		);
 
-		member = Member.builder()
-			.username("testUser")
-			.nickname("testNickname")
-			.role("USER")
-			.disabled(false)
-			.build();
+		member = memberRepository.save(
+				Member.create(
+						"testUser",
+						"password123",
+						"testUser",
+						"USER",
+						false,
+						Member.Provider.LOCAL,
+						null
+				)
+		);
 
 		groupRepository.save(group);
 		memberRepository.save(member);
@@ -114,12 +119,7 @@ public class MeetingApplicationControllerTest {
 
 		MeetingApplicationReqBody request = new MeetingApplicationReqBody("신청합니다.");
 
-		MeetingApplication mockMeetingApplication = MeetingApplication.builder()
-			.id(1L)
-			.context("신청합니다.")
-			.group(group)
-			.member(member)
-			.build();
+		MeetingApplication mockMeetingApplication = new MeetingApplication(group, member, request.getContext());
 
 		given(meetingApplicationService.create(group.getId(), request, member.getId()))
 			.willReturn(mockMeetingApplication);
@@ -148,32 +148,31 @@ public class MeetingApplicationControllerTest {
 	@CustomWithMockUser
 	void t2() throws Exception {
 		// Given: 그룹의 정원을 1명으로 설정
-		Group oneMemberGroup = Group.builder()
-			.name("test group")
-			.province("test province")
-			.city("test city")
-			.town("test town")
-			.description("test description")
-			.recruitStatus(RecruitStatus.RECRUITING)
-			.maxRecruitCount(1)
-			.category(category)
-			.build();
+		Group oneMemberGroup = Group.Companion.of(
+				"test group",
+				"test province",
+				"test city",
+				"test town",
+				"test description",
+				RecruitStatus.RECRUITING,
+				1,
+				category
+		);
 		groupRepository.save(oneMemberGroup);  // 그룹 저장
 
 		// 그룹에 첫 번째 멤버를 추가
-		groupMembershipRepository.save(GroupMembership.builder()
-			.group(oneMemberGroup)  // 정원 1명인 그룹에 멤버 추가
-			.member(member)
-			.groupRole(GroupRole.LEADER)  // status APPROVED로 저장됨
-			.build());
+		groupMembershipRepository.save(GroupMembership.Companion.of(member, oneMemberGroup, GroupRole.LEADER));
 
 		// 새로운 회원을 만들고 저장
-		Member newMember = Member.builder()
-			.username("newUser")
-			.nickname("newNickname")
-			.role("USER")
-			.disabled(false)
-			.build();
+		Member newMember = Member.create(
+				"testUser",
+				"password123",
+				"testUser",
+				"USER",
+				false,
+				Member.Provider.LOCAL,
+				null
+		);
 		memberRepository.save(newMember);
 
 		MeetingApplicationReqBody request = new MeetingApplicationReqBody("Test Application");
@@ -202,26 +201,21 @@ public class MeetingApplicationControllerTest {
 	@CustomWithMockUser
 	void t3() throws Exception {
 		// Given
-		Member leader = memberRepository.save(Member.builder()
-			.username("testUser")
-			.nickname("testNickname")
-			.role("USER")
-			.disabled(false)
-			.build());
+		Member leader = memberRepository.save(Member.create(
+				"testUser",
+				"password123",
+				"testUser",
+				"USER",
+				false,
+				Member.Provider.LOCAL,
+				null
+		));
 
 		MemberDetails mockUser = new MemberDetails(leader);
 
-		GroupMembership groupMembership = groupMembershipRepository.save(GroupMembership.builder()
-			.group(group)
-			.member(leader)
-			.groupRole(GroupRole.LEADER)
-			.build());
+		GroupMembership groupMembership = groupMembershipRepository.save(GroupMembership.Companion.of(leader, group, GroupRole.LEADER));
 
-		meetingApplicationRepository.save(MeetingApplication.builder()
-			.group(group)
-			.member(member)
-			.context("Test Application")
-			.build());
+		meetingApplicationRepository.save(new MeetingApplication(group, member, "Test Application"));
 
 		// When & Then
 		mvc.perform(get("/api/v1/groups/{groupId}/meeting_applications", group.getId())
@@ -236,26 +230,21 @@ public class MeetingApplicationControllerTest {
 	@CustomWithMockUser
 	void t4() throws Exception {
 		// Given
-		Member leader = memberRepository.save(Member.builder()
-			.username("testUser")
-			.nickname("testNickname")
-			.role("USER")
-			.disabled(false)
-			.build());
+		Member leader = memberRepository.save(Member.create(
+				"testUser",
+				"password123",
+				"testUser",
+				"USER",
+				false,
+				Member.Provider.LOCAL,
+				null
+		));
 
 		MemberDetails mockUser = new MemberDetails(leader);
 
-		GroupMembership groupMembership = groupMembershipRepository.save(GroupMembership.builder()
-			.group(group)
-			.member(leader)
-			.groupRole(GroupRole.LEADER)
-			.build());
+		GroupMembership groupMembership = groupMembershipRepository.save(GroupMembership.Companion.of(leader, group, GroupRole.LEADER));
 
-		meetingApplicationRepository.save(MeetingApplication.builder()
-			.group(group)
-			.member(member)
-			.context("Test Application")
-			.build());
+		meetingApplicationRepository.save(new MeetingApplication(group, member, "Test Application"));
 
 		// When & Then
 		mvc.perform(get("/api/v1/groups/{groupId}/meeting_applications/{meetingApplicationId}", group.getId(), 1)
