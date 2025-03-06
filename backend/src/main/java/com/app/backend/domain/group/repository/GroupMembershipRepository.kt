@@ -16,6 +16,8 @@ interface GroupMembershipRepository : JpaRepository<GroupMembership, GroupMember
     fun findByGroupIdAndMemberIdAndDisabled(groupId: Long, memberId: Long, disabled: Boolean): Optional<GroupMembership>
     fun findAllByGroupId(groupId: Long): List<GroupMembership>
     fun findAllByGroupIdAndDisabled(groupId: Long, disabled: Boolean): List<GroupMembership>
+    fun findAllByMemberId(memberId: Long): List<GroupMembership>
+    fun findAllByMemberIdAndDisabled(memberId: Long, disabled: Boolean): List<GroupMembership>
     fun findAllByGroupRole(groupRole: GroupRole): List<GroupMembership>
     fun findAllByGroupRoleAndDisabled(groupRole: GroupRole, disabled: Boolean): List<GroupMembership>
     fun findAllByGroupIdAndGroupRole(groupId: Long, groupRole: GroupRole): List<GroupMembership>
