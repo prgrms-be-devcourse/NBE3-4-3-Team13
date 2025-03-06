@@ -1,12 +1,24 @@
 package com.app.backend.domain.meetingApplication.meetingApplicationControllerTest;
 
-import static org.mockito.BDDMockito.*;
-
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
+import com.app.backend.domain.category.entity.Category;
+import com.app.backend.domain.category.repository.CategoryRepository;
+import com.app.backend.domain.chat.room.controller.MeetingApplication;
+import com.app.backend.domain.group.entity.Group;
+import com.app.backend.domain.group.entity.GroupMembership;
+import com.app.backend.domain.group.entity.GroupRole;
+import com.app.backend.domain.group.entity.RecruitStatus;
+import com.app.backend.domain.group.repository.GroupMembershipRepository;
+import com.app.backend.domain.group.repository.GroupRepository;
+import com.app.backend.domain.meetingApplication.dto.MeetingApplicationReqBody;
+import com.app.backend.domain.meetingApplication.exception.MeetingApplicationErrorCode;
+import com.app.backend.domain.meetingApplication.exception.MeetingApplicationException;
+import com.app.backend.domain.meetingApplication.repository.MeetingApplicationRepository;
+import com.app.backend.domain.meetingApplication.service.MeetingApplicationService;
+import com.app.backend.domain.member.entity.Member;
+import com.app.backend.domain.member.entity.MemberDetails;
+import com.app.backend.domain.member.repository.MemberRepository;
+import com.app.backend.global.annotation.CustomWithMockUser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,30 +27,18 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import com.app.backend.domain.category.repository.CategoryRepository;
-import com.app.backend.domain.group.entity.Group;
-import com.app.backend.domain.group.entity.GroupMembership;
-import com.app.backend.domain.group.entity.GroupRole;
-import com.app.backend.domain.group.entity.RecruitStatus;
-import com.app.backend.domain.group.repository.GroupMembershipRepository;
-import com.app.backend.domain.group.repository.GroupRepository;
-import com.app.backend.domain.meetingApplication.dto.MeetingApplicationReqBody;
-import com.app.backend.domain.chat.room.controller.MeetingApplication;
-import com.app.backend.domain.meetingApplication.exception.MeetingApplicationErrorCode;
-import com.app.backend.domain.meetingApplication.exception.MeetingApplicationException;
-import com.app.backend.domain.meetingApplication.repository.MeetingApplicationRepository;
-import com.app.backend.domain.meetingApplication.service.MeetingApplicationService;
-import com.app.backend.domain.member.entity.Member;
-import com.app.backend.domain.member.entity.MemberDetails;
-import com.app.backend.global.annotation.CustomWithMockUser;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.mockito.BDDMockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @ActiveProfiles("test")

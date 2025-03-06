@@ -1,30 +1,28 @@
 package com.app.backend.domain.meetingApplication.meetingApplicationServiceTest;
 
-import static org.assertj.core.api.AssertionsForClassTypes.*;
-
-import java.util.List;
-
+import com.app.backend.domain.category.entity.Category;
+import com.app.backend.domain.category.repository.CategoryRepository;
+import com.app.backend.domain.chat.room.controller.MeetingApplication;
+import com.app.backend.domain.group.entity.*;
+import com.app.backend.domain.group.repository.GroupMembershipRepository;
+import com.app.backend.domain.group.repository.GroupRepository;
+import com.app.backend.domain.meetingApplication.dto.MeetingApplicationReqBody;
+import com.app.backend.domain.meetingApplication.exception.MeetingApplicationErrorCode;
+import com.app.backend.domain.meetingApplication.exception.MeetingApplicationException;
+import com.app.backend.domain.meetingApplication.repository.MeetingApplicationRepository;
+import com.app.backend.domain.meetingApplication.service.MeetingApplicationService;
+import com.app.backend.domain.member.entity.Member;
+import com.app.backend.domain.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.app.backend.domain.category.repository.CategoryRepository;
-import com.app.backend.domain.group.entity.Group;
-import com.app.backend.domain.group.entity.GroupMembership;
-import com.app.backend.domain.group.entity.GroupRole;
-import com.app.backend.domain.group.entity.MembershipStatus;
-import com.app.backend.domain.group.entity.RecruitStatus;
-import com.app.backend.domain.group.repository.GroupMembershipRepository;
-import com.app.backend.domain.group.repository.GroupRepository;
-import com.app.backend.domain.meetingApplication.dto.MeetingApplicationReqBody;
-import com.app.backend.domain.chat.room.controller.MeetingApplication;
-import com.app.backend.domain.meetingApplication.exception.MeetingApplicationErrorCode;
-import com.app.backend.domain.meetingApplication.exception.MeetingApplicationException;
-import com.app.backend.domain.meetingApplication.repository.MeetingApplicationRepository;
-import com.app.backend.domain.meetingApplication.service.MeetingApplicationService;
-import com.app.backend.domain.member.entity.Member;
+import java.util.List;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @SpringBootTest
 public class MeetingApplicationServiceTest {
