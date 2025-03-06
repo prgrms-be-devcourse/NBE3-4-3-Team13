@@ -86,7 +86,7 @@ class GroupMembershipService(
                 "그룹 가입 승인",
                 group.name + " 그룹 가입이 승인되었습니다",
                 NotificationEvent.NotificationType.GROUP_INVITE,
-                group.id
+                group.id!!
             )
 
             if (
