@@ -1,10 +1,6 @@
 package com.app.backend.domain.group.service;
 
-import com.app.backend.domain.group.entity.Group;
-import com.app.backend.domain.group.entity.GroupMembership;
-import com.app.backend.domain.group.entity.GroupRole;
-import com.app.backend.domain.group.entity.MembershipStatus;
-import com.app.backend.domain.group.entity.RecruitStatus;
+import com.app.backend.domain.group.entity.*;
 import com.app.backend.domain.group.exception.GroupErrorCode;
 import com.app.backend.domain.group.exception.GroupException;
 import com.app.backend.domain.group.exception.GroupMembershipErrorCode;
@@ -12,7 +8,6 @@ import com.app.backend.domain.group.exception.GroupMembershipException;
 import com.app.backend.domain.group.repository.GroupMembershipRepository;
 import com.app.backend.domain.group.repository.GroupRepository;
 import com.app.backend.domain.notification.dto.NotificationEvent;
-import com.app.backend.domain.notification.service.NotificationService;
 import com.app.backend.global.annotation.CustomLock;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
