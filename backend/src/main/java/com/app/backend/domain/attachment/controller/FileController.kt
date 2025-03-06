@@ -22,7 +22,7 @@ class FileController(
         @PathVariable id: Long,
         @AuthenticationPrincipal memberDetails: MemberDetails
     ): ResponseEntity<*> {
-        val downloadFile = postAttachmentService.downloadFile(id, memberDetails.id)
+        val downloadFile = postAttachmentService.downloadFile(id, memberDetails.id!!)
         val contentType = downloadFile.attachment?.contentType ?: MediaType.APPLICATION_OCTET_STREAM_VALUE // ✅ Elvis 연산자 사용
 
         return ResponseEntity.ok()
