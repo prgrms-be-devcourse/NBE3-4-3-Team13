@@ -1,63 +1,53 @@
-package com.app.backend.domain.group.service;
+package com.app.backend.domain.group.service
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import com.fasterxml.jackson.databind.JsonNode
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpHeaders
+import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.client.WebClient
+import reactor.core.publisher.Mono
 
 @Service
-@RequiredArgsConstructor
-public class WebClientService {
+class WebClientService(private val webClientBuilder: WebClient.Builder) {
+    private val KAKAO_MAP_API_URL = "https://dapi.kakao.com/v2/local"
 
-    private static final String KAKAO_MAP_API_URL = "https://dapi.kakao.com/v2/local";
+    @Value("\${kakao.rest-api.key}")
+    private lateinit var kakaoJsKey: String
 
-    private final WebClient.Builder webClientBuilder;
+    fun fetchKakaoMapData(x: Double, y: Double): Mono<JsonNode> = getKakaoMapWebClient()
+        .get()
+        .uri {
+            it.path("/geo/coord2address.json")
+                .queryParam("x", x)
+                .queryParam("y", y)
+                .queryParam("input_coord", "WGS84")
+                .build()
+        }
+        .retrieve()
+        .bodyToMono(JsonNode::class.java)
 
-    @Value("${kakao.rest-api.key}")
-    private String kakaoJsKey;
+    fun fetchKakaoAddressByKeyword(province: String, city: String, town: String): Mono<JsonNode> =
+        getKakaoMapWebClient()
+            .get()
+            .uri {
+                it.path("/search/address.json")
+                    .queryParam("query", "$province $city $town")
+                    .build()
+            }
+            .retrieve()
+            .bodyToMono(JsonNode::class.java)
 
-    public Mono<JsonNode> fetchKakaoMapData(final double x, final double y) {
-        WebClient webClient = getKakaoMapWebClient();
-        return webClient.get()
-                        .uri(uriBuilder -> uriBuilder.path("/geo/coord2address.json")
-                                                     .queryParam("x", x)
-                                                     .queryParam("y", y)
-                                                     .queryParam("input_coord", "WGS84")
-                                                     .build())
-                        .retrieve()
-                        .bodyToMono(JsonNode.class);
-    }
+    fun fetchKakaoAddressByKeyword(keyword: String) = getKakaoMapWebClient()
+        .get()
+        .uri {
+            it.path("/search/keyword.json")
+                .queryParam("query", keyword)
+                .build()
+        }
+        .retrieve()
+        .bodyToMono(JsonNode::class.java)
 
-    public Mono<JsonNode> fetchKakaoAddressByKeyword(final String province, final String city, final String town) {
-        WebClient webClient = getKakaoMapWebClient();
-        return webClient.get()
-                        .uri(uriBuilder -> uriBuilder.path("/search/address.json")
-                                                     .queryParam("query", "%s %s %s".formatted(province, city, town))
-                                                     .build())
-                        .retrieve()
-                        .bodyToMono(JsonNode.class);
-    }
-
-    public Mono<JsonNode> fetchKakaoAddressByKeyword(final String keyword) {
-        WebClient webClient = getKakaoMapWebClient();
-        return webClient.get()
-                        .uri(uriBuilder -> uriBuilder.path("/search/keyword.json")
-                                                     .queryParam("query", keyword)
-                                                     .build())
-                        .retrieve()
-                        .bodyToMono(JsonNode.class);
-    }
-
-    //============================== 내부 메서드 ==============================//
-
-    private WebClient getKakaoMapWebClient() {
-        String apiKey = "KakaoAK %s".formatted(kakaoJsKey);
-        WebClient webClient = webClientBuilder.baseUrl(KAKAO_MAP_API_URL)
-                                              .defaultHeader(HttpHeaders.AUTHORIZATION, apiKey).build();
-        return webClient;
-    }
-
+    //==================== 내부 함수 ====================//
+    private fun getKakaoMapWebClient(): WebClient = webClientBuilder.baseUrl(KAKAO_MAP_API_URL)
+        .defaultHeader(HttpHeaders.AUTHORIZATION, "KakaoAK $kakaoJsKey").build()
 }
