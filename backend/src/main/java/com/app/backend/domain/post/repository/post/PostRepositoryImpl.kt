@@ -11,21 +11,20 @@ import com.querydsl.core.types.OrderSpecifier
 import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
-import lombok.RequiredArgsConstructor
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
-import java.util.*
 
 @Repository
-@RequiredArgsConstructor
-class PostRepositoryImpl : PostRepositoryCustom {
-    private val jpaQueryFactory: JPAQueryFactory? = null
+class PostRepositoryImpl(
+    private val jpaQueryFactory: JPAQueryFactory
+) : PostRepositoryCustom {
 
     override fun findAllBySearchStatus(
-        groupId: Long?,
+        groupId: Long,
         search: String?,
         postStatus: PostStatus,
         disabled: Boolean,
@@ -33,7 +32,7 @@ class PostRepositoryImpl : PostRepositoryCustom {
     ): Page<Post> {
         val post = QPost.post
 
-        val posts = jpaQueryFactory!!.selectFrom(post)
+        val posts = jpaQueryFactory.selectFrom(post)
             .where(
                 searchKeywordContains(post, search),
                 checkPostStatus(post, postStatus),
@@ -45,24 +44,23 @@ class PostRepositoryImpl : PostRepositoryCustom {
             .limit(pageable.pageSize.toLong())
             .fetch()
 
-        val total = Optional.ofNullable(
-            jpaQueryFactory.select(post.count())
-                .from(post)
-                .where(
-                    searchKeywordContains(post, search),
-                    checkPostStatus(post, postStatus),
-                    post.groupId.eq(groupId),
-                    post.disabled.eq(disabled)
-                )
-                .fetchOne()
-        ).orElse(0L)
+        val total = jpaQueryFactory
+            .select(post.count())
+            .from(post)
+            .where(
+                searchKeywordContains(post, search),
+                checkPostStatus(post, postStatus),
+                post.groupId.eq(groupId),
+                post.disabled.eq(disabled)
+            )
+            .fetchOne() ?: 0L
 
         return PageImpl(posts, pageable, total)
     }
 
     override fun findAllByUserAndSearchStatus(
-        groupId: Long?,
-        memberId: Long?,
+        groupId: Long,
+        memberId: Long,
         search: String?,
         postStatus: PostStatus,
         disabled: Boolean,
@@ -70,7 +68,7 @@ class PostRepositoryImpl : PostRepositoryCustom {
     ): Page<Post> {
         val post = QPost.post
 
-        val posts = jpaQueryFactory!!.selectFrom(post)
+        val posts = jpaQueryFactory.selectFrom(post)
             .where(
                 searchKeywordContains(post, search),
                 checkPostStatus(post, postStatus),
@@ -83,30 +81,29 @@ class PostRepositoryImpl : PostRepositoryCustom {
             .limit(pageable.pageSize.toLong())
             .fetch()
 
-        val total = Optional.ofNullable(
-            jpaQueryFactory.select(post.count())
-                .from(post)
-                .where(
-                    searchKeywordContains(post, search),
-                    checkPostStatus(post, postStatus),
-                    post.groupId.eq(groupId),
-                    post.memberId.eq(memberId),
-                    post.disabled.eq(disabled)
-                )
-                .fetchOne()
-        ).orElse(0L)
+        val total = jpaQueryFactory
+            .select(post.count())
+            .from(post)
+            .where(
+                searchKeywordContains(post, search),
+                checkPostStatus(post, postStatus),
+                post.groupId.eq(groupId),
+                post.memberId.eq(memberId),
+                post.disabled.eq(disabled)
+            )
+            .fetchOne() ?: 0L
 
         return PageImpl(posts, pageable, total)
     }
 
     override fun findPostsByGroupIdOrderByTodayViewsCountDesc(
-        groupId: Long?,
+        groupId: Long,
         limit: Int,
         disabled: Boolean
     ): List<Post> {
         val post = QPost.post
 
-        return jpaQueryFactory!!.selectFrom(post)
+        return jpaQueryFactory.selectFrom(post)
             .where(
                 post.groupId.eq(groupId),
                 post.disabled.eq(disabled),
@@ -128,9 +125,8 @@ class PostRepositoryImpl : PostRepositoryCustom {
             .execute()
     }
 
-
     private fun searchKeywordContains(post: QPost, search: String?): BooleanExpression? {
-        return if (search == null || search.isEmpty()) null else post.title.containsIgnoreCase(search)
+        return if (search.isNullOrEmpty()) null else post.title.containsIgnoreCase(search)
     }
 
     private fun checkPostStatus(post: QPost, postStatus: PostStatus): BooleanExpression? {
@@ -138,7 +134,7 @@ class PostRepositoryImpl : PostRepositoryCustom {
     }
 
     private fun isValidColumn(column: String): Boolean {
-        val validColumns: List<String> = mutableListOf("title", "createdAt", "modifiedAt")
+        val validColumns = listOf("title", "createdAt", "modifiedAt")
         return validColumns.contains(column)
     }
 
@@ -147,17 +143,17 @@ class PostRepositoryImpl : PostRepositoryCustom {
             return arrayOf(post.createdAt.desc())
         }
 
-        val orders: MutableList<OrderSpecifier<*>> = ArrayList()
+        val orders = mutableListOf<OrderSpecifier<*>>()
         for (order in pageable.sort) {
             val column = order.property
             if (!isValidColumn(column)) {
                 throw DomainException(GlobalErrorCode.INVALID_INPUT_VALUE)
             }
 
-            val path: Expression<*> = Expressions.path(Comparable::class.java, post, column)
-            orders.add(OrderSpecifier<Any?>(if (order.isAscending) Order.ASC else Order.DESC, path))
+            val path: Expression<Comparable<*>> = Expressions.path(Comparable::class.java, post, column)
+            orders.add(OrderSpecifier(if (order.isAscending) Order.ASC else Order.DESC, path))
         }
 
-        return orders.toTypedArray<OrderSpecifier<*>>() // 첫 번째 정렬 반환
+        return orders.toTypedArray()
     }
 }

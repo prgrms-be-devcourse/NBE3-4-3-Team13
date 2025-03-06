@@ -1,89 +1,79 @@
 package com.app.backend.domain.post.dto.resp;
 
-import com.app.backend.domain.member.entity.Member;
-import com.app.backend.domain.post.entity.Post;
-import com.app.backend.domain.post.entity.PostStatus;
+import com.app.backend.domain.post.entity.Post
+import com.app.backend.domain.post.entity.PostStatus
 import com.app.backend.global.util.AppUtil;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
 
-import java.util.List;
+sealed class PostRespDto {
 
-public class PostRespDto {
+    data class GetPostIdDto(
+        val postId: Long
+    )
 
-    @Getter
-    @AllArgsConstructor
-    public static class GetPostIdDto {
-        private final Long postId;
+    data class GetPostDto(
+        val postId: Long,
+        val title: String,
+        val content: String,
+        val postStatus: PostStatus,
+        val nickName: String,
+        val memberId: Long,
+        val groupId: Long,
+        val createdAt: String,
+        val modifiedAt: String,
+        val likeCount: Int,
+        var liked: Boolean,
+        val images: List<PostAttachmentRespDto.GetPostImageDto>? = emptyList(),
+        val documents: List<PostAttachmentRespDto.GetPostDocumentDto>? = emptyList()
+    ) {
+        companion object {
+            fun from(
+                post: Post,
+                memberId: Long,
+                memberNickName: String,
+                images: List<PostAttachmentRespDto.GetPostImageDto>? = emptyList(),
+                documents: List<PostAttachmentRespDto.GetPostDocumentDto>? = emptyList(),
+                isLiked: Boolean
+            ): GetPostDto {
+                return GetPostDto(
+                    post.id!!,
+                    post.title,
+                    post.content,
+                    post.postStatus,
+                    memberNickName,
+                    memberId,
+                    post.groupId,
+                    AppUtil.localDateTimeToString(post.createdAt),
+                    AppUtil.localDateTimeToString(post.modifiedAt),
+                    post.likeCount,
+                    isLiked,
+                    images?: emptyList(),
+                    documents?: emptyList()
+                )
+            }
+        }
     }
 
-    @Getter
-    @Builder(access = AccessLevel.PRIVATE)
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class GetPostDto {
-
-        private final Long postId;
-        private final String title;
-        private final String content;
-        private final PostStatus postStatus;
-        private final String nickName;
-        private final Long memberId;
-        private final Long groupId;
-        private final String createdAt;
-        private final String modifiedAt;
-        private final int likeCount;
-        private Boolean liked;
-        private final List<PostAttachmentRespDto.GetPostImageDto> images;
-        private final List<PostAttachmentRespDto.GetPostDocumentDto> documents;
-    }
-
-    public static GetPostDto toGetPost(final Post post,
-                                       final Member member,
-                                       final List<PostAttachmentRespDto.GetPostImageDto> images,
-                                       final List<PostAttachmentRespDto.GetPostDocumentDto> documents,
-                                       final boolean isLiked)
-    {
-        return GetPostDto.builder()
-                .postId(post.getId())
-                .title(post.getTitle())
-                .content(post.getContent())
-                .postStatus(post.getPostStatus())
-                .nickName(member.getNickname())
-                .memberId(member.getId())
-                .groupId(post.getGroupId())
-                .createdAt(AppUtil.localDateTimeToString(post.getCreatedAt()))
-                .modifiedAt(AppUtil.localDateTimeToString(post.getModifiedAt()))
-                .likeCount(post.getLikeCount())
-                .liked(isLiked)
-                .images(images)
-                .documents(documents)
-                .build();
-    }
-
-    @Getter
-    @Builder(access = AccessLevel.PRIVATE)
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public static class GetPostListDto {
-        private final Long postId;
-        private final String title;
-        private final PostStatus postStatus;
-        private final Long memberId;
-        private final String nickName;
-        private final String createdAt;
-        private final Long todayViewCount;
-    }
-
-    public static GetPostListDto toGetPostList(final Post post){
-        return GetPostListDto.builder()
-                .postId(post.getId())
-                .title(post.getTitle())
-                .postStatus(post.getPostStatus())
-                .memberId(post.getMemberId())
-                .nickName(post.getNickName())
-                .createdAt(AppUtil.localDateTimeToString(post.getCreatedAt()))
-                .todayViewCount(post.getTodayViewCount())
-                .build();
+    data class GetPostListDto(
+        val postId: Long,
+        val title: String,
+        val postStatus: PostStatus,
+        val memberId: Long,
+        val nickName: String,
+        val createdAt: String,
+        val todayViewCount: Long
+    ) {
+        companion object {
+            fun from(post: Post): GetPostListDto {
+                return GetPostListDto(
+                    post.id!!,
+                    post.title,
+                    post.postStatus,
+                    post.memberId,
+                    post.nickName,
+                    AppUtil.localDateTimeToString(post.createdAt),
+                    post.todayViewCount
+                )
+            }
+        }
     }
 }

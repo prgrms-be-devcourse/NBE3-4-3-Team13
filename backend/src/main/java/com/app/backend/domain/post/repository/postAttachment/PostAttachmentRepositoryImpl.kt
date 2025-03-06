@@ -3,19 +3,15 @@ package com.app.backend.domain.post.repository.postAttachment
 import com.app.backend.domain.post.entity.PostAttachment
 import com.app.backend.domain.post.entity.QPostAttachment
 import com.querydsl.jpa.impl.JPAQueryFactory
-import lombok.RequiredArgsConstructor
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 @Repository
-@RequiredArgsConstructor
-class PostAttachmentRepositoryImpl : PostAttachmentRepositoryCustom {
-    private val jpaQueryFactory: JPAQueryFactory? = null
+class PostAttachmentRepositoryImpl(
+    private val jpaQueryFactory: JPAQueryFactory
+) : PostAttachmentRepositoryCustom {
 
-    override fun findAllByModifiedAtAndDisabled(
-        lastModified: LocalDateTime?,
-        disabled: Boolean
-    ): List<PostAttachment?>? {
+    override fun findAllByModifiedAtAndDisabled(lastModified: LocalDateTime, disabled: Boolean): List<PostAttachment> {
         val postAttachment = QPostAttachment.postAttachment
         return jpaQueryFactory
             .selectFrom(postAttachment)
@@ -26,7 +22,7 @@ class PostAttachmentRepositoryImpl : PostAttachmentRepositoryCustom {
             .fetch()
     }
 
-    override fun deleteByIdList(idList: List<Long?>?) {
+    override fun deleteByIdList(idList: List<Long>) {
         val postAttachment = QPostAttachment.postAttachment
         jpaQueryFactory
             .update(postAttachment)
@@ -38,7 +34,7 @@ class PostAttachmentRepositoryImpl : PostAttachmentRepositoryCustom {
             .execute()
     }
 
-    override fun deleteByPostId(postId: Long?) {
+    override fun deleteByPostId(postId: Long) {
         val postAttachment = QPostAttachment.postAttachment
         jpaQueryFactory
             .update(postAttachment)
@@ -50,7 +46,7 @@ class PostAttachmentRepositoryImpl : PostAttachmentRepositoryCustom {
             .execute()
     }
 
-    override fun deleteByFileIdList(fileIdList: List<Long?>?) {
+    override fun deleteByFileIdList(fileIdList: List<Long>) {
         val postAttachment = QPostAttachment.postAttachment
         jpaQueryFactory
             .delete(postAttachment)
@@ -58,3 +54,4 @@ class PostAttachmentRepositoryImpl : PostAttachmentRepositoryCustom {
             .execute()
     }
 }
+
