@@ -84,7 +84,7 @@ class MeetingApplicationService(
         }
     }
 
-    fun getMeetingApplicationById(groupId: Long, meetingApplicationId: Long?, memberId: Long): MeetingApplicationResponse.Detail {
+    fun getMeetingApplicationById(groupId: Long, meetingApplicationId: Long, memberId: Long): MeetingApplicationResponse.Detail {
         val groupLeaderMembership = groupMembershipRepository.findByGroupIdAndMemberIdAndDisabled(groupId, memberId, false)
             .orElseThrow { GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_NOT_FOUND) }
 

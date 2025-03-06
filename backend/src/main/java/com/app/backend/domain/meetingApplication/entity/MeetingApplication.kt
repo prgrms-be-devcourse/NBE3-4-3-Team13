@@ -23,7 +23,7 @@ class MeetingApplication (
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "meeting_application_id", nullable = false)
-    val id: Long? = null
+    val id: Long = 0L
 
     fun modifyContext(newContext: String): MeetingApplication {
         if (context != newContext) context = newContext
