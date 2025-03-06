@@ -195,15 +195,14 @@ public class CommentControllerTest {
 		testComment = commentRepository.save(testComment);
 
 		// 다른 사용자 생성
-		Member Member2 = new Member(
-			null,
+		Member Member2 = Member.create(
 			"other",
 			"password",
 			"다른사용자",
-			null,
-			null,
 			"USER",
-			false
+			false,
+			null,
+			null
 		);
 		memberRepository.save(Member2);
 		MemberDetails otherMemberDetails = new MemberDetails(Member2);
@@ -326,15 +325,14 @@ public class CommentControllerTest {
 		);
 		testComment = commentRepository.save(testComment);
 
-		Member Member2 = new Member(
-			null,
+		Member Member2 = Member.create(
 			"other",
 			"password",
 			"다른사용자",
-			null,
-			null,
 			"USER",
-			false
+			false,
+			null,
+			null
 		);
 		memberRepository.save(Member2);
 		MemberDetails otherMemberDetails = new MemberDetails(Member2);

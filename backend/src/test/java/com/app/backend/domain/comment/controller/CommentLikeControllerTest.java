@@ -150,15 +150,14 @@ class CommentLikeControllerTest {
 
 		int numberOfUsers = 10;
 		for (int i = 0; i < numberOfUsers; i++) {
-			Member user = new Member(
-				null,
+			Member user = Member.create(
 				"testUser" + i,
 				null,
 				"테스터" + i,
-				null,
-				null,
 				"ROLE_USER",
-				false
+				false,
+				null,
+				null
 			);
 			memberRepository.save(user);
 		}
@@ -200,15 +199,14 @@ class CommentLikeControllerTest {
 
 
 		for (int i = 0; i < numberOfUsers; i++) {
-			Member user = new Member(
-				null,
+			Member user = Member.create(
 				"testUser" + i,
 				"password",
 				"테스터" + i,
-				null,
-				null,
 				"ROLE_USER",
-				false
+				false,
+				null,
+				null
 			);
 			users.add(memberRepository.save(user));
 		}
