@@ -29,7 +29,7 @@ class CommentService(
     // 댓글 조회
     private fun getCommentValidate(id: Long): Comment {
         return commentRepository.findByIdAndDisabled(id, false)
-            .orElseThrow { CommentException(CommentErrorCode.COMMENT_NOT_FOUND) }
+            ?: throw CommentException(CommentErrorCode.COMMENT_NOT_FOUND)
     }
 
     // 게시물 조회
