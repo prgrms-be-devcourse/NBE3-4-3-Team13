@@ -4,7 +4,7 @@ import com.app.backend.domain.chat.room.entity.ChatRoom
 
 data class ChatRoomListResponse(
 	val chatRoomId: Long?,
-	val groupId: Long,
+	val groupId: Long?,
 	val groupName: String,
 	val participant: Long
 ) {
