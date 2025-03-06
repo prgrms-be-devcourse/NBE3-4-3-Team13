@@ -72,7 +72,7 @@ class CacheAspect(private val redisTemplate: RedisTemplate<String, Any>) {
     private fun getUserID(): Long {
         val authentication: Authentication = SecurityContextHolder.getContext().authentication
         val memberDetails = authentication.principal as MemberDetails
-        return memberDetails.id
+        return memberDetails.id!!
     }
 
     private fun getParams(joinPoint: ProceedingJoinPoint): Map<String, Any> {
