@@ -1,23 +1,23 @@
-package com.app.backend.global.config.condition;
+package com.app.backend.global.config.condition
 
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
-import redis.clients.jedis.Jedis;
+import org.springframework.context.annotation.Condition
+import org.springframework.context.annotation.ConditionContext
+import org.springframework.core.type.AnnotatedTypeMetadata
+import redis.clients.jedis.Jedis
 
-public class RedisAvailableCondition implements Condition {
-    @Override
-    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        String host     = context.getEnvironment().getProperty("redisson.host", "localhost");
-        int    port     = Integer.parseInt(context.getEnvironment().getProperty("redisson.port", "6380"));
-        String password = context.getEnvironment().getProperty("redisson.password", "");
+class RedisAvailableCondition : Condition {
+    override fun matches(context: ConditionContext, metadata: AnnotatedTypeMetadata): Boolean {
+        val host = context.environment.getProperty("redisson.host", "localhost")
+        val port = context.environment.getProperty("redisson.port", "6380").toInt()
+        val password = context.environment.getProperty("redisson.password", "")
 
-        try (Jedis jedis = new Jedis(host, port)) {
-            if (!password.isEmpty())
-                jedis.auth(password);
-            return "PONG".equals(jedis.ping());
-        } catch (Exception e) {
-            return false;
+        try {
+            Jedis(host, port).use { jedis ->
+                if (password.isNotEmpty()) jedis.auth(password)
+                return "PONG" == jedis.ping()
+            }
+        } catch (e: Exception) {
+            return false
         }
     }
 }
