@@ -2,6 +2,7 @@ package com.app.backend.domain.group.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.group.dto.request.GroupRequest;
 import com.app.backend.domain.group.entity.Group;
 import com.app.backend.domain.group.entity.GroupMembership;
@@ -10,6 +11,7 @@ import com.app.backend.domain.group.entity.RecruitStatus;
 import com.app.backend.domain.group.exception.GroupMembershipException;
 import com.app.backend.domain.group.supporter.SpringBootTestSupporter;
 import com.app.backend.domain.member.entity.Member;
+import com.app.backend.domain.member.entity.Member.Provider;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,37 +71,33 @@ class GroupServiceConcurrencyTest extends SpringBootTestSupporter {
         Future<?> future = executorService.submit(() -> {
             TransactionStatus transactionStatus = transactionManager.getTransaction(new DefaultTransactionDefinition());
             try {
-                Category category = Category.builder().name("category").build();
+                Category category = new Category("category");
                 em.persist(category);
-                Category newCategory = Category.builder().name("nCategory").build();
+                Category newCategory = new Category("nCategory");
                 em.persist(newCategory);
                 newCategoryRef.set(newCategory);
 
-                Group group = Group.builder()
-                                   .name("test")
-                                   .province("test province")
-                                   .city("test city")
-                                   .town("test town")
-                                   .description("test description")
-                                   .recruitStatus(RecruitStatus.RECRUITING)
-                                   .maxRecruitCount(10)
-                                   .category(category)
-                                   .build();
+                Group group = Group.Companion.of("test",
+                                                 "test province",
+                                                 "test city",
+                                                 "test town",
+                                                 "test description",
+                                                 RecruitStatus.RECRUITING,
+                                                 10,
+                                                 category);
                 em.persist(group);
                 groupRef.set(group);
 
                 for (int i = 1; i <= memberRefs.size(); i++) {
-                    Member member = Member.builder()
-                                          .username("testUsername%d".formatted(i))
-                                          .password("testPassword%d".formatted(i))
-                                          .nickname("testNickname%d".formatted(i))
-                                          .build();
+                    Member member = Member.create("testUsername%d".formatted(i),
+                                                  "testPassword%d".formatted(i),
+                                                  "testNickname%d".formatted(i),
+                                                  "ROLE_USER",
+                                                  false,
+                                                  Provider.LOCAL,
+                                                  null);
                     em.persist(member);
-                    GroupMembership groupMembership = GroupMembership.builder()
-                                                                     .member(member)
-                                                                     .group(group)
-                                                                     .groupRole(GroupRole.LEADER)
-                                                                     .build();
+                    GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.LEADER);
                     em.persist(groupMembership);
                     memberRefs.get(i - 1).set(member);
                 }
@@ -128,18 +126,15 @@ class GroupServiceConcurrencyTest extends SpringBootTestSupporter {
             int threadIndex = i;
             executorService.execute(() -> {
                 try {
-                    GroupRequest.Update update = GroupRequest.Update.builder()
-                                                                    .name("new test%d".formatted(threadIndex))
-                                                                    .province("new test province%d".formatted(
-                                                                            threadIndex))
-                                                                    .city("new test city%d".formatted(threadIndex))
-                                                                    .town("new test town%d".formatted(threadIndex))
-                                                                    .description("new test description%d".formatted(
-                                                                            threadIndex))
-                                                                    .recruitStatus(RecruitStatus.CLOSED.name())
-                                                                    .maxRecruitCount(20)
-                                                                    .categoryName(newCategoryName)
-                                                                    .build();
+                    GroupRequest.Update update = new GroupRequest.Update("new test%d".formatted(threadIndex),
+                                                                         "new test province%d".formatted(threadIndex),
+                                                                         "new test city%d".formatted(threadIndex),
+                                                                         "new test town%d".formatted(threadIndex),
+                                                                         "new test description%d"
+                                                                                 .formatted(threadIndex),
+                                                                         RecruitStatus.CLOSED.name(),
+                                                                         20,
+                                                                         newCategoryName);
 
                     Thread.sleep(100);
                     groupService.modifyGroup(groupId, memberIds.get(threadIndex % memberIds.size()), update);
@@ -213,34 +208,30 @@ class GroupServiceConcurrencyTest extends SpringBootTestSupporter {
         Future<?> future = executorService.submit(() -> {
             TransactionStatus transactionStatus = transactionManager.getTransaction(new DefaultTransactionDefinition());
             try {
-                Category category = Category.builder().name("category").build();
+                Category category = new Category("category");
                 em.persist(category);
 
-                Group group = Group.builder()
-                                   .name("test")
-                                   .province("test province")
-                                   .city("test city")
-                                   .town("test town")
-                                   .description("test description")
-                                   .recruitStatus(RecruitStatus.RECRUITING)
-                                   .maxRecruitCount(10)
-                                   .category(category)
-                                   .build();
+                Group group = Group.Companion.of("test",
+                                                 "test province",
+                                                 "test city",
+                                                 "test town",
+                                                 "test description",
+                                                 RecruitStatus.RECRUITING,
+                                                 10,
+                                                 category);
                 em.persist(group);
                 groupRef.set(group);
 
                 for (int i = 1; i <= memberRefs.size(); i++) {
-                    Member member = Member.builder()
-                                          .username("testUsername%d".formatted(i))
-                                          .password("testPassword%d".formatted(i))
-                                          .nickname("testNickname%d".formatted(i))
-                                          .build();
+                    Member member = Member.create("testUsername%d".formatted(i),
+                                                  "testPassword%d".formatted(i),
+                                                  "testNickname%d".formatted(i),
+                                                  "ROLE_USER",
+                                                  false,
+                                                  Provider.LOCAL,
+                                                  null);
                     em.persist(member);
-                    GroupMembership groupMembership = GroupMembership.builder()
-                                                                     .member(member)
-                                                                     .group(group)
-                                                                     .groupRole(GroupRole.LEADER)
-                                                                     .build();
+                    GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.LEADER);
                     em.persist(groupMembership);
                     memberRefs.get(i - 1).set(member);
                 }
