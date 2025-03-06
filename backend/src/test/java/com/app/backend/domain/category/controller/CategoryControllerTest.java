@@ -14,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,9 +95,7 @@ public class CategoryControllerTest {
 	@DisplayName("카테고리 생성 - 중복 이름")
 	@CustomWithMockUser(role = "ROLE_ADMIN")
 	void t4() throws Exception {
-		Category category = Category.builder()
-			.name("카테고리1")
-			.build();
+		Category category = new Category("카테고리1");
 		categoryRepository.save(category);
 
 		String requestJson = """
@@ -119,9 +116,7 @@ public class CategoryControllerTest {
 	@CustomWithMockUser(role = "ROLE_ADMIN")
 	void t5() throws Exception {
 		for (int i = 1; i <= 11; i++) {
-			Category category = Category.builder()
-				.name("카테고리" + i)
-				.build();
+			Category category = new Category("카테고리" + i);
 			categoryRepository.save(category);
 		}
 
@@ -193,9 +188,7 @@ public class CategoryControllerTest {
 	@DisplayName("카테고리 삭제")
 	@CustomWithMockUser(role = "ROLE_ADMIN")
 	void t8() throws Exception {
-		Category category = Category.builder()
-			.name("카테고리")
-			.build();
+		Category category = new Category("삭제할 카테고리");
 		categoryRepository.save(category);
 
 		mvc.perform(MockMvcRequestBuilders.delete("/api/v1/admin/categories/{id}", category.getId())
