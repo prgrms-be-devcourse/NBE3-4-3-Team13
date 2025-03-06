@@ -83,6 +83,7 @@ public class CommentControllerTest {
 			"테스트 닉"
 		);
 		testPost = postRepository.save(testPost);
+		testPostId = testPost.getId();
 
 	}
 
