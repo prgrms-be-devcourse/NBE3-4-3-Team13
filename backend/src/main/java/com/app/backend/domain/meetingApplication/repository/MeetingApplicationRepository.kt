@@ -1,6 +1,6 @@
 package com.app.backend.domain.meetingApplication.repository
 
-import com.app.backend.domain.meetingApplication.entity.MeetingApplication
+import com.app.backend.domain.chat.room.controller.MeetingApplication
 import org.springframework.data.jpa.repository.JpaRepository
 import java.util.Optional
 
