@@ -69,9 +69,9 @@ class PostService(
 
         val images = postAttachmentRepository
             .findByPostIdAndFileTypeAndDisabledOrderByCreatedAtDesc(postId, FileType.IMAGE, false)
-            .map { PostAttachmentRespDto.GetPostImageDto.from(it, fileConfig.basE_DIR) }
+            .map { PostAttachmentRespDto.GetPostImageDto.from(it, fileConfig.getBaseDir()) }
 
-        return PostRespDto.GetPostDto.from(post, member.id!!, member.nickname, images, documents, true)
+        return PostRespDto.GetPostDto.from(post, member.id!!, member.nickname!!, images, documents, true)
     }
 
     @CustomCache(prefix = "post", key = "groupid", id = "groupId", ttl = 2)
@@ -121,7 +121,7 @@ class PostService(
 
         System.out.println(member.nickname)
 
-        val post = postRepository.save(savePost.toEntity(memberId, member.nickname))
+        val post = postRepository.save(savePost.toEntity(memberId, member.nickname!!))
 
         saveFiles(files, post)
 
@@ -214,7 +214,7 @@ class PostService(
 
                 val filePath = fileService.saveFile(file);
                 val fileName = FileUtil.getFileName(filePath);
-                filePaths.add(fileConfig.getBASE_DIR() + "/" + filePath);
+                filePaths.add(fileConfig.getBaseDir() + "/" + filePath);
                 attachments.add(
                     PostAttachment(
                         file.getOriginalFilename(),
