@@ -1,21 +1,12 @@
-package com.app.backend.global.annotation;
+package com.app.backend.global.annotation
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeUnit
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface CustomLock {
-
-    String key();
-
-    long maxWaitTime() default 1000L;
-
-    long leaseTime() default 5000L;
-
-    TimeUnit timeUnit() default TimeUnit.MILLISECONDS;
-
-}
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
+annotation class CustomLock(
+    val key: String,
+    val maxWaitTime: Long = 1000L,
+    val leaseTime: Long = 5000L,
+    val timeUnit: TimeUnit = TimeUnit.MILLISECONDS
+)
