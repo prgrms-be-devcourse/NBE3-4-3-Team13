@@ -10,25 +10,21 @@ import lombok.NoArgsConstructor
 
 @Entity
 @Table(name = "tbl_post_likes")
-@Getter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-class PostLike : BaseEntity() {
+class PostLike(
     @Id
-    @Column(name = "post_like_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private var id: Long? = null
+    @Column(name = "post_like_id")
+    val id: Long? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    private var member: Member? = null
+    val member: Member,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
-    private var post: Post? = null
-
+    val post: Post
+) : BaseEntity() {
     fun delete() {
-        this.deactivate()
+        deactivate()
     }
 }

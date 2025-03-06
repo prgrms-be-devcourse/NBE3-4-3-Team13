@@ -29,242 +29,239 @@ import com.app.backend.domain.post.repository.postAttachment.PostAttachmentRepos
 import com.app.backend.global.annotation.CustomCache;
 import com.app.backend.global.annotation.CustomCacheDelete;
 import com.app.backend.global.config.FileConfig;
-import com.app.backend.global.entity.BaseEntity;
 import com.app.backend.global.error.exception.GlobalErrorCode;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class PostService {
-
-    private final FileConfig fileConfig;
-    private final FileService fileService;
-    private final PostRepository postRepository;
-    private final MemberRepository memberRepository;
-    private final PostLikeRepository postLikeRepository;
-    private final PostAttachmentRepository postAttachmentRepository;
-    private final GroupMembershipRepository groupMembershipRepository;
-
-
-    private final int MAX_FILE_SIZE = 10 * 1024 * 1024;
+class PostService(
+    private val fileConfig: FileConfig,
+    private val fileService: FileService,
+    private val postRepository: PostRepository,
+    private val memberRepository: MemberRepository,
+    private val postLikeRepository: PostLikeRepository,
+    private val postAttachmentRepository: PostAttachmentRepository,
+    private val groupMembershipRepository: GroupMembershipRepository
+) {
+    private val MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     @CustomCache(prefix = "post", key = "postid", id = "postId", viewCount = true, viewCountTtl = 10, history = true)
-    public PostRespDto.GetPostDto getPost(final Long postId, final Long memberId) {
-        Post post = getPostEntity(postId);
+    fun getPost(postId: Long, memberId: Long): PostRespDto.GetPostDto {
+        val post = getPostEntity(postId)
 
-        if (!post.getPostStatus().equals(PostStatus.PUBLIC) && !getMemberShipEntity(post.getGroupId(), memberId).getStatus().equals(MembershipStatus.APPROVED)) {
-            throw new PostException(PostErrorCode.POST_UNAUTHORIZATION);
+        if (post.postStatus != PostStatus.PUBLIC && getMemberShipEntity(
+                post.groupId,
+                memberId
+            ).status != MembershipStatus.APPROVED
+        ) {
+            throw PostException(PostErrorCode.POST_UNAUTHORIZATION)
         }
 
-        Member member = getMemberEntity(memberId);
+        val member = getMemberEntity(memberId)
 
-        // document
-        List<PostAttachmentRespDto.GetPostDocumentDto> documents = postAttachmentRepository
-                .findByPostIdAndFileTypeAndDisabledOrderByCreatedAtDesc(postId, FileType.DOCUMENT, false).stream()
-                .map(PostAttachmentRespDto::getPostDocument)
-                .toList();
+        val documents = postAttachmentRepository
+            .findByPostIdAndFileTypeAndDisabledOrderByCreatedAtDesc(postId, FileType.DOCUMENT, false)
+            .map { PostAttachmentRespDto.GetPostDocumentDto.from(it) }
 
-        // image
-        List<PostAttachmentRespDto.GetPostImageDto> images = postAttachmentRepository
-                .findByPostIdAndFileTypeAndDisabledOrderByCreatedAtDesc(postId, FileType.IMAGE, false).stream()
-                .map(file -> PostAttachmentRespDto.GetPostImage(file, fileConfig.getIMAGE_DIR()))
-                .toList();
+        val images = postAttachmentRepository
+            .findByPostIdAndFileTypeAndDisabledOrderByCreatedAtDesc(postId, FileType.IMAGE, false)
+            .map { PostAttachmentRespDto.GetPostImageDto.from(it, fileConfig.basE_DIR) }
 
-        return PostRespDto.toGetPost(post, member, images, documents, true);
+        return PostRespDto.GetPostDto.from(post, member.id!!, member.nickname, images, documents, true)
     }
 
     @CustomCache(prefix = "post", key = "groupid", id = "groupId", ttl = 2)
-    public List<PostRespDto.GetPostListDto> getTopFivePosts(final Long groupId) {
-        return postRepository
-                .findPostsByGroupIdOrderByTodayViewsCountDesc(groupId,5,false)
-                .stream()
-                .map(PostRespDto::toGetPostList).toList();
-    }
-
-    public Page<PostRespDto.GetPostListDto> getPostsBySearch(final Long groupId, final String search, final PostStatus postStatus, final Pageable pageable) {
-        return postRepository
-                .findAllBySearchStatus(groupId, search, postStatus, false, pageable)
-                .map(PostRespDto::toGetPostList);
-    }
-
-    public Page<PostRespDto.GetPostListDto> getPostsByUser(final PostReqDto.SearchPostDto searchPost, final Pageable pageable, final Long memberId) {
-        return postRepository
-                .findAllByUserAndSearchStatus(searchPost.getGroupId(), memberId, searchPost.getSearch(), searchPost.getPostStatus(), false, pageable)
-                .map(PostRespDto::toGetPostList);
-    }
+    fun getTopFivePosts(groupId: Long): kotlin.collections.List<PostRespDto.GetPostListDto> =
+        postRepository.findPostsByGroupIdOrderByTodayViewsCountDesc(groupId, 5, false)
+            .map { PostRespDto.GetPostListDto.from(it) }
 
 
-    @Transactional
-    public Post savePost(final Long memberId, final PostReqDto.SavePostDto savePost, final MultipartFile[] files) {
-        GroupMembership membership = getMemberShipEntity(savePost.getGroupId(), memberId);
+    fun getPostsBySearch(
+        groupId: Long,
+        search: String,
+        postStatus: PostStatus,
+        pageable: Pageable
+    ): Page<PostRespDto.GetPostListDto> = postRepository
+        .findAllBySearchStatus(groupId, search, postStatus, false, pageable)
+        .map { PostRespDto.GetPostListDto.from(it) }
 
-        if (!membership.getStatus().equals(MembershipStatus.APPROVED)) {
-            throw new PostException(PostErrorCode.POST_UNAUTHORIZATION);
-        }
-
-        if (savePost.getPostStatus().equals(PostStatus.NOTICE) && !membership.getGroupRole().equals(GroupRole.LEADER)) {
-            throw new PostException(PostErrorCode.POST_UNAUTHORIZATION);
-        }
-        Member member = getMemberEntity(memberId);
-        Post post = postRepository.save(savePost.toEntity(memberId, member.getNickname()));
-
-        saveFiles(files, post);
-
-        return post;
-    }
+    fun getPostsByUser(
+        searchPost: PostReqDto.SearchPostDto,
+        pageable: Pageable,
+        memberId: Long
+    ): Page<PostRespDto.GetPostListDto> = postRepository
+        .findAllByUserAndSearchStatus(
+            searchPost.groupId,
+            memberId,
+            searchPost.search,
+            searchPost.postStatus,
+            false,
+            pageable
+        )
+        .map { PostRespDto.GetPostListDto.from(it) }
 
 
     @Transactional
-    @CustomCacheDelete(prefix = "post", key = "postid", id = "postId")
-    public Post updatePost(final Long memberId, final Long postId, final PostReqDto.ModifyPostDto modifyPost, final MultipartFile[] files) {
-        GroupMembership membership = getMemberShipEntity(modifyPost.getGroupId(), memberId);
-        Post post = getPostEntity(postId);
+    fun savePost(memberId: Long, savePost: PostReqDto.SavePostDto, files: Array<MultipartFile?>?): Post {
+        val membership = getMemberShipEntity(savePost.groupId, memberId)
 
-        if (!membership.getStatus().equals(MembershipStatus.APPROVED)) {
-            throw new PostException(PostErrorCode.POST_UNAUTHORIZATION);
+        if (membership.status != MembershipStatus.APPROVED) {
+            throw PostException(PostErrorCode.POST_UNAUTHORIZATION)
         }
 
-        if (!(post.getMemberId().equals(memberId) || membership.getGroupRole().equals(GroupRole.LEADER))) {
-            throw new PostException(PostErrorCode.POST_UNAUTHORIZATION);
+        if (savePost.postStatus == PostStatus.NOTICE && membership.groupRole != GroupRole.LEADER) {
+            throw PostException(PostErrorCode.POST_UNAUTHORIZATION)
         }
 
-        checkFileSize(files, modifyPost.getOldFileSize(), (long) MAX_FILE_SIZE);
+        val member = getMemberEntity(memberId)
 
-        post.setTitle(modifyPost.getTitle());
-        post.setContent(modifyPost.getContent());
-        post.setPostStatus(modifyPost.getPostStatus());
+        System.out.println(member.nickname)
 
-        saveFiles(files, post);
+        val post = postRepository.save(savePost.toEntity(memberId, member.nickname))
 
-        if (modifyPost.getRemoveIdList() != null && !modifyPost.getRemoveIdList().isEmpty()) {
-            postAttachmentRepository.deleteByIdList(modifyPost.getRemoveIdList());
-        }
+        saveFiles(files, post)
 
-        return post;
+        return post
     }
-
 
     @Transactional
     @CustomCacheDelete(prefix = "post", key = "postid", id = "postId")
-    public void deletePost(final Long memberId, final Long postId) {
-        Post post = getPostEntity(postId);
-        GroupMembership membership = getMemberShipEntity(post.getGroupId(), memberId);
+    fun updatePost(
+        memberId: Long,
+        postId: Long,
+        modifyPost: PostReqDto.ModifyPostDto,
+        files: Array<MultipartFile?>
+    ): Post {
+        val membership = getMemberShipEntity(modifyPost.groupId, memberId)
+        val post = getPostEntity(postId)
 
-        if (!membership.getStatus().equals(MembershipStatus.APPROVED)) {
-            throw new PostException(PostErrorCode.POST_UNAUTHORIZATION);
+        if (membership.status != MembershipStatus.APPROVED) {
+            throw PostException(PostErrorCode.POST_UNAUTHORIZATION)
         }
 
-        if (!(post.getMemberId().equals(memberId) || membership.getGroupRole().equals(GroupRole.LEADER))) {
-            throw new PostException(PostErrorCode.POST_UNAUTHORIZATION);
+        if (post.memberId != memberId && membership.groupRole != GroupRole.LEADER) {
+            throw PostException(PostErrorCode.POST_UNAUTHORIZATION)
         }
 
-        postAttachmentRepository.deleteByPostId(postId);
+        checkFileSize(files, modifyPost.oldFileSize, MAX_FILE_SIZE.toLong())
 
-        post.delete();
+        post.title = modifyPost.title
+        post.content = modifyPost.content
+        post.postStatus = modifyPost.postStatus
+
+        saveFiles(files, post)
+
+        modifyPost.removeIdList?.takeIf { it.isNotEmpty() }?.let {
+            postAttachmentRepository.deleteByIdList(it)
+        }
+
+        return post
     }
 
+    @Transactional
+    @CustomCacheDelete(prefix = "post", key = "postid", id = "postId")
+    fun deletePost(memberId: Long, postId: Long) {
+        val post = getPostEntity(postId)
+        val membership = getMemberShipEntity(post.groupId, memberId)
 
-    private Member getMemberEntity(final Long memberId) {
-        return memberRepository.findById(memberId)
-                .orElseThrow(() -> new PostException(GlobalErrorCode.ENTITY_NOT_FOUND));
+        if (membership.status != MembershipStatus.APPROVED) {
+            throw PostException(PostErrorCode.POST_UNAUTHORIZATION)
+        }
+
+        if (post.memberId != memberId && membership.groupRole != GroupRole.LEADER) {
+            throw PostException(PostErrorCode.POST_UNAUTHORIZATION)
+        }
+
+        postAttachmentRepository.deleteByPostId(postId)
+        post.delete()
     }
 
-
-    private Post getPostEntity(final Long postId) {
-        return postRepository.findByIdAndDisabled(postId, false)
-                .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
-    }
+    fun getMemberEntity(memberId: Long): Member =
+        memberRepository.findById(memberId).orElseThrow { PostException(GlobalErrorCode.ENTITY_NOT_FOUND) }
 
 
-    private GroupMembership getMemberShipEntity(final Long groupId, final Long memberId) {
-        return groupMembershipRepository.findById(GroupMembershipId.builder().groupId(groupId).memberId(memberId).build())
-                .orElseThrow(() -> new GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_NOT_FOUND));
-    }
+    fun getPostEntity(postId: Long): Post =
+        postRepository.findByIdAndDisabled(postId, false)?: throw PostException(PostErrorCode.POST_NOT_FOUND)
 
+
+    fun getMemberShipEntity(groupId: Long, memberId: Long): GroupMembership =
+        groupMembershipRepository.findByGroupIdAndMemberId(groupId, memberId)
+            .orElseThrow { GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_NOT_FOUND) }
 
     // 파일 크기 체크
-    private void checkFileSize(final MultipartFile[] files, final Long oldSize, final Long maxSize) {
-        Long newSize = files != null ? Arrays.stream(files).mapToLong(MultipartFile::getSize).sum() : 0;
+    fun checkFileSize(files: Array<MultipartFile?>, oldSize: Long, maxSize: Long) {
+        val newSize = files?.sumOf { it?.size ?: 0 } ?: 0
+
         if (oldSize + newSize > maxSize) {
-            throw new FileException(FileErrorCode.FILE_SIZE_EXCEEDED);
+            throw FileException(FileErrorCode.FILE_SIZE_EXCEEDED)
         }
     }
 
-
     // 파일 저장 및 롤백
-    private void saveFiles(final MultipartFile[] files, final Post post) {
-        if (files == null || files.length == 0) return;
+    fun saveFiles(files: Array<MultipartFile?>?, post: Post) {
+        if (files.isNullOrEmpty()) return
 
-        List<PostAttachment> attachments = new ArrayList<>();
-        List<String> filePaths = new ArrayList<>();
+        val attachments = mutableListOf<PostAttachment>()
+        val filePaths = mutableListOf<String>()
 
         try {
-            for (MultipartFile file : files) {
-                String filePath = fileService.saveFile(file);
-                String fileName = FileUtil.getFileName(filePath);
+            for (file in files) {
+                if (file == null) continue
+
+                val filePath = fileService.saveFile(file);
+                val fileName = FileUtil.getFileName(filePath);
                 filePaths.add(fileConfig.getBASE_DIR() + "/" + filePath);
-                attachments.add(new PostAttachment(
+                attachments.add(
+                    PostAttachment(
                         file.getOriginalFilename(),
                         fileName,
                         filePath,
                         file.getSize(),
                         file.getContentType(),
                         FileUtil.getFileType(fileName),
-                        post.getId()));
+                        post.id!!
+                    )
+                )
             }
-            postAttachmentRepository.saveAll(attachments);
-        } catch (Exception e) {
+
+            postAttachmentRepository.saveAll(attachments)
+        } catch (e: Exception) {
             if (!attachments.isEmpty()) {
-                fileService.deleteFiles(filePaths);
+                fileService.deleteFiles(filePaths)
             }
-            throw e;
+            throw e
         }
     }
 
     @Transactional
-    public void PostLike(Long postId, Long memberId) {
-        Post post = postRepository.findByIdWithLock(postId)
-            .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
+    fun PostLike(postId: Long, memberId: Long) {
+        val post = postRepository.findByIdWithLock(postId)?: throw PostException(PostErrorCode.POST_NOT_FOUND)
 
-        Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new PostException(GlobalErrorCode.ENTITY_NOT_FOUND));
+        val member = memberRepository.findById(memberId)
+            .orElseThrow { PostException(GlobalErrorCode.ENTITY_NOT_FOUND) }
 
-        Optional<PostLike> postLike = postLikeRepository.findByPostAndMember(post, member);
+        val postLike = postLikeRepository.findByPostAndMember(post, member)
 
-        if (postLike.isPresent()) {
-            postLike.get().delete();
-            post.removeLikeCount();
-
+        if (postLike != null) {
+            postLike.delete()
+            post.removeLikeCount()
         } else {
-            postLikeRepository.save(PostLike.builder()
-                .post(post)
-                .member(member)
-                .build());
-            post.addLikeCount();
+            postLikeRepository.save(PostLike(null, member, post))
+            post.addLikeCount()
         }
     }
 
-    public boolean isLiked(Long postId, Long memberId) {
-        Post post = postRepository.findById(postId)
-            .orElseThrow(() -> new PostException(PostErrorCode.POST_NOT_FOUND));
+    fun isLiked(postId: Long, memberId: Long): Boolean {
+        val post = postRepository.findById(postId)
+            .orElseThrow { PostException(PostErrorCode.POST_NOT_FOUND) }
 
-        Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new PostException(GlobalErrorCode.ENTITY_NOT_FOUND));
+        val member = memberRepository.findById(memberId)
+            .orElseThrow { PostException(GlobalErrorCode.ENTITY_NOT_FOUND) }
 
-        return postLikeRepository.findByPostAndMember(post, member)
-            .map(postLike -> !postLike.getDisabled())
-            .orElse(false);
+        return postLikeRepository.findByPostAndMember(post, member)?.let { !it.disabled } ?: false
     }
 }

@@ -7,24 +7,29 @@ import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime
 
 interface PostRepositoryCustom {
+
     fun findAllBySearchStatus(
-        groupId: Long?,
+        groupId: Long,
         search: String?,
-        postStatus: PostStatus?,
+        postStatus: PostStatus = PostStatus.ALL,
         disabled: Boolean,
-        pageable: Pageable?
-    ): Page<Post?>?
+        pageable: Pageable = Pageable.unpaged()
+    ): Page<Post>
 
     fun findAllByUserAndSearchStatus(
-        groupId: Long?,
-        memberId: Long?,
+        groupId: Long,
+        memberId: Long,
         search: String?,
-        postStatus: PostStatus?,
+        postStatus: PostStatus = PostStatus.ALL,
         disabled: Boolean,
-        pageable: Pageable?
-    ): Page<Post?>?
+        pageable: Pageable = Pageable.unpaged()
+    ): Page<Post>
 
-    fun findPostsByGroupIdOrderByTodayViewsCountDesc(groupId: Long?, limit: Int, disabled: Boolean): List<Post?>?
+    fun findPostsByGroupIdOrderByTodayViewsCountDesc(
+        groupId: Long,
+        limit: Int,
+        disabled: Boolean
+    ): List<Post>
 
-    fun deleteAllByModifiedAtAndDisabled(lastModified: LocalDateTime?, disabled: Boolean)
+    fun deleteAllByModifiedAtAndDisabled(lastModified: LocalDateTime, disabled: Boolean)
 }

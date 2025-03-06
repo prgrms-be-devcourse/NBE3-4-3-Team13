@@ -4,62 +4,69 @@ import com.app.backend.global.entity.BaseEntity
 import jakarta.persistence.*
 import lombok.*
 
+import jakarta.persistence.*
+
 @Entity
-@Getter
-@Builder
 @Table(name = "tbl_posts")
-@AllArgsConstructor
-@NoArgsConstructor
-class Post : BaseEntity() {
+class Post @JvmOverloads constructor(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id")
-    var id: Long? = null
+    val id: Long? = null,
 
-    @Setter
     @Column(nullable = false)
-    var title: String? = null
+    var title: String,
 
-    @Setter
     @Column(nullable = false)
-    var content: String? = null
+    var content: String,
 
-    @Setter
-    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    var postStatus: PostStatus? = null
-
-    @Setter
     @Column(nullable = false)
-    var memberId: Long? = null
+    var postStatus: PostStatus,
 
-    @Setter
     @Column(nullable = false)
-    var nickName: String? = null
+    var memberId: Long,
 
-    //    Member Entity 연관관계
-    //    @JoinColumn(name = "member_id")
-    //    @ManyToOne(fetch = FetchType.LAZY)
-    //    private Member member;
-    @Setter
     @Column(nullable = false)
-    var groupId: Long? = null
+    var nickName: String,
 
-    //    Group Entity 연관관계
-    //    @JoinColumn(name = "group_id")
-    //    @ManyToOne(fetch = FetchType.LAZY)
-    //    private Group group;
+    @Column(nullable = false)
+    var groupId: Long,
+
     @OneToMany(mappedBy = "post")
-    var likes: List<PostLike> = ArrayList()
+    var likes: MutableList<PostLike> = mutableListOf(),
 
     @Column(nullable = false)
-    var likeCount: Int = 0
+    var likeCount: Int = 0,
 
     @Column(nullable = false)
-    var todayViewCount: Long = 0L
+    var todayViewCount: Long = 0L,
 
     @Column(nullable = false)
     var totalViewCount: Long = 0L
+
+) : BaseEntity() {
+
+    companion object {
+        fun of(
+            title: String, content: String, postStatus: PostStatus,
+            groupId: Long, memberId: Long, nickName: String
+        ): Post {
+            return Post(
+                id = null,
+                title = title,
+                content = content,
+                postStatus = postStatus,
+                groupId = groupId,
+                memberId = memberId,
+                nickName = nickName,
+                likes = mutableListOf(),
+                likeCount = 0,
+                todayViewCount = 0L,
+                totalViewCount = 0L
+            )
+        }
+    }
 
     fun addTodayViewCount(viewCount: Long) {
         this.todayViewCount += viewCount
@@ -71,9 +78,7 @@ class Post : BaseEntity() {
     }
 
     fun delete() {
-        if (!this.disabled) {
-            deactivate()
-        }
+        if (!disabled) deactivate()
     }
 
     fun addLikeCount() {
@@ -81,21 +86,7 @@ class Post : BaseEntity() {
     }
 
     fun removeLikeCount() {
-        if (this.likeCount > 0) {
-            likeCount--
-        }
-    }
-
-    companion object {
-        fun of(
-            title: String?,
-            content: String?,
-            postStatus: PostStatus?,
-            groupId: Long?,
-            memberId: Long?,
-            nickName: String?
-        ): Post {
-            return Post(null, title, content, postStatus, memberId, nickName, groupId, ArrayList<PostLike>(), 0, 0L, 0L)
-        }
+        if (likeCount > 0) this.likeCount--
     }
 }
+

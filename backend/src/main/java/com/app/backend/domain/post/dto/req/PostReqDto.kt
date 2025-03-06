@@ -1,80 +1,64 @@
 package com.app.backend.domain.post.dto.req;
 
-import com.app.backend.domain.group.entity.Group;
-import com.app.backend.domain.member.entity.Member;
 import com.app.backend.domain.post.entity.Post;
 import com.app.backend.domain.post.entity.PostStatus;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
+sealed class PostReqDto {
 
-public class PostReqDto {
+    data class SearchPostDto(
+            @field: Positive
+            val groupId: Long,
 
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class SearchPostDto {
-        @Positive
-        private Long groupId;
+            @JsonProperty(defaultValue = "")
+            val search: String,
 
-        @JsonProperty(defaultValue = "")
-        private String search;
+            @JsonProperty(defaultValue = "ALL")
+            val postStatus: PostStatus = PostStatus.ALL
+    )
 
-        @JsonProperty(defaultValue = "ALL")
-        private PostStatus postStatus;
-    }
+    data class ModifyPostDto(
+            @field: Positive
+            val groupId: Long,
 
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ModifyPostDto {
-        @Positive
-        private Long groupId;
-        @NotNull
-        private String title;
-        @NotNull
-        private String content;
-        @NotNull
-        private PostStatus postStatus;
+            @field:NotNull
+                    val title: String,
 
-        @JsonProperty(defaultValue = "0")
-        private Long oldFileSize;
+            @field:NotNull
+                    val content: String,
 
-        private List<Long> remainIdList;
+            @field:NotNull
+                    val postStatus: PostStatus,
 
-        private List<Long> removeIdList;
-    }
+            @JsonProperty(defaultValue = "0")
+            val oldFileSize: Long,
 
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class SavePostDto {
+            val remainIdList: List<Long>? = null,
 
-        @NotNull
-        private String title;
-        @NotNull
-        private String content;
-        @NotNull
-        private PostStatus postStatus;
-        @Positive
-        private Long groupId;
+            val removeIdList: List<Long>? = null
 
-        public Post toEntity(Long memberId, String nickName) {
-            return Post
-                    .builder()
-                    .title(this.title)
-                    .content(this.content)
-                    .postStatus(this.postStatus)
-                    .groupId(this.groupId)
-                    .memberId(memberId)
-                    .nickName(nickName)
-                    .build();
+    )
+
+    data class SavePostDto(
+            @field:NotNull
+            val title: String,
+
+            @field:NotNull
+                    val content: String,
+
+            @field:NotNull
+                    val postStatus: PostStatus,
+
+            @field:Positive
+                    val groupId: Long,
+
+            ) {
+        fun toEntity(memberId: Long, nickName: String): Post {
+            return Post.of(this.title, this.content, this.postStatus, this.groupId, memberId, nickName);
         }
     }
+
 }
+
