@@ -39,13 +39,12 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfig {
-    private final JwtProvider             jwtProvider;
+    private final JwtProvider jwtProvider;
     private final CustomOAuth2UserService customOAuth2UserService;
-    private final OAuth2SuccessHandler    oAuth2SuccessHandler;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     private final String[] allowedOrigins = {
             "http://localhost:3000", // React
-            "http://localhost:5173", // Vite
             "http://localhost:8080" // Spring Boot
     };
 
@@ -84,7 +83,6 @@ public class SecurityConfig {
                                 "/api/v1/proxy/kakao/**",
                                 "/api/v1/notifications/**"
                         )
-                        // Prometheus 매트릭 수집 엔드 포인드
                         .permitAll().requestMatchers(
                                 "/actuator/prometheus"
                         ).permitAll()
@@ -135,7 +133,6 @@ public class SecurityConfig {
     }
 }
 
-// OAuth2 실패 핸들러를 별도 클래스로 분리
 @Component
 class OAuth2AuthenticationFailureHandler implements AuthenticationFailureHandler {
     @Override
@@ -156,7 +153,6 @@ class OAuth2AuthenticationFailureHandler implements AuthenticationFailureHandler
             return switch (error.getErrorCode()) {
                 case "invalid_token" -> "유효하지 않은 토큰입니다.";
                 case "invalid_request" -> "잘못된 요청입니다.";
-                // ... 나머지 케이스들
                 default -> "로그인 처리 중 오류가 발생했습니다: " + error.getDescription();
             };
         }

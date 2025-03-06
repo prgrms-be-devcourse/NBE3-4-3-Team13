@@ -2,7 +2,6 @@ package com.app.backend.domain.group.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.group.entity.Group;
 import com.app.backend.domain.group.entity.GroupMembership;
 import com.app.backend.domain.group.entity.GroupMembershipId;

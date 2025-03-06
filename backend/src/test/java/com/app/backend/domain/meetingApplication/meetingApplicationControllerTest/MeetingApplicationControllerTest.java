@@ -22,7 +22,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.category.repository.CategoryRepository;
 import com.app.backend.domain.group.entity.Group;
 import com.app.backend.domain.group.entity.GroupMembership;
@@ -31,14 +30,13 @@ import com.app.backend.domain.group.entity.RecruitStatus;
 import com.app.backend.domain.group.repository.GroupMembershipRepository;
 import com.app.backend.domain.group.repository.GroupRepository;
 import com.app.backend.domain.meetingApplication.dto.MeetingApplicationReqBody;
-import com.app.backend.domain.meetingApplication.entity.MeetingApplication;
+import com.app.backend.domain.chat.room.controller.MeetingApplication;
 import com.app.backend.domain.meetingApplication.exception.MeetingApplicationErrorCode;
 import com.app.backend.domain.meetingApplication.exception.MeetingApplicationException;
 import com.app.backend.domain.meetingApplication.repository.MeetingApplicationRepository;
 import com.app.backend.domain.meetingApplication.service.MeetingApplicationService;
 import com.app.backend.domain.member.entity.Member;
 import com.app.backend.domain.member.entity.MemberDetails;
-import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.global.annotation.CustomWithMockUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

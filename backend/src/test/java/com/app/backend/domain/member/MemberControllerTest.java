@@ -1,10 +1,13 @@
 package com.app.backend.domain.member;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
+import com.app.backend.domain.member.dto.request.MemberJoinRequestDto;
+import com.app.backend.domain.member.dto.request.MemberLoginRequestDto;
+import com.app.backend.domain.member.dto.request.MemberModifyRequestDto;
+import com.app.backend.domain.member.entity.Member;
+import com.app.backend.domain.member.jwt.JwtProvider;
+import com.app.backend.domain.member.repository.MemberRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,15 +21,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.app.backend.domain.member.dto.request.MemberJoinRequestDto;
-import com.app.backend.domain.member.dto.request.MemberLoginRequestDto;
-import com.app.backend.domain.member.dto.request.MemberModifyRequestDto;
-import com.app.backend.domain.member.entity.Member;
-import com.app.backend.domain.member.jwt.JwtProvider;
-import com.app.backend.domain.member.repository.MemberRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import jakarta.transaction.Transactional;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest           // 전체 애플리케이션 컨텍스트 로드
 @AutoConfigureMockMvc     // MockMvc 자동 구성
@@ -86,8 +84,8 @@ public class MemberControllerTest {
 			.orElseThrow(() -> new RuntimeException("회원이 저장되지 않았습니다."));
 
 		assertAll(
-			() -> assertEquals(request.username(), savedMember.getUsername()),
-			() -> assertEquals(request.nickname(), savedMember.getNickname()),
+			() -> assertEquals(request.getUsername(), savedMember.getUsername()),
+			() -> assertEquals(request.getNickname(), savedMember.getNickname()),
 			// 비밀번호는 암호화되어 저장되므로 직접 비교는 하지 않음
 			() -> assertNotNull(savedMember.getPassword())
 		);
@@ -112,35 +110,10 @@ public class MemberControllerTest {
 			.orElseThrow(() -> new IllegalArgumentException("가입되지 않은 사용자입니다"));
 
 		assertAll(
-			() -> assertEquals(request.username(), savedMember.getUsername()),
+			() -> assertEquals(request.getUsername(), savedMember.getUsername()),
 			() -> assertNotNull(savedMember.getPassword())
 		);
 	}
-
-	// @Test
-	// @DisplayName("카카오 로그인")
-	// void 카카오로그인() throws Exception {
-		// // given
-		// String code = "test_auth_code";
-		// KakaoUserInfo kakaoUserInfo = new KakaoUserInfo("123", "테스트유저");
-		// TokenDto expectedTokens = new TokenDto("test.access.token", "test.refresh.token");
-		//
-		// // KakaoAuthService 모킹
-		// when(kakaoAuthService.kakaoLogin(anyString()))
-		// 	.thenReturn(expectedTokens);
-		//
-		// // when & then
-		// mvc.perform(get("/api/v1/members/kakao/callback")
-		// 		.param("code", code)
-		// 		.contentType(MediaType.APPLICATION_JSON))
-		// 	.andExpect(status().isOk())
-		// 	.andExpect(cookie().exists("accessToken"))
-		// 	.andExpect(cookie().exists("refreshToken"))
-		// 	.andDo(print());
-		//
-		// // 서비스 호출 검증
-		// verify(kakaoAuthService).kakaoLogin(code);
-	// }
 
 	@Test
 	@DisplayName("로그아웃")
@@ -201,7 +174,7 @@ public class MemberControllerTest {
 			.orElseThrow(() -> new IllegalArgumentException("가입되지 않은 사용자입니다"));
 
 		assertAll(
-			() -> assertNotEquals(request.nickname(), savedMember.getNickname()),
+			() -> assertNotEquals(request.getNickname(), savedMember.getNickname()),
 			() -> assertNotNull(savedMember.getPassword())
 		);
 	}

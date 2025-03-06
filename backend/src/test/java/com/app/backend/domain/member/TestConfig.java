@@ -1,13 +1,11 @@
 package com.app.backend.domain.member;
 
+import com.app.backend.domain.member.util.CommonUtil;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-
-import com.app.backend.domain.member.util.CommonUtil;
-
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 
 @TestConfiguration
 public class TestConfig {
