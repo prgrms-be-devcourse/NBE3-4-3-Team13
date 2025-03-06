@@ -1,4 +1,0 @@
-package com.app.backend.domain.member.service
-
-class MemberService {
-}

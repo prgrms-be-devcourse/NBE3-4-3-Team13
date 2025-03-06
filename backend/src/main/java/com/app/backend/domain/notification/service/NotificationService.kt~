@@ -1,4 +1,0 @@
-package com.app.backend.domain.notification.service
-
-class NotificationService {
-}
