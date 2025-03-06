@@ -1,18 +1,11 @@
-package com.app.backend.global.annotation;
+package com.app.backend.global.annotation
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import kotlin.annotation.AnnotationRetention.RUNTIME
 
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface CustomCacheDelete {
-
-    String prefix() default "global";
-
-    String key() default "";
-
-    String id() default "";
-
-}
+@Target(AnnotationTarget.FUNCTION)
+@Retention(RUNTIME)
+annotation class CustomCacheDelete(
+    val prefix: String = "global",
+    val key: String = "",
+    val id: String = ""
+)
