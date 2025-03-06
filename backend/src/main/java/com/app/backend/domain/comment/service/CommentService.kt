@@ -35,7 +35,7 @@ class CommentService(
     // 게시물 조회
     private fun getPostValidate(postId: Long): Post {
         return postRepository.findByIdAndDisabled(postId, false)
-            .orElseThrow { PostException(PostErrorCode.POST_NOT_FOUND) }
+            ?: throw PostException(PostErrorCode.POST_NOT_FOUND)
     }
 
     // 댓글 작성자만 수정과 삭제 가능
