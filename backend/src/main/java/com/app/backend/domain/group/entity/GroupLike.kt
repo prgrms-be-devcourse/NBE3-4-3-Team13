@@ -1,38 +1,38 @@
-package com.app.backend.domain.group.entity;
+package com.app.backend.domain.group.entity
 
-import com.app.backend.domain.member.entity.Member;
-import com.app.backend.global.entity.BaseEntity;
-import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.app.backend.domain.member.entity.Member
+import com.app.backend.global.entity.BaseEntity
+import jakarta.persistence.*
 
 @Entity
-@Table(
-        name = "tbl_groupLikes",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"group_id", "member_id"})
-)
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GroupLike extends BaseEntity {
+@Table(name = "tbl_groupLikes", uniqueConstraints = [UniqueConstraint(columnNames = ["group_id", "member_id"])])
+class GroupLike constructor(
+    member: Member,
+    group: Group
+) : BaseEntity() {
+    init {
+        setRelationshipWithGroup(group)
+    }
 
     @Id
     @Column(name = "group_like_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    val id: Long? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+    var member: Member = member
+        protected set
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", nullable = false)
-    private Group group;
+    var group: Group = group
+        protected set
 
-    @Builder
-    private GroupLike(Group group, Member member) {
-        this.group = group;
-        this.member = member;
+    //==================== 연관관계 함수 ====================//
+
+    private fun setRelationshipWithGroup(group: Group) {
+        this.group = group
+        group.likes.add(this)
     }
 }
