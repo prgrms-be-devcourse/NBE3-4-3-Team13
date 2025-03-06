@@ -7,7 +7,7 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "tbl_meeting_applications")
-class MeetingApplication(
+class MeetingApplication (
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "group_id", nullable = false)
     val group: Group,
@@ -19,6 +19,7 @@ class MeetingApplication(
     @Column(columnDefinition = "TEXT", nullable = false)
     var context: String
 ) : BaseEntity() {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "meeting_application_id", nullable = false)
