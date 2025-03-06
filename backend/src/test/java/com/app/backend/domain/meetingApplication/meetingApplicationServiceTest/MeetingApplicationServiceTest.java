@@ -2,10 +2,7 @@ package com.app.backend.domain.meetingApplication.meetingApplicationServiceTest;
 
 import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.category.repository.CategoryRepository;
-import com.app.backend.domain.group.entity.Group;
-import com.app.backend.domain.group.entity.GroupMembership;
-import com.app.backend.domain.group.entity.GroupRole;
-import com.app.backend.domain.group.entity.MembershipStatus;
+import com.app.backend.domain.group.entity.*;
 import com.app.backend.domain.group.repository.GroupMembershipRepository;
 import com.app.backend.domain.group.repository.GroupRepository;
 import com.app.backend.domain.meetingApplication.dto.MeetingApplicationReqBody;
@@ -66,12 +63,13 @@ class MeetingApplicationServiceTest {
 
 		// 그룹 생성
 		group = groupRepository.save(
-				Group.of(
+				Group.Companion.of(
 						"test group",
 						"test province",
 						"test city",
 						"test town",
 						"test description",
+						RecruitStatus.RECRUITING,
 						10,
 						category
 				)
@@ -95,12 +93,13 @@ class MeetingApplicationServiceTest {
 	@DisplayName("Fail : 그룹 정원 초과 시 예외 처리")
 	void t1() {
 		Group limitedGroup = groupRepository.save(
-				Group.of(
+				Group.Companion.of(
 						"test limited group",
 						"test province",
 						"test city",
 						"test town",
 						"test description",
+						RecruitStatus.RECRUITING,
 						1,
 						category
 				)
@@ -132,7 +131,7 @@ class MeetingApplicationServiceTest {
 		);
 
 		groupMembershipRepository.save(
-				GroupMembership.of(
+				GroupMembership.Companion.of(
 						member1,
 						limitedGroup,
 						GroupRole.LEADER
@@ -154,7 +153,7 @@ class MeetingApplicationServiceTest {
 	@DisplayName("Success : 기존 그룹 멤버십이 REJECTED 상태인 회원이 신청하면 PENDING으로 변경되고 MeetingApplication이 저장")
 	void t2() {
 		GroupMembership rejectedMembership = groupMembershipRepository.save(
-				GroupMembership.of(
+				GroupMembership.Companion.of(
 						member, // 기존 멤버
 						group, // 그룹
 						GroupRole.PARTICIPANT // 참여자 역할
@@ -181,7 +180,7 @@ class MeetingApplicationServiceTest {
 	void t3() {
 		// Given
 		GroupMembership leaveMembership = groupMembershipRepository.save(
-				GroupMembership.of(
+				GroupMembership.Companion.of(
 						member,
 						group,
 						GroupRole.PARTICIPANT
