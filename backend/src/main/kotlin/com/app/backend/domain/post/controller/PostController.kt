@@ -5,19 +5,15 @@ import com.app.backend.domain.post.dto.req.PostReqDto.*
 import com.app.backend.domain.post.dto.resp.PostRespDto
 import com.app.backend.domain.post.dto.resp.PostRespDto.GetPostIdDto
 import com.app.backend.domain.post.entity.PostStatus
-import com.app.backend.domain.post.exception.PostException
 import com.app.backend.domain.post.service.post.PostService
 import com.app.backend.global.annotation.CustomPageJsonSerializer
 import com.app.backend.global.dto.response.ApiResponse
-import com.app.backend.global.error.exception.GlobalErrorCode
 import jakarta.validation.Valid
-import lombok.RequiredArgsConstructor
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 

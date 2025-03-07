@@ -1,8 +1,6 @@
 package com.app.backend.domain.post.exception
 
 import com.app.backend.global.error.exception.DomainErrorCode
-import lombok.Getter
-import lombok.RequiredArgsConstructor
 import org.springframework.http.HttpStatus
 
 enum class PostErrorCode(

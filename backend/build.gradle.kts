@@ -71,7 +71,6 @@ dependencies {
     runtimeOnly("com.h2database:h2")
     runtimeOnly("com.mysql:mysql-connector-j")
 
-    annotationProcessor("org.projectlombok:lombok")
     //Jakarta Annotations API
     kapt("jakarta.annotation:jakarta.annotation-api")
     //Jakarta Persistence API
