@@ -94,19 +94,15 @@ class MemberService(
 
     @Transactional
     fun modifyMember(member: Member, request: MemberModifyRequestDto): MemberModifyResponseDto {
-        val modifiedMember = Member.create(
-            member.username,
-            request.password?.let { passwordEncoder.encode(it) } ?: member.password,
-            member.nickname,
-            member.role,
-            member.disabled,
-            member.provider,
-            member.oauthProviderId
+        val existingMember = memberRepository.findByIdAndDisabled(member.id, false)
+            .orElseThrow { MemberException(MemberErrorCode.MEMBER_NOT_FOUND) }
+
+        val updatedMember = existingMember.update(
+            password = request.password?.let { passwordEncoder.encode(it) },
+            nickname = request.nickname
         )
 
-        val savedMember = Optional.of(memberRepository.save(modifiedMember))
-            .orElseThrow { MemberException(MemberErrorCode.MEMBER_FAILED_TO_MODIFY) }
-
+        val savedMember = memberRepository.save(updatedMember)
         return MemberModifyResponseDto.of(savedMember)
     }
 
@@ -127,16 +123,11 @@ class MemberService(
     @Transactional
     fun deleteMember(token: String) {
         val member = getCurrentMember(token)
-        val updatedMember = Member.create(
-            member.username,
-            member.password,
-            member.nickname,
-            member.role,
-            member.disabled,
-            member.provider,
-            member.oauthProviderId
-        )
-        memberRepository.save(updatedMember)
+        val existingMember = memberRepository.findByIdAndDisabled(member.id, false)
+            .orElseThrow { MemberException(MemberErrorCode.MEMBER_NOT_FOUND) }
+        
+        val deletedMember = existingMember.softDelete()
+        memberRepository.save(deletedMember)
     }
 
     @Transactional

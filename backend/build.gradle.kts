@@ -110,7 +110,6 @@ kotlin {
 }
 
 tasks.withType<Test> {
-    enabled = false  // 모든 테스트를 비활성화
     useJUnitPlatform {
         val includeTags = project.findProperty("includeTags") as String?
         val excludeTags = project.findProperty("excludeTags") as String?

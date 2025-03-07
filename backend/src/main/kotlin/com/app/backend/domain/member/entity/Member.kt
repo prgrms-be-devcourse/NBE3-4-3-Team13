@@ -48,6 +48,31 @@ data class Member(
         super.deactivate()
     }
 
+    fun softDelete() = Member(
+        id = this.id,
+        username = this.username,
+        password = this.password,
+        nickname = this.nickname,
+        role = this.role,
+        disabled = true,
+        provider = this.provider,
+        oauthProviderId = this.oauthProviderId
+    )
+
+    fun update(
+        password: String? = this.password,
+        nickname: String? = this.nickname
+    ) = Member(
+        id = this.id,
+        username = this.username,
+        password = password,
+        nickname = nickname,
+        role = this.role,
+        disabled = this.disabled,
+        provider = this.provider,
+        oauthProviderId = this.oauthProviderId
+    )
+
     enum class Provider {
         LOCAL, KAKAO
         // 필요시 NAVER, GOOGLE 등 추가
