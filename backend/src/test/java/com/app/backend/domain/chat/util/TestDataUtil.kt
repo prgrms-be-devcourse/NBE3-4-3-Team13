@@ -8,10 +8,10 @@ import com.app.backend.domain.group.entity.*
 import com.app.backend.domain.group.repository.*
 import com.app.backend.domain.member.entity.Member
 import com.app.backend.domain.member.repository.MemberRepository
-import org.springframework.boot.test.context.TestComponent
 import jakarta.transaction.Transactional
+import org.springframework.stereotype.Component
 
-@TestComponent
+@Component
 @Transactional
 class TestDataUtil(
 	private val memberRepository: MemberRepository,
