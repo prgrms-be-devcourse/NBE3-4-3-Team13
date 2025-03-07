@@ -1,4 +1,4 @@
-package com.app.backend.domain.post.service.post;
+package com.app.backend.domain.post.service.post.domain.post.service.post;
 
 import com.app.backend.domain.attachment.exception.FileErrorCode;
 import com.app.backend.domain.attachment.exception.FileException;
@@ -16,8 +16,9 @@ import com.app.backend.domain.post.exception.PostErrorCode;
 import com.app.backend.domain.post.exception.PostException;
 import com.app.backend.domain.post.repository.post.PostRepository;
 import com.app.backend.domain.post.repository.postAttachment.PostAttachmentRepository;
+import com.app.backend.domain.post.service.post.PostService;
+import com.app.backend.domain.post.service.post.global.annotation.CustomWithMockUser;
 import com.app.backend.domain.post.service.scheduler.PostScheduler;
-import com.app.backend.global.annotation.CustomWithMockUser;
 import com.app.backend.global.error.exception.DomainException;
 import com.app.backend.global.error.exception.GlobalErrorCode;
 import jakarta.persistence.EntityManager;
@@ -39,7 +40,6 @@ import java.io.File;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;

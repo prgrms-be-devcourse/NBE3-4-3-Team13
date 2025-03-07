@@ -22,7 +22,6 @@ import java.util.*
 
 private val log = LoggerFactory.getLogger(MemberService::class.java)
 
-@Suppress("BASE_CLASS_FIELD_MAY_SHADOW_DERIVED_CLASS_PROPERTY")
 @Service
 @Transactional(readOnly = true)
 class MemberService(
@@ -86,7 +85,7 @@ class MemberService(
             .map { if (it.startsWith("Bearer ")) it.substring(7) else it }
             .filter { jwtProvider.validateToken(it) }
             .map { validateToken ->
-                val memberId = jwtProvider.getMemberId(validateToken)
+                val memberId: Long = jwtProvider.getMemberId(validateToken)
                 memberRepository.findByIdAndDisabled(memberId, false)
                     .orElseThrow { MemberException(MemberErrorCode.MEMBER_NOT_FOUND) }
             }

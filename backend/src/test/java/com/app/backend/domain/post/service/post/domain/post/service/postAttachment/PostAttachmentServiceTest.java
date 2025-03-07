@@ -1,4 +1,4 @@
-package com.app.backend.domain.post.service.postAttachment;
+package com.app.backend.domain.post.service.post.domain.post.service.postAttachment;
 
 import com.app.backend.domain.attachment.dto.resp.FileRespDto;
 import com.app.backend.domain.attachment.exception.FileErrorCode;
@@ -15,10 +15,9 @@ import com.app.backend.domain.member.entity.Member;
 import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.domain.post.dto.req.PostReqDto;
 import com.app.backend.domain.post.entity.PostStatus;
-import com.app.backend.domain.post.exception.PostErrorCode;
-import com.app.backend.domain.post.exception.PostException;
 import com.app.backend.domain.post.repository.postAttachment.PostAttachmentRepository;
 import com.app.backend.domain.post.service.post.PostService;
+import com.app.backend.domain.post.service.postAttachment.PostAttachmentService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
