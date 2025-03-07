@@ -1,6 +1,7 @@
 package com.app.backend.global.security;
 
 import com.app.backend.domain.member.entity.Member;
+import com.app.backend.domain.member.entity.Member.Provider;
 import com.app.backend.domain.member.entity.MemberDetails;
 import com.app.backend.global.annotation.CustomWithMockUser;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,13 +15,14 @@ public class CustomWithSecurityContextFactory implements WithSecurityContextFact
     public SecurityContext createSecurityContext(CustomWithMockUser annotation) {
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
-        MemberDetails memberDetails = new MemberDetails(Member.builder()
-                                                              .id(annotation.id())
-                                                              .username(annotation.username())
-                                                              .password(annotation.password())
-                                                              .nickname(annotation.nickname())
-                                                              .role(annotation.role())
-                                                              .build());
+        MemberDetails memberDetails = new MemberDetails(new Member(annotation.id(),
+                                                                   annotation.username(),
+                                                                   annotation.password(),
+                                                                   annotation.nickname(),
+                                                                   Provider.LOCAL,
+                                                                   null,
+                                                                   annotation.role(),
+                                                                   false));
         securityContext.setAuthentication(
                 new UsernamePasswordAuthenticationToken(memberDetails, null, memberDetails.getAuthorities())
         );
