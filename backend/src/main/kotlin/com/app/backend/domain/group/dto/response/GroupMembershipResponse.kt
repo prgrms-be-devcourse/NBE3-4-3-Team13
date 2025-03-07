@@ -4,6 +4,7 @@ import com.app.backend.domain.group.entity.GroupMembership
 import com.app.backend.domain.group.entity.GroupRole
 import com.app.backend.domain.group.entity.MembershipStatus
 import com.app.backend.global.util.AppUtil
+import com.fasterxml.jackson.annotation.JsonProperty
 
 class GroupMembershipResponse {
     companion object {
@@ -24,9 +25,9 @@ class GroupMembershipResponse {
         val categoryName: String,
         val name: String,
         val modifiedAt: String,
-        val isApplying: Boolean?,
-        val isRejected: Boolean?,
-        val isMember: Boolean?,
-        val isAdmin: Boolean?
+        @get:JsonProperty("isApplying") val isApplying: Boolean?,
+        @get:JsonProperty("isRejected") val isRejected: Boolean?,
+        @get:JsonProperty("isMember") val isMember: Boolean?,
+        @get:JsonProperty("isAdmin") val isAdmin: Boolean?
     )
 }

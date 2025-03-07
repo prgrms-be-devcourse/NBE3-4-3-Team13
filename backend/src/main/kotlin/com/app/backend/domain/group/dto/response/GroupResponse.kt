@@ -4,6 +4,7 @@ import com.app.backend.domain.group.entity.Group
 import com.app.backend.domain.group.entity.GroupRole
 import com.app.backend.domain.group.entity.MembershipStatus
 import com.app.backend.global.util.AppUtil
+import com.fasterxml.jackson.annotation.JsonProperty
 
 class GroupResponse {
     companion object {
@@ -70,9 +71,9 @@ class GroupResponse {
         val maxRecruitCount: Int,
         val currentMemberCount: Int,
         val createdAt: String,
-        val isApplying: Boolean? = null,
-        val isMember: Boolean? = null,
-        val isAdmin: Boolean? = null,
+        @get:JsonProperty("isApplying") val isApplying: Boolean? = null,
+        @get:JsonProperty("isMember") val isMember: Boolean? = null,
+        @get:JsonProperty("isAdmin") val isAdmin: Boolean? = null,
         val groupLeaders: List<String>
     )
 
