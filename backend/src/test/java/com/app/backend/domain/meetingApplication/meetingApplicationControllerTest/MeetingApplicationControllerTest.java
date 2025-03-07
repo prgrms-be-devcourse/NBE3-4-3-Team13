@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -120,6 +121,7 @@ public class MeetingApplicationControllerTest {
 		MeetingApplicationReqBody request = new MeetingApplicationReqBody("신청합니다.");
 
 		MeetingApplication mockMeetingApplication = new MeetingApplication(group, member, request.getContext());
+		ReflectionTestUtils.setField(mockMeetingApplication, "id", 1L);
 
 		given(meetingApplicationService.create(group.getId(), request, member.getId()))
 			.willReturn(mockMeetingApplication);
