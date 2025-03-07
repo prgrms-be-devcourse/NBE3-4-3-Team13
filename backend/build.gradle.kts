@@ -62,7 +62,6 @@ dependencies {
     //Jedis
     implementation("redis.clients:jedis")
 
-    compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     //JJWT :: Impl
