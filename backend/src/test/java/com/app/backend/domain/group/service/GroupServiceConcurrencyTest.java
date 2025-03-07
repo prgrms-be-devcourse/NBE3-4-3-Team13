@@ -21,13 +21,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
@@ -37,7 +38,6 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 @Tag("concurrency")
-@Slf4j
 @SqlGroup({
         @Sql(executionPhase = ExecutionPhase.BEFORE_TEST_METHOD,
              scripts = "classpath:/sql/truncate_tbl.sql"),
@@ -47,7 +47,8 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class GroupServiceConcurrencyTest extends SpringBootTestSupporter {
 
-    private static final int THREAD_COUNT = Math.max(100, Runtime.getRuntime().availableProcessors());
+    private static final Logger log          = LoggerFactory.getLogger(GroupServiceConcurrencyTest.class);
+    private static final int    THREAD_COUNT = Math.max(100, Runtime.getRuntime().availableProcessors());
 
     @Autowired
     private PlatformTransactionManager transactionManager;
