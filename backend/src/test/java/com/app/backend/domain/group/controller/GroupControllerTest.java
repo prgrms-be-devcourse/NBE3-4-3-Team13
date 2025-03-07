@@ -125,9 +125,9 @@ class GroupControllerTest extends WebMvcTestSupporter {
                                                                  "     ",
                                                                  "     ",
                                                                  "",
-                                                                 null,
+                                                                 "",
                                                                  -1234567890,
-                                                                 null);
+                                                                 "");
         String requestBody = objectMapper.writeValueAsString(requestDto);
 
         //When
@@ -250,18 +250,12 @@ class GroupControllerTest extends WebMvcTestSupporter {
         objectMapper.registerModules(new JavaTimeModule(), new CustomPageModule(annotation));
         objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        GroupRequest.Search requestDto = new GroupRequest.Search("category",
-                                                                 "RECRUITING",
-                                                                 "1",
-                                                                 "test province10",
-                                                                 "test city10",
-                                                                 "test town10");
-
         //When
         ResultActions resultActions = mockMvc.perform(get("/api/v1/groups")
                                                               .accept(MediaType.APPLICATION_JSON_VALUE)
                                                               .contentType(MediaType.APPLICATION_JSON_VALUE)
                                                               .param("categoryName", "category")
+                                                              .param("recruitStatus", "RECRUITING")
                                                               .param("keyword", "1")
                                                               .param("province", "test province10")
                                                               .param("city", "test city10")
