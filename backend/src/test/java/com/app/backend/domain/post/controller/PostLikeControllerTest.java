@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.app.backend.domain.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,23 +53,12 @@ public class PostLikeControllerTest {
 
 	@BeforeEach
 	void setUp() {
-		testMember = Member.builder()
-			.username("testUser")
-			.password("password")
-			.nickname("테스터")
-			.role("ROLE_USER")
-			.disabled(false)
-			.build();
+		testMember = Member.create("testUser","password","테스터","ROLE_USER",false, null,null);
+
 		testMember = memberRepository.save(testMember);
 
-		testPost = Post.builder()
-			.title("테스트 게시글")
-			.content("테스트 내용")
-			.memberId(testMember.getId())
-			.nickName(testMember.getNickname())
-			.postStatus(PostStatus.PUBLIC)
-			.groupId(1L)
-			.build();
+		testPost = Post.Companion.of("테스트 게시글", "테스트 내용", PostStatus.PUBLIC, 1L, testMember.getId(), testMember.getNickname());
+
 		testPost = postRepository.save(testPost);
 
 		memberDetails = new MemberDetails(testMember);

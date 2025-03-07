@@ -2,6 +2,7 @@ package com.app.backend.domain.post.service.post;
 
 import static org.assertj.core.api.AssertionsForClassTypes.*;
 
+import com.app.backend.domain.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,22 +34,9 @@ class PostLikeServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		testMember = memberRepository.save(Member.builder()
-			.username("testUser")
-			.password("password")
-			.nickname("테스터")
-			.role("ROLE_USER")
-			.disabled(false)
-			.build());
+		testMember = memberRepository.save(Member.create("testUser","password","작성자","ROLE_USER",false, null,null));
 
-		testPost = postRepository.save(Post.builder()
-			.title("테스트 게시글")
-			.content("테스트 내용")
-			.memberId(testMember.getId())
-			.nickName(testMember.getNickname())
-			.postStatus(PostStatus.PUBLIC)
-			.groupId(1L)
-			.build());
+		testPost = postRepository.save(Post.Companion.of("테스트 게시글", "테스트 내용", PostStatus.PUBLIC, 1L, testMember.getId(), testMember.getNickname()));
 	}
 
 	@Test
@@ -82,13 +70,7 @@ class PostLikeServiceTest {
 		// given
 		int numberOfUsers = 10;
 		for (int i = 0; i < numberOfUsers; i++) {
-			Member user = Member.builder()
-				.username("testUser" + i)
-				.password("password")
-				.nickname("테스터" + i)
-				.role("ROLE_USER")
-				.disabled(false)
-				.build();
+			Member user = memberRepository.save(Member.create("testUser" + i,"password","테스터" + i,"ROLE_USER",false, null,null));
 			Member savedUser = memberRepository.save(user);
 
 			// when
