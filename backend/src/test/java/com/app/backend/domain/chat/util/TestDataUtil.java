@@ -30,24 +30,42 @@ public class TestDataUtil {
 	private final CategoryRepository categoryRepository;
 
 	public Member createAndSaveMember(String username, String nickname) {
-		Member member = Member.create(username, null, nickname, "USER", false, null, null);
+		Member member = Member.builder()
+			.username(username)
+			.nickname(nickname)
+			.role("USER")
+			.build();
 		return memberRepository.save(member);
 	}
 
 	public Category createAndSaveCategory(String categoryName) {
-		Category category = new Category(categoryName);
+		Category category = Category.builder()
+			.name(categoryName)
+			.build();
 		return categoryRepository.save(category);
 	}
 
 	public Group createAndSaveGroup(String name, String province, String city, String town, String description,
 		Category category) {
-		Group group = Group.Companion.of(name, province, city, town, description, RecruitStatus.RECRUITING, 10,
-			category);
+		Group group = Group.builder()
+			.name(name)
+			.province(province)
+			.city(city)
+			.town(town)
+			.description(description)
+			.recruitStatus(RecruitStatus.RECRUITING)
+			.maxRecruitCount(10)
+			.category(category)
+			.build();
 		return groupRepository.save(group);
 	}
 
 	public GroupMembership createAndSaveGroupMembership(Member member, Group group, GroupRole groupRole) {
-		GroupMembership groupMembership = GroupMembership.Companion.of(member, group, groupRole);
+		GroupMembership groupMembership = GroupMembership.builder()
+			.member(member)
+			.group(group)
+			.groupRole(groupRole)
+			.build();
 		groupMembershipRepository.save(groupMembership);
 		return groupMembership;
 	}
@@ -57,7 +75,7 @@ public class TestDataUtil {
 	}
 
 	public ChatRoom createAndSaveChatRoom(Group group) {
-		ChatRoom chatRoom = new ChatRoom(group);
+		ChatRoom chatRoom = ChatRoom.builder().group(group).build();
 		return chatRoomRepository.save(chatRoom);
 	}
 }
