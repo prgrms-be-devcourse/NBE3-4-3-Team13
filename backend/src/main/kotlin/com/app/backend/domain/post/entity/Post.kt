@@ -48,6 +48,7 @@ class Post @JvmOverloads constructor(
 ) : BaseEntity() {
 
     companion object {
+        @JvmStatic
         fun of(
             title: String, content: String, postStatus: PostStatus,
             groupId: Long, memberId: Long, nickName: String
