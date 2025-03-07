@@ -5,7 +5,6 @@ import com.app.backend.domain.category.dto.CategoryPageDto
 import com.app.backend.domain.category.dto.CategoryReqBody
 import com.app.backend.domain.category.service.CategoryService
 import com.app.backend.global.dto.response.ApiResponse
-import lombok.RequiredArgsConstructor
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
 import org.springframework.http.HttpStatus

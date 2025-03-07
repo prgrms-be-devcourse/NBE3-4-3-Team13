@@ -3,10 +3,6 @@ package com.app.backend.domain.post.entity
 import com.app.backend.domain.member.entity.Member
 import com.app.backend.global.entity.BaseEntity
 import jakarta.persistence.*
-import lombok.AllArgsConstructor
-import lombok.Builder
-import lombok.Getter
-import lombok.NoArgsConstructor
 
 @Entity
 @Table(name = "tbl_post_likes")

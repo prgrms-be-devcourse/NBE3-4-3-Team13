@@ -2,9 +2,6 @@ package com.app.backend.domain.post.entity
 
 import com.app.backend.global.entity.BaseEntity
 import jakarta.persistence.*
-import lombok.*
-
-import jakarta.persistence.*
 
 @Entity
 @Table(name = "tbl_posts")

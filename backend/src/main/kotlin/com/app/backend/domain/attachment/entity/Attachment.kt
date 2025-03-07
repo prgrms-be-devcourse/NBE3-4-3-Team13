@@ -5,10 +5,6 @@ import jakarta.persistence.Column
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.MappedSuperclass
-import lombok.AccessLevel
-import lombok.AllArgsConstructor
-import lombok.Getter
-import lombok.NoArgsConstructor
 
 @MappedSuperclass
 abstract class Attachment(
