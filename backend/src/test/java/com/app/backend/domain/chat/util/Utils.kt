@@ -9,6 +9,7 @@ open class Utils {
         groupName: String,
         participant: Long
     ): ChatRoomListResponse {
+
         return ChatRoomListResponse(
             chatRoomId = chatRoomId,
             groupId = groupId,
