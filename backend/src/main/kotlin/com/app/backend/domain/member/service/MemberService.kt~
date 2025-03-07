@@ -85,7 +85,7 @@ class MemberService(
             .map { if (it.startsWith("Bearer ")) it.substring(7) else it }
             .filter { jwtProvider.validateToken(it) }
             .map { validateToken ->
-                val memberId: Long = jwtProvider.getMemberId(validateToken)
+                val memberId = jwtProvider.getMemberId(validateToken)
                 memberRepository.findByIdAndDisabled(memberId, false)
                     .orElseThrow { MemberException(MemberErrorCode.MEMBER_NOT_FOUND) }
             }

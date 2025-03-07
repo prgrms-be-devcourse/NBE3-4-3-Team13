@@ -17,6 +17,8 @@ import com.app.backend.domain.member.entity.Member;
 import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.domain.post.dto.req.PostReqDto;
 import com.app.backend.domain.post.entity.PostStatus;
+import com.app.backend.domain.post.exception.PostErrorCode;
+import com.app.backend.domain.post.exception.PostException;
 import com.app.backend.domain.post.repository.postAttachment.PostAttachmentRepository;
 import com.app.backend.domain.post.service.post.PostService;
 import jakarta.persistence.EntityManager;
