@@ -61,12 +61,8 @@ class PostScheduler(
                 return
             }
 
-            println("문제없음 1")
-
             val postIds = updatedPostIds.map { it.substringAfterLast(":").toLong() }
             val posts = postRepository.findAllById(postIds)
-
-            println("문제없음 2")
 
             posts.forEach { post ->
                 val viewCountKey = "$VIEW_COUNT_PREFIX${post.id}"
