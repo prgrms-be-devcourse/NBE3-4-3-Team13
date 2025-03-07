@@ -27,7 +27,7 @@ public class FIleUtilTest {
                 "test".getBytes()
         );
 
-        String ext = FileUtil.getExtension(mockFile.getOriginalFilename());
+        String ext = FileUtil.INSTANCE.getExtension(mockFile.getOriginalFilename());
 
         Assertions.assertEquals("jpg", ext);
     }
@@ -45,7 +45,7 @@ public class FIleUtilTest {
         );
 
         // then
-        assertThatThrownBy(() -> FileUtil.getExtension(mockFile.getOriginalFilename()))
+        assertThatThrownBy(() -> FileUtil.INSTANCE.getExtension(mockFile.getOriginalFilename()))
                 // then
                 .isInstanceOf(FileException.class)
                 .hasMessageContaining(FileErrorCode.INVALID_FILE_EXTENSION.getMessage());
@@ -55,7 +55,7 @@ public class FIleUtilTest {
     @DisplayName("Success : 이미지 타입")
     public void getSuccessImgTypeTest() {
         String image = ".jpg";
-        FileType fileType = FileUtil.getFileType(image);
+        FileType fileType = FileUtil.INSTANCE.getFileType(image);
         Assertions.assertEquals(FileType.IMAGE, fileType);
     }
 
@@ -63,7 +63,7 @@ public class FIleUtilTest {
     @DisplayName("Success : 비디오 타입")
     public void getSuccessVideoTypeTest() {
         String video = ".mp4";
-        FileType fileType = FileUtil.getFileType(video);
+        FileType fileType = FileUtil.INSTANCE.getFileType(video);
         Assertions.assertEquals(FileType.VIDEO, fileType);
     }
 
@@ -71,7 +71,7 @@ public class FIleUtilTest {
     @DisplayName("Success : 문서 타입")
     public void getSuccessDocTypeTest() {
         String document = ".doc";
-        FileType fileType = FileUtil.getFileType(document);
+        FileType fileType = FileUtil.INSTANCE.getFileType(document);
         Assertions.assertEquals(FileType.DOCUMENT, fileType);
     }
 
@@ -79,7 +79,7 @@ public class FIleUtilTest {
     @DisplayName("Fail : 지원하지 않는 파일형식")
     public void getFailTypeTest() {
         String type = ".fail";
-        assertThatThrownBy(() -> FileUtil.getFileType(type))
+        assertThatThrownBy(() -> FileUtil.INSTANCE.getFileType(type))
                 .isInstanceOf(FileException.class)
                 .hasMessageContaining(FileErrorCode.UNSUPPORTED_FILE_TYPE.getMessage());
     }
