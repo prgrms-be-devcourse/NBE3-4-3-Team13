@@ -69,7 +69,7 @@ class JwtProvider {
             false,
             null,
             null
-        )
+        ).copy(id = claims.get("id", Integer::class.java).toLong())
 
         val memberDetails = MemberDetails.of(member)
 
