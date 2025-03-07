@@ -8,6 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.app.backend.domain.member.repository.MemberRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,22 +50,10 @@ class PostLikeConcurrencyTest {
 
 	@BeforeEach
 	void setUp() {
-		testMember = memberRepository.save(Member.builder()
-			.username("testUser")
-			.password("password")
-			.nickname("작성자")
-			.role("ROLE_USER")
-			.disabled(false)
-			.build());
 
-		testPost = postRepository.save(Post.builder()
-			.title("테스트 게시글")
-			.content("테스트 내용")
-			.memberId(testMember.getId())
-			.nickName(testMember.getNickname())
-			.postStatus(PostStatus.PUBLIC)
-			.groupId(1L)
-			.build());
+		testMember = memberRepository.save(Member.create("testUser","password","작성자","ROLE_USER",false, null,null));
+
+		testPost = postRepository.save(Post.of("테스트 게시글", "테스트 내용", PostStatus.PUBLIC, 1L, testMember.getId(), testMember.getNickname()));
 	}
 
 	@Test
@@ -75,13 +64,7 @@ class PostLikeConcurrencyTest {
 		List<Member> users = new ArrayList<>();
 
 		for (int i = 0; i < numberOfUsers; i++) {
-			Member user = memberRepository.save(Member.builder()
-				.username("testUser" + i)
-				.password("password")
-				.nickname("테스터" + i)
-				.role("ROLE_USER")
-				.disabled(false)
-				.build());
+			Member user = memberRepository.save(Member.create("testUser" + i,"password","테스터" + i,"ROLE_USER",false, null,null));
 			users.add(user);
 		}
 

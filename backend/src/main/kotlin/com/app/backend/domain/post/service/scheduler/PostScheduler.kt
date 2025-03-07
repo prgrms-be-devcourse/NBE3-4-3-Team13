@@ -66,8 +66,8 @@ class PostScheduler(
 
             posts.forEach { post ->
                 val viewCountKey = "$VIEW_COUNT_PREFIX${post.id}"
-                val viewCountValue = redisTemplate.opsForValue().get(viewCountKey) as? String
-                viewCountValue?.toLongOrNull()?.let {
+                val viewCountValue = redisTemplate.opsForValue().get(viewCountKey) as? Number
+                viewCountValue?.toLong()?.let {
                     post.addTodayViewCount(it)
                     redisTemplate.delete(viewCountKey)
                 }

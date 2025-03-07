@@ -2,6 +2,8 @@ package com.app.backend.domain.post.service.post;
 
 import com.app.backend.domain.attachment.exception.FileErrorCode;
 import com.app.backend.domain.attachment.exception.FileException;
+import com.app.backend.domain.category.entity.Category;
+import com.app.backend.domain.category.repository.CategoryRepository;
 import com.app.backend.domain.group.entity.*;
 import com.app.backend.domain.group.repository.GroupMembershipRepository;
 import com.app.backend.domain.group.repository.GroupRepository;
@@ -76,6 +78,9 @@ public class PostServiceTest {
     @Autowired
     private GroupMembershipRepository groupMembershipRepository;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     private static String BASE_DIR;
 
     @BeforeAll
@@ -94,29 +99,25 @@ public class PostServiceTest {
     private void autoIncrementReset() {
         em.createNativeQuery("ALTER TABLE tbl_posts ALTER COLUMN post_id RESTART WITH 1").executeUpdate();
         em.createNativeQuery("ALTER TABLE tbl_members ALTER COLUMN member_id RESTART WITH 1").executeUpdate();
+        em.createNativeQuery("ALTER TABLE tbl_categories ALTER COLUMN category_id RESTART WITH 1").executeUpdate();
         em.createNativeQuery("ALTER TABLE tbl_groups ALTER COLUMN group_id RESTART WITH 1").executeUpdate();
         em.createNativeQuery("ALTER TABLE tbl_post_attachments ALTER COLUMN attachment_id RESTART WITH 1").executeUpdate();
         redisTemplate.delete("post:postid:1");
         redisTemplate.delete("post:postid:1:user:1");
         redisTemplate.delete("viewCount:post:postid:1");
+        redisTemplate.delete("post:history");
     }
 
     private void dataSetting() {
-        Member member1 = memberRepository.save(Member.builder().username("Test member1").nickname("Test Nickname 1").build());
-        Member member2 = memberRepository.save(Member.builder().username("Test member2").nickname("Test Nickname 2").build());
+        Member member1 = memberRepository.save(Member.create("Test member1", "password", "Test Nickname 1", "ROLE_USER", false, null, null));
+        Member member2 = memberRepository.save(Member.create("Test member2", "password", "Test Nickname 2", "ROLE_USER", false, null, null));
 
-        Group group = groupRepository.save(Group.builder()
-                .name("test")
-                .province("test province")
-                .city("test city")
-                .town("test town")
-                .description("test description")
-                .recruitStatus(RecruitStatus.RECRUITING)
-                .maxRecruitCount(10)
-                .build());
+        Category category = categoryRepository.save(new Category("test"));
 
-        groupMembershipRepository.save(GroupMembership.builder().member(member1).group(group).groupRole(GroupRole.LEADER).build());
-        groupMembershipRepository.save(GroupMembership.builder().member(member2).group(group).groupRole(GroupRole.PARTICIPANT).build());
+        Group group = groupRepository.save(Group.Companion.of("test","test province","test city","test town","test description", RecruitStatus.RECRUITING,10, category));
+
+        groupMembershipRepository.save(GroupMembership.Companion.of(member1, group, GroupRole.LEADER));
+        groupMembershipRepository.save(GroupMembership.Companion.of(member2, group, GroupRole.PARTICIPANT));
     }
 
     private byte[] generateRandomBytes(int size) {
@@ -885,8 +886,7 @@ public class PostServiceTest {
         PostReqDto.SavePostDto savePostDto = new PostReqDto.SavePostDto("새로운 게시글", "새로운 내용", PostStatus.PUBLIC, 1L);
 
         Post savedPost = postService.savePost(1L, savePostDto, files);
-        Member savedMember = memberRepository.save(Member.builder().username("test").nickname("test").build());
-
+        Member savedMember = memberRepository.save(Member.create("test","test","test","ROLE_USER",false, null,null));
         // When
         PostRespDto.GetPostDto respDto = postService.getPost(1L, 1L);
 
@@ -912,7 +912,7 @@ public class PostServiceTest {
         PostReqDto.SavePostDto savePostDto = new PostReqDto.SavePostDto("새로운 게시글", "새로운 내용", PostStatus.PUBLIC, 1L);
 
         Post savedPost = postService.savePost(1L, savePostDto, files);
-        Member savedMember = memberRepository.save(Member.builder().username("test").nickname("test").build());
+        Member savedMember = memberRepository.save(Member.create("test","test","test","ROLE_USER",false, null,null));
 
         // When
         PostRespDto.GetPostDto respDto = postService.getPost(1L, 1L);
@@ -943,7 +943,7 @@ public class PostServiceTest {
         PostReqDto.SavePostDto savePostDto = new PostReqDto.SavePostDto("새로운 게시글", "새로운 내용", PostStatus.PUBLIC, 1L);
 
         Post savedPost = postService.savePost(1L, savePostDto, files);
-        Member savedMember = memberRepository.save(Member.builder().username("test").nickname("test").build());
+        Member savedMember = memberRepository.save(Member.create("test","test","test","ROLE_USER",false, null,null));
 
         // When
         PostRespDto.GetPostDto respDto = postService.getPost(1L, 1L);
@@ -977,7 +977,7 @@ public class PostServiceTest {
         PostReqDto.SavePostDto savePostDto = new PostReqDto.SavePostDto("새로운 게시글", "새로운 내용", PostStatus.PRIVATE, 1L);
 
         Post savedPost = postService.savePost(1L, savePostDto, files);
-        Member savedMember = memberRepository.save(Member.builder().username("test").nickname("test").build());
+        Member savedMember = memberRepository.save(Member.create("test","test","test","ROLE_USER",false, null,null));
 
         // When
         PostRespDto.GetPostDto respDto = postService.getPost(1L, 2L);
@@ -1004,7 +1004,7 @@ public class PostServiceTest {
         PostReqDto.SavePostDto savePostDto = new PostReqDto.SavePostDto("새로운 게시글", "새로운 내용", PostStatus.PRIVATE, 1L);
 
         Post savedPost = postService.savePost(1L, savePostDto, files);
-        Member savedMember = memberRepository.save(Member.builder().username("test").nickname("test").build());
+        Member savedMember = memberRepository.save(Member.create("test","test","test","ROLE_USER",false, null,null));
 
         // Then
         assertThatThrownBy(() -> postService.getPost(1L, 2L))
@@ -1032,7 +1032,7 @@ public class PostServiceTest {
         PostReqDto.SavePostDto savePostDto = new PostReqDto.SavePostDto("새로운 게시글", "새로운 내용", PostStatus.PRIVATE, 1L);
 
         Post savedPost = postService.savePost(1L, savePostDto, files);
-        Member savedMember = memberRepository.save(Member.builder().username("test").nickname("test").build());
+        Member savedMember = memberRepository.save(Member.create("test","test","test","ROLE_USER",false, null,null));
 
         // Then
         assertThatThrownBy(() -> postService.getPost(1L, 2L))
@@ -1060,7 +1060,7 @@ public class PostServiceTest {
         PostReqDto.SavePostDto savePostDto = new PostReqDto.SavePostDto("새로운 게시글", "새로운 내용", PostStatus.PRIVATE, 1L);
 
         Post savedPost = postService.savePost(1L, savePostDto, files);
-        Member savedMember = memberRepository.save(Member.builder().username("test").nickname("test").build());
+        Member savedMember = memberRepository.save(Member.create("test","test","test","ROLE_USER",false, null,null));
 
         // Then
         assertThatThrownBy(() -> postService.getPost(1L, 2L))
@@ -1097,14 +1097,7 @@ public class PostServiceTest {
     @DisplayName("Success : 게시글 목록 불러오기 [페이징] - 정렬 조건 x")
     public void getPosts_Success1() {
         for (int i = 15; i >= 1; i--) {
-            Post post = Post.builder()
-                    .title(i + " 테스트 제목")
-                    .content(i + " 테스트 내용")
-                    .postStatus(PostStatus.PUBLIC)
-                    .groupId(1L)
-                    .memberId(1L)
-                    .nickName("테스트 닉")
-                    .build();
+            Post post = Post.of(i + " 테스트 제목", i + " 테스트 내용", PostStatus.PUBLIC, 1L, 1L, "테스트 닉");
             postRepository.save(post);
         }
         em.flush();
@@ -1124,14 +1117,7 @@ public class PostServiceTest {
     @DisplayName("Success : 게시글 목록 불러오기 [페이징] - 정렬 조건 O")
     public void getPosts_Success2() {
         for (int i = 9; i >= 1; i--) {
-            Post post = Post.builder()
-                    .title(i + " 테스트 제목")
-                    .content(i + " 테스트 내용")
-                    .postStatus(PostStatus.PUBLIC)
-                    .groupId(1L)
-                    .memberId(1L)
-                    .nickName("테스트닉")
-                    .build();
+            Post post = Post.of(i + " 테스트 제목", i + " 테스트 내용", PostStatus.PUBLIC, 1L, 1L, "테스트 닉");
             postRepository.save(post);
         }
         em.flush();
@@ -1151,14 +1137,7 @@ public class PostServiceTest {
     @DisplayName("Success : 게시글 목록 불러오기 [페이징] - 정렬 조건 O")
     public void getPosts_Success3() {
         for (int i = 15; i >= 1; i--) {
-            Post post = Post.builder()
-                    .title(i + " 테스트 제목")
-                    .content(i + " 테스트 내용")
-                    .postStatus(PostStatus.PUBLIC)
-                    .groupId(1L)
-                    .memberId(1L)
-                    .nickName("테스트 닉")
-                    .build();
+            Post post = Post.of(i + " 테스트 제목", i + " 테스트 내용", PostStatus.PUBLIC, 1L, 1L, "테스트 닉");
             postRepository.save(post);
         }
         em.flush();
@@ -1178,14 +1157,7 @@ public class PostServiceTest {
     @DisplayName("Success : 게시글 목록 불러오기 [페이징] - 검색어 포함")
     public void getPosts_Success4() {
         for (int i = 15; i >= 1; i--) {
-            Post post = Post.builder()
-                    .title(i + " 테스트 제목")
-                    .content(i + " 테스트 내용")
-                    .postStatus(PostStatus.PUBLIC)
-                    .groupId(1L)
-                    .memberId(1L)
-                    .nickName("테스트 닉")
-                    .build();
+            Post post = Post.of(i + " 테스트 제목", i + " 테스트 내용", PostStatus.PUBLIC, 1L, 1L, "테스트 닉");
             postRepository.save(post);
         }
         em.flush();
@@ -1203,14 +1175,7 @@ public class PostServiceTest {
     @DisplayName("Fail : 게시글 목록 불러오기 [페이징]")
     public void getPosts_Fail1() {
         for (int i = 15; i >= 1; i--) {
-            Post post = Post.builder()
-                    .title(i + " 테스트 제목")
-                    .content(i + " 테스트 내용")
-                    .postStatus(PostStatus.PUBLIC)
-                    .groupId(1L)
-                    .memberId(1L)
-                    .nickName("테스트 닉")
-                    .build();
+            Post post = Post.of(i + " 테스트 제목", i + " 테스트 내용", PostStatus.PUBLIC, 1L, 1L, "테스트 닉");
             postRepository.save(post);
         }
         em.flush();
@@ -1280,7 +1245,7 @@ public class PostServiceTest {
         String historyKey = "post:history";
         redisTemplate.opsForValue().set(viewCountKey, 20L);
         redisTemplate.opsForSet().add(updateKey, viewCountKey);
-        redisTemplate.opsForSet().add(historyKey, 1L);
+        redisTemplate.opsForSet().add(historyKey, "post:postid:1");
 
         // when
         postScheduler.refreshViewCount();
@@ -1314,11 +1279,11 @@ public class PostServiceTest {
 
         // Then : 1
         List<PostRespDto.GetPostListDto> posts = postService.getTopFivePosts(1L);
-        assertEquals(3,posts.size());
+        assertEquals(3, posts.size());
         assertEquals(3L, posts.get(0).getTodayViewCount());
 
         // Then : 2
-        Object objectPosts =  redisTemplate.opsForValue().get("post:groupid:1");
+        Object objectPosts = redisTemplate.opsForValue().get("post:groupid:1");
 
         System.out.println(objectPosts);
 
