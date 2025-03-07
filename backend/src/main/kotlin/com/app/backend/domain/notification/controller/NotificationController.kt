@@ -35,24 +35,30 @@ class NotificationController(
                     .name("connect")
                     .data("Connected!")
             )
-
-            sseEmitters.add(userId, emitter)
-
-            emitter.onCompletion {
-                sseEmitters.remove(userId)
-            }
-            emitter.onTimeout {
-                sseEmitters.remove(userId)
-            }
-            emitter.onError { e ->
-                log.error("SSE connection error for user: {}", userId, e)
-                sseEmitters.remove(userId)
-            }
-
         } catch (e: IOException) {
-            log.error("SSE 연결 실패: {}", e.message, e)
-            emitter.complete()
+            log.warn("SSE 연결 재시도 중: {}", e.message)
+            Thread.sleep(1000)
+            try {
+                emitter.send(SseEmitter.event().name("retry").data("Reconnecting..."))
+            } catch (retryEx: IOException) {
+                log.error("SSE 재연결 실패: {}", retryEx.message)
+                emitter.complete()
+            }
         }
+
+        sseEmitters.add(userId, emitter)
+
+        emitter.onCompletion {
+            sseEmitters.remove(userId)
+        }
+        emitter.onTimeout {
+            sseEmitters.remove(userId)
+        }
+        emitter.onError { e ->
+            log.error("SSE connection error for user: {}", userId, e)
+            sseEmitters.remove(userId)
+        }
+
         return emitter
     }
 

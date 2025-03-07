@@ -26,7 +26,7 @@ class JwtProvider {
     fun generateAccessToken(member: Member): String {
         return Jwts.builder()
             .claim("name", member.username)
-            .claim("id", member.id)
+            .claim("id", member.id!!.toLong())
             .claim("role", member.role)
             .claim("password", member.password)
             .claim("provider", member.provider)
@@ -82,7 +82,7 @@ class JwtProvider {
 
     fun getMemberId(token: String): Long {
         val claims = getTokenClaims(token)
-        return claims.get("id", Long::class.java)
+        return claims.get("id", Integer::class.java).toLong()
     }
 
     fun getRole(token: String): String {

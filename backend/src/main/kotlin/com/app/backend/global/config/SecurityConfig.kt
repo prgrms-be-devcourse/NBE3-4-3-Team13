@@ -76,18 +76,7 @@ class SecurityConfig(
                 .frameOptions { it.sameOrigin() }
                 .contentSecurityPolicy { csp ->
                     csp.policyDirectives(
-                        """
-                        default-src 'self'; 
-                        script-src 'self' 'unsafe-inline' 'unsafe-eval'; 
-                        style-src 'self' 'unsafe-inline'; 
-                        img-src 'self' data: https:; 
-                        object-src 'none'; 
-                        base-uri 'self'; 
-                        connect-src 'self' https://kauth.kakao.com https://kapi.kakao.com; 
-                        frame-ancestors 'self'; 
-                        form-action 'self'; 
-                        block-all-mixed-content
-                        """.trimIndent()
+                        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; object-src 'none'; base-uri 'self'; connect-src 'self' https://kauth.kakao.com https://kapi.kakao.com; frame-ancestors 'self'; form-action 'self'; block-all-mixed-content"
                     )
                 }
         }
