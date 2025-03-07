@@ -3,6 +3,8 @@ package com.app.backend.domain.post.service.postAttachment;
 import com.app.backend.domain.attachment.dto.resp.FileRespDto;
 import com.app.backend.domain.attachment.exception.FileErrorCode;
 import com.app.backend.domain.attachment.exception.FileException;
+import com.app.backend.domain.category.entity.Category;
+import com.app.backend.domain.category.repository.CategoryRepository;
 import com.app.backend.domain.group.entity.Group;
 import com.app.backend.domain.group.entity.GroupMembership;
 import com.app.backend.domain.group.entity.GroupRole;
@@ -12,6 +14,7 @@ import com.app.backend.domain.group.exception.GroupMembershipException;
 import com.app.backend.domain.group.repository.GroupMembershipRepository;
 import com.app.backend.domain.group.repository.GroupRepository;
 import com.app.backend.domain.member.entity.Member;
+import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.domain.post.dto.req.PostReqDto;
 import com.app.backend.domain.post.entity.PostStatus;
 import com.app.backend.domain.post.repository.postAttachment.PostAttachmentRepository;
@@ -58,6 +61,9 @@ public class PostAttachmentServiceTest {
     @Autowired
     private GroupMembershipRepository groupMembershipRepository;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     private static String BASE_DIR;
 
     @BeforeAll
@@ -76,26 +82,21 @@ public class PostAttachmentServiceTest {
     private void autoIncrementReset() {
         em.createNativeQuery("ALTER TABLE tbl_posts ALTER COLUMN post_id RESTART WITH 1").executeUpdate();
         em.createNativeQuery("ALTER TABLE tbl_members ALTER COLUMN member_id RESTART WITH 1").executeUpdate();
+        em.createNativeQuery("ALTER TABLE tbl_categories ALTER COLUMN category_id RESTART WITH 1").executeUpdate();
         em.createNativeQuery("ALTER TABLE tbl_groups ALTER COLUMN group_id RESTART WITH 1").executeUpdate();
         em.createNativeQuery("ALTER TABLE tbl_post_attachments ALTER COLUMN attachment_id RESTART WITH 1").executeUpdate();
     }
 
     private void dataSetting() {
-        Member member1 = memberRepository.save(Member.builder().username("Test member1").nickname("Test Nickname 1").build());
-        Member member2 = memberRepository.save(Member.builder().username("Test member2").nickname("Test Nickname 2").build());
+        Member member1 = memberRepository.save(Member.create("Test member1","password","Test Nickname 1","ROLE_USER",false, null,null));
+        Member member2 = memberRepository.save(Member.create("Test member2","password","Test Nickname 2","ROLE_USER",false, null,null));
 
-        Group group = groupRepository.save(Group.builder()
-                .name("test")
-                .province("test province")
-                .city("test city")
-                .town("test town")
-                .description("test description")
-                .recruitStatus(RecruitStatus.RECRUITING)
-                .maxRecruitCount(10)
-                .build());
+        Category category = categoryRepository.save(new Category("test"));
 
-        groupMembershipRepository.save(GroupMembership.builder().member(member1).group(group).groupRole(GroupRole.LEADER).build());
-        groupMembershipRepository.save(GroupMembership.builder().member(member2).group(group).groupRole(GroupRole.PARTICIPANT).build());
+        Group group = groupRepository.save(Group.Companion.of("test","test province","test city","test town","test description", RecruitStatus.RECRUITING,10, category));
+
+        groupMembershipRepository.save(GroupMembership.Companion.of(member1,group,GroupRole.LEADER));
+        groupMembershipRepository.save(GroupMembership.Companion.of(member2,group,GroupRole.PARTICIPANT));
 
         MultipartFile[] files1 = {new MockMultipartFile("test1", "test1.pdf", "application/pdf", "pdf-file-content".getBytes())};
         MultipartFile[] files2 = {new MockMultipartFile("test2", "test2.pdf", "application/pdf", "pdf-file-content".getBytes())};
@@ -111,7 +112,7 @@ public class PostAttachmentServiceTest {
     @DisplayName("Success : 파일이 정상적으로 존재하는 경우")
     void downloadFile_Success1() {
         // when
-        FileRespDto.downloadDto downloadFile = postAttachmentService.downloadFile(1L,1L);
+        FileRespDto.DownloadDto downloadFile = postAttachmentService.downloadFile(1L,1L);
 
         // Then
         assertNotNull(downloadFile.getResource());
@@ -123,7 +124,7 @@ public class PostAttachmentServiceTest {
     @DisplayName("Success : public 게시물 - 그룹 멤버 x")
     void downloadFile_Success2() {
         // when
-        FileRespDto.downloadDto downloadFile = postAttachmentService.downloadFile(1L,2L);
+        FileRespDto.DownloadDto downloadFile = postAttachmentService.downloadFile(1L,2L);
 
         // Then
         assertNotNull(downloadFile.getResource());
@@ -135,7 +136,7 @@ public class PostAttachmentServiceTest {
     @DisplayName("Success : private 게시물 - 그룹 멤버 O")
     void downloadFile_Success3() {
         // when
-        FileRespDto.downloadDto downloadFile = postAttachmentService.downloadFile(2L,1L);
+        FileRespDto.DownloadDto downloadFile = postAttachmentService.downloadFile(2L,1L);
 
         // Then
         assertNotNull(downloadFile.getResource());
