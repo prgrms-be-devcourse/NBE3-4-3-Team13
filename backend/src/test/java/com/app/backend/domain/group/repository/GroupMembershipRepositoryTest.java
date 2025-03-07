@@ -11,28 +11,18 @@ import com.app.backend.domain.group.entity.MembershipStatus;
 import com.app.backend.domain.group.entity.RecruitStatus;
 import com.app.backend.domain.group.supporter.SpringBootTestSupporter;
 import com.app.backend.domain.member.entity.Member;
+import com.app.backend.domain.member.entity.Member.Provider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
-
-    private Category category;
-
-    @BeforeEach
-    void beforeEach() {
-        category = Category.builder()
-                           .name("category")
-                           .build();
-        em.persist(category);
-    }
 
     @AfterEach
     void afterEach() {
@@ -44,32 +34,31 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] GroupMembership 엔티티 저장")
     void save() {
         //Given
-        Member member = Member.builder()
-                              .username("testUsername")
-                              .password("testPassword")
-                              .nickname("testNickname")
-                              .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member member = Member.create("testUsername",
+                                      "testPassword",
+                                      "testNickname",
+                                      "ROLE_USER",
+                                      false,
+                                      Provider.LOCAL,
+                                      null);
         em.persist(member);
         Long memberId = member.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .group(group)
-                                                         .member(member)
-                                                         .groupRole(GroupRole.PARTICIPANT)
-                                                         .build();
+        GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
         afterEach();
 
         //When
@@ -77,10 +66,7 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
         afterEach();
 
         //Then
-        GroupMembershipId groupMembershipId = GroupMembershipId.builder()
-                                                               .memberId(memberId)
-                                                               .groupId(groupId)
-                                                               .build();
+        GroupMembershipId groupMembershipId = new GroupMembershipId(memberId, groupId);
 
         GroupMembership findGroupMembership = em.find(GroupMembership.class, groupMembershipId);
 
@@ -94,39 +80,35 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] ID로 GroupMembership 엔티티 조회")
     void findById() {
         //Given
-        Member member = Member.builder()
-                              .username("testUsername")
-                              .password("testPassword")
-                              .nickname("testNickname")
-                              .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member member = Member.create("testUsername",
+                                      "testPassword",
+                                      "testNickname",
+                                      "ROLE_USER",
+                                      false,
+                                      Provider.LOCAL,
+                                      null);
         em.persist(member);
         Long memberId = member.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .group(group)
-                                                         .member(member)
-                                                         .groupRole(GroupRole.PARTICIPANT)
-                                                         .build();
+        GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
         em.persist(groupMembership);
         afterEach();
 
-        GroupMembershipId groupMembershipId = GroupMembershipId.builder()
-                                                               .memberId(memberId)
-                                                               .groupId(groupId)
-                                                               .build();
+        GroupMembershipId groupMembershipId = new GroupMembershipId(memberId, groupId);
 
         //When
         Optional<GroupMembership> opGroupMembership = groupMembershipRepository.findById(groupMembershipId);
@@ -143,10 +125,7 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] 존재하지 않는 ID로 GroupMembership 엔티티 조회 시도")
     void findById_unknownId() {
         //Given
-        GroupMembershipId groupMembershipId = GroupMembershipId.builder()
-                                                               .memberId(1234567890L)
-                                                               .groupId(1234567890L)
-                                                               .build();
+        GroupMembershipId groupMembershipId = new GroupMembershipId(1234567890L, 1234567890L);
 
         //When
         Optional<GroupMembership> opGroupMembership = groupMembershipRepository.findById(groupMembershipId);
@@ -159,32 +138,31 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 Member ID로 GroupMembership 엔티티 조회")
     void findByGroupIdAndMemberId() {
         //Given
-        Member member = Member.builder()
-                              .username("testUsername")
-                              .password("testPassword")
-                              .nickname("testNickname")
-                              .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member member = Member.create("testUsername",
+                                      "testPassword",
+                                      "testNickname",
+                                      "ROLE_USER",
+                                      false,
+                                      Provider.LOCAL,
+                                      null);
         em.persist(member);
         Long memberId = member.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .group(group)
-                                                         .member(member)
-                                                         .groupRole(GroupRole.PARTICIPANT)
-                                                         .build();
+        GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
         em.persist(groupMembership);
         afterEach();
 
@@ -204,11 +182,13 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] Member ID와 존재하지 않는 Group ID로 GroupMembership 엔티티 조회")
     void findByGroupIdAndMemberId_unknownGroupId() {
         //Given
-        Member member = Member.builder()
-                              .username("testUsername")
-                              .password("testPassword")
-                              .nickname("testNickname")
-                              .build();
+        Member member = Member.create("testUsername",
+                                      "testPassword",
+                                      "testNickname",
+                                      "ROLE_USER",
+                                      false,
+                                      Provider.LOCAL,
+                                      null);
         em.persist(member);
         Long memberId       = member.getId();
         Long unknownGroupId = 1234567890L;
@@ -226,16 +206,17 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] Group ID와 존재하지 않는 Member ID로 GroupMembership 엔티티 조회")
     void findByGroupIdAndMemberId_unknownMemberId() {
         //Given
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId         = group.getId();
         Long unknownMemberId = 1234567890L;
@@ -268,32 +249,31 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 Member ID, Disabled = false로 GroupMembership 엔티티 조회")
     void findByGroupIdAndMemberIdAndDisabled() {
         //Given
-        Member member = Member.builder()
-                              .username("testUsername")
-                              .password("testPassword")
-                              .nickname("testNickname")
-                              .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member member = Member.create("testUsername",
+                                      "testPassword",
+                                      "testNickname",
+                                      "ROLE_USER",
+                                      false,
+                                      Provider.LOCAL,
+                                      null);
         em.persist(member);
         Long memberId = member.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .group(group)
-                                                         .member(member)
-                                                         .groupRole(GroupRole.PARTICIPANT)
-                                                         .build();
+        GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
         em.persist(groupMembership);
         afterEach();
 
@@ -315,32 +295,31 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] Group ID와 Member ID, Disabled = true로 GroupMembership 엔티티 조회")
     void findByGroupIdAndMemberIdAndDisabled_disabled() {
         //Given
-        Member member = Member.builder()
-                              .username("testUsername")
-                              .password("testPassword")
-                              .nickname("testNickname")
-                              .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member member = Member.create("testUsername",
+                                      "testPassword",
+                                      "testNickname",
+                                      "ROLE_USER",
+                                      false,
+                                      Provider.LOCAL,
+                                      null);
         em.persist(member);
         Long memberId = member.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .group(group)
-                                                         .member(member)
-                                                         .groupRole(GroupRole.PARTICIPANT)
-                                                         .build();
+        GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
         em.persist(groupMembership);
         afterEach();
 
@@ -358,11 +337,16 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] Member ID와 존재하지 않는 Group ID, Disabled = false로 GroupMembership 엔티티 조회")
     void findByGroupIdAndMemberIdAndDisabled_unknownGroupId() {
         //Given
-        Member member = Member.builder()
-                              .username("testUsername")
-                              .password("testPassword")
-                              .nickname("testNickname")
-                              .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member member = Member.create("testUsername",
+                                      "testPassword",
+                                      "testNickname",
+                                      "ROLE_USER",
+                                      false,
+                                      Provider.LOCAL,
+                                      null);
         em.persist(member);
         Long memberId       = member.getId();
         Long unknownGroupId = 1234567890L;
@@ -382,16 +366,17 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] Group ID와 존재하지 않는 Member ID, Disabled = false로 GroupMembership 엔티티 조회")
     void findByGroupIdAndMemberIdAndDisabled_unknownMemberId() {
         //Given
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId         = group.getId();
         Long unknownMemberId = 1234567890L;
@@ -428,39 +413,38 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID로 GroupMembership 엔티티 목록 조회")
     void findAllByGroupId() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
         Group                 group            = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
             groupMemberships.add(groupMembership);
         }
@@ -492,39 +476,38 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 Disabled = false로 GroupMembership 엔티티 목록 조회")
     void findAllByGroupIdAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
         Group                 group            = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
             groupMemberships.add(groupMembership);
         }
@@ -558,38 +541,37 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] Group ID와 Disabled = true로 GroupMembership 엔티티 목록 조회")
     void findAllByGroupIdAndDisabled_disabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int   size  = 20;
         int   j     = 0;
         Group group = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
         }
         afterEach();
@@ -608,39 +590,38 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Member ID로 GroupMembership 엔티티 목록 조회")
     void findAllByMemberId() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
         Group                 group            = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
             groupMemberships.add(groupMembership);
         }
@@ -672,39 +653,38 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Member ID와 Disabled = false로 GroupMembership 엔티티 목록 조회")
     void findAllByMemberIdAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
         Group                 group            = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
             groupMemberships.add(groupMembership);
         }
@@ -738,38 +718,37 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] Member ID와 Disabled = true로 GroupMembership 엔티티 목록 조회")
     void findAllByMemberIdAndDisabled_disabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int   size  = 20;
         int   j     = 0;
         Group group = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
         }
         afterEach();
@@ -788,39 +767,38 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모임 권한으로 GroupMembership 엔티티 목록 조회")
     void findAllByGroupRole() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
         Group                 group            = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
             groupMemberships.add(groupMembership);
         }
@@ -852,39 +830,38 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모임 권한과 Disabled = false로 GroupMembership 엔티티 목록 조회")
     void findAllByGroupRoleAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
         Group                 group            = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
             groupMemberships.add(groupMembership);
         }
@@ -917,38 +894,37 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] 모임 권한과 Disabled = true로 GroupMembership 엔티티 목록 조회")
     void findAllByGroupRoleAndDisabled_disabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int   size  = 20;
         int   j     = 0;
         Group group = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
         }
         afterEach();
@@ -965,39 +941,38 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 모임 권한으로 GroupMembership 엔티티 목록 조회")
     void findAllByGroupIdAndGroupRole() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
         Group                 group            = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
             groupMemberships.add(groupMembership);
         }
@@ -1032,39 +1007,38 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 모임 권한, Disabled = false로 GroupMembership 엔티티 목록 조회")
     void findAllByGroupIdAndGroupRoleAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
         Group                 group            = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
             groupMemberships.add(groupMembership);
         }
@@ -1102,38 +1076,37 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] Group ID와 모임 권한, Disabled = true로 GroupMembership 엔티티 목록 조회")
     void findAllByGroupIdAndGroupRoleAndDisabled_disabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int   size  = 20;
         int   j     = 0;
         Group group = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
         }
         afterEach();
@@ -1154,39 +1127,38 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Member ID와 모임 권한으로 GroupMembership 엔티티 목록 조회")
     void findAllByMemberIdAndGroupRole() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
         Group                 group            = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
             groupMemberships.add(groupMembership);
         }
@@ -1221,39 +1193,38 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Member ID와 모임 권한, Disabled = false로 GroupMembership 엔티티 목록 조회")
     void findAllByMemberIdAndGroupRoleAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
         Group                 group            = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test",
+                                           "test province",
+                                           "test city",
+                                           "test town",
+                                           "test description",
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
             groupMemberships.add(groupMembership);
         }
@@ -1291,38 +1262,38 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[실패] Member ID와 모임 권한, Disabled = true로 GroupMembership 엔티티 목록 조회")
     void findAllByMemberIdAndGroupRoleAndDisabled_disabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int   size  = 20;
         int   j     = 0;
         Group group = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
         }
         afterEach();
@@ -1343,32 +1314,31 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 Member ID로 GroupMembership 엔티티 존재 여부 확인")
     void existsByGroupIdAndMemberId() {
         //Given
-        Member member = Member.builder()
-                              .username("testUsername")
-                              .password("testPassword")
-                              .nickname("testNickname")
-                              .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member member = Member.create("testUsername",
+                                      "testPassword",
+                                      "testNickname",
+                                      "ROLE_USER",
+                                      false,
+                                      Provider.LOCAL,
+                                      null);
         em.persist(member);
         Long memberId = member.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .group(group)
-                                                         .member(member)
-                                                         .groupRole(GroupRole.PARTICIPANT)
-                                                         .build();
+        GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
         em.persist(groupMembership);
         afterEach();
 
@@ -1383,32 +1353,31 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 Member ID, Disabled로 GroupMembership 엔티티 존재 여부 확인")
     void existsByGroupIdAndMemberIdAndDisabled() {
         //Given
-        Member member = Member.builder()
-                              .username("testUsername")
-                              .password("testPassword")
-                              .nickname("testNickname")
-                              .build();
+        Category category = new Category("category");
+        em.persist(category);
+
+        Member member = Member.create("testUsername",
+                                      "testPassword",
+                                      "testNickname",
+                                      "ROLE_USER",
+                                      false,
+                                      Provider.LOCAL,
+                                      null);
         em.persist(member);
         Long memberId = member.getId();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .group(group)
-                                                         .member(member)
-                                                         .groupRole(GroupRole.PARTICIPANT)
-                                                         .build();
+        GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
         em.persist(groupMembership);
         afterEach();
 
@@ -1423,39 +1392,39 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 모임 권한(단수)으로 GroupMembership 엔티티 수 조회")
     void countByGroupIdAndGroupRole() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
         Group                 group            = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
             groupMemberships.add(groupMembership);
         }
@@ -1481,39 +1450,39 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 모임 권한(단수), Disabled = false로 GroupMembership 엔티티 수 조회")
     void countByGroupIdAndGroupRoleAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
         Group                 group            = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
             groupMemberships.add(groupMembership);
         }
@@ -1543,6 +1512,9 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 모임 권한(복수)으로 GroupMembership 엔티티 수 조회")
     void countByGroupIdAndGroupRoleIn() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
@@ -1550,39 +1522,33 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
         GroupMembership       groupMembership  = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
+
                 em.persist(group);
                 j += 1;
 
-                groupMembership = GroupMembership.builder()
-                                                 .group(group)
-                                                 .member(member)
-                                                 .groupRole(GroupRole.LEADER)
-                                                 .build();
+                groupMembership = GroupMembership.Companion.of(member, group, GroupRole.LEADER);
                 em.persist(groupMembership);
             } else {
-                groupMembership = GroupMembership.builder()
-                                                 .group(group)
-                                                 .member(member)
-                                                 .groupRole(GroupRole.PARTICIPANT)
-                                                 .build();
+                groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
                 em.persist(groupMembership);
             }
 
@@ -1610,6 +1576,9 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 모임 권한(복수), Disabled = false로 GroupMembership 엔티티 수 조회")
     void countByGroupIdAndGroupRoleInAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
@@ -1617,39 +1586,32 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
         GroupMembership       groupMembership  = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
 
-                groupMembership = GroupMembership.builder()
-                                                 .group(group)
-                                                 .member(member)
-                                                 .groupRole(GroupRole.LEADER)
-                                                 .build();
+                groupMembership = GroupMembership.Companion.of(member, group, GroupRole.LEADER);
                 em.persist(groupMembership);
             } else {
-                groupMembership = GroupMembership.builder()
-                                                 .group(group)
-                                                 .member(member)
-                                                 .groupRole(GroupRole.PARTICIPANT)
-                                                 .build();
+                groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
                 em.persist(groupMembership);
             }
 
@@ -1679,6 +1641,9 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 모임 내 회원 상태로 GroupMembership 엔티티 수 조회")
     void countByGroupIdAndStatus() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
@@ -1686,39 +1651,32 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
         GroupMembership       groupMembership  = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
 
-                groupMembership = GroupMembership.builder()
-                                                 .group(group)
-                                                 .member(member)
-                                                 .groupRole(GroupRole.LEADER)
-                                                 .build();
+                groupMembership = GroupMembership.Companion.of(member, group, GroupRole.LEADER);
                 em.persist(groupMembership);
             } else {
-                groupMembership = GroupMembership.builder()
-                                                 .group(group)
-                                                 .member(member)
-                                                 .groupRole(GroupRole.PARTICIPANT)
-                                                 .build();
+                groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
                 em.persist(groupMembership);
             }
 
@@ -1746,6 +1704,9 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID와 모임 내 회원 상태, Disabled = false로 GroupMembership 엔티티 수 조회")
     void countByGroupIdAndStatusAndDisabled() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
@@ -1753,39 +1714,32 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
         GroupMembership       groupMembership  = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
 
-                groupMembership = GroupMembership.builder()
-                                                 .group(group)
-                                                 .member(member)
-                                                 .groupRole(GroupRole.LEADER)
-                                                 .build();
+                groupMembership = GroupMembership.Companion.of(member, group, GroupRole.LEADER);
                 em.persist(groupMembership);
             } else {
-                groupMembership = GroupMembership.builder()
-                                                 .group(group)
-                                                 .member(member)
-                                                 .groupRole(GroupRole.PARTICIPANT)
-                                                 .build();
+                groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
                 em.persist(groupMembership);
             }
 
@@ -1816,39 +1770,39 @@ class GroupMembershipRepositoryTest extends SpringBootTestSupporter {
     @DisplayName("[성공] Group ID로 해당 모임의 모든 멤버십 활성화 상태를 일괄 Disabled = true로 변경")
     void updateDisabledForAllGroupMembership() {
         //Given
+        Category category = new Category("category");
+        em.persist(category);
+
         int                   size             = 20;
         List<GroupMembership> groupMemberships = new ArrayList<>();
         int                   j                = 0;
         Group                 group            = null;
 
         for (int i = 0; i < size; i++) {
-            Member member = Member.builder()
-                                  .username("testUsername%d".formatted(i))
-                                  .password("testPassword%d".formatted(i))
-                                  .nickname("testNickname%d".formatted(i))
-                                  .build();
+
+            Member member = Member.create("testUsername%d".formatted(i),
+                                          "testPassword%d".formatted(i),
+                                          "testNickname%d".formatted(i),
+                                          "ROLE_USER",
+                                          false,
+                                          Provider.LOCAL,
+                                          null);
             em.persist(member);
 
             if (j % 5 == 0) {
-                group = Group.builder()
-                             .name("test%d".formatted(j))
-                             .province("test province%d".formatted(j))
-                             .city("test city%d".formatted(j))
-                             .town("test town%d".formatted(j))
-                             .description("test description%d".formatted(j))
-                             .recruitStatus(RecruitStatus.RECRUITING)
-                             .maxRecruitCount(10)
-                             .category(category)
-                             .build();
+                group = Group.Companion.of("test%d".formatted(j),
+                                           "test province%d".formatted(j),
+                                           "test city%d".formatted(j),
+                                           "test town%d".formatted(j),
+                                           "test description%d".formatted(j),
+                                           RecruitStatus.RECRUITING,
+                                           10,
+                                           category);
                 em.persist(group);
                 j += 1;
             }
 
-            GroupMembership groupMembership = GroupMembership.builder()
-                                                             .group(group)
-                                                             .member(member)
-                                                             .groupRole(GroupRole.PARTICIPANT)
-                                                             .build();
+            GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.PARTICIPANT);
             em.persist(groupMembership);
             groupMemberships.add(groupMembership);
         }

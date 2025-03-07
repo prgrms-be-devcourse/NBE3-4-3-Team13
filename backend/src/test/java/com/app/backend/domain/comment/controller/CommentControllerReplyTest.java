@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.util.ArrayList;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,42 +54,49 @@ public class CommentControllerReplyTest {
 	@BeforeEach
 	void setUp() {
 		// 테스트용 멤버 생성
-		testMember = Member.builder()
-			.username("testUser")
-			.password("password")
-			.nickname("테스터")
-			.role("USER")
-			.disabled(false)
-			.build();
-		memberRepository.save(testMember);
+		testMember = Member.create(
+			"testUser",
+			"password",
+			"테스터",
+			"USER",
+			false,
+			null,
+			null
+		);
+		testMember = memberRepository.save(testMember);
 		memberDetails = new MemberDetails(testMember);
 
 		// 테스트용 게시물 생성
-		testPost = Post.builder()
-                .title("테스트 게시글")
-                .content("테스트 내용")
-                .postStatus(PostStatus.PUBLIC)
-                .groupId(1L)
-                .memberId(testMember.getId())
-                .nickName("테스트 닉").build();
-
+		testPost = Post.Companion.of(
+			"테스트 게시글",
+			"테스트 내용",
+			PostStatus.PUBLIC,
+			1L,
+			testMember.getId(),
+			"테스트 닉"
+		);
 		testPost = postRepository.save(testPost);
 
 		// 테스트용 댓글 생성
-		parentComment = Comment.builder()
-			.content("부모 댓글")
-			.post(testPost)
-			.member(testMember)
-			.build();
+		parentComment = new Comment(
+			null,
+			"부모 댓글",
+			testPost,
+			testMember,
+			null,
+			new ArrayList<>()
+		);
 		parentComment = commentRepository.save(parentComment);
 
 		// 테스트용 대댓글 생성
-		testReply = Comment.builder()
-			.content("test reply")
-			.post(testPost)
-			.member(testMember)
-			.parent(parentComment)
-			.build();
+		testReply = new Comment(
+			null,
+			"test reply",
+			testPost,
+			testMember,
+			parentComment,
+			new ArrayList<>()
+		);
 		testReply = commentRepository.save(testReply);
 		parentComment.addReply(testReply);
 	}
@@ -167,12 +176,15 @@ public class CommentControllerReplyTest {
 	@DisplayName("대댓글 수정 실패 (작성자가 아닌 경우)")
 	void updateReply2() throws Exception {
 
-		Member otherMember = memberRepository.save(Member.builder()
-			.username("other")
-			.password("password")
-			.nickname("다른사용자")
-			.role("USER")
-			.build());
+		Member otherMember = memberRepository.save(Member.create(
+			"other",
+			"password",
+			"다른사용자",
+			"USER",
+			false,
+			null,
+			null
+		));
 
 		CommentCreateRequest request = new CommentCreateRequest("수정된 내용");
 
@@ -233,12 +245,15 @@ public class CommentControllerReplyTest {
 	@DisplayName("대댓글 삭제 실패 (작성자가 아닌 경우)")
 	void deleteReply2() throws Exception {
 
-		Member otherMember = memberRepository.save(Member.builder()
-			.username("other")
-			.password("password")
-			.nickname("다른사용자")
-			.role("USER")
-			.build());
+		Member otherMember = memberRepository.save(Member.create(
+			"other",
+			"password",
+			"다른사용자",
+			"USER",
+			false,
+			null,
+			null
+		));
 
 		mvc.perform(
 				delete("/api/v1/comment/" + testReply.getId() + "/reply")
@@ -260,12 +275,14 @@ public class CommentControllerReplyTest {
 	void getReplies() throws Exception {
 
 		for (int i = 1; i <= 14; i++) {
-			Comment reply = Comment.builder()
-				.content("reply" + i)
-				.post(testPost)
-				.member(testMember)
-				.parent(parentComment)
-				.build();
+			Comment reply = new Comment(
+				null,
+				"reply" + i,
+				testPost,
+				testMember,
+				parentComment,
+				new ArrayList<>()
+			);
 			reply = commentRepository.save(reply);
 			parentComment.addReply(reply);
 		}

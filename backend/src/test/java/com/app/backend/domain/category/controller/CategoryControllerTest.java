@@ -1,8 +1,10 @@
 package com.app.backend.domain.category.controller;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
+import com.app.backend.domain.category.entity.Category;
+import com.app.backend.domain.category.exception.CategoryErrorCode;
+import com.app.backend.domain.category.exception.CategoryException;
+import com.app.backend.domain.category.repository.CategoryRepository;
+import com.app.backend.global.annotation.CustomWithMockUser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,15 +14,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.app.backend.domain.category.entity.Category;
-import com.app.backend.domain.category.exception.CategoryErrorCode;
-import com.app.backend.domain.category.exception.CategoryException;
-import com.app.backend.domain.category.repository.CategoryRepository;
-import com.app.backend.global.annotation.CustomWithMockUser;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -97,9 +96,7 @@ public class CategoryControllerTest {
 	@DisplayName("카테고리 생성 - 중복 이름")
 	@CustomWithMockUser(role = "ROLE_ADMIN")
 	void t4() throws Exception {
-		Category category = Category.builder()
-			.name("카테고리1")
-			.build();
+		Category category = new Category("카테고리1");
 		categoryRepository.save(category);
 
 		String requestJson = """
@@ -120,13 +117,11 @@ public class CategoryControllerTest {
 	@CustomWithMockUser(role = "ROLE_ADMIN")
 	void t5() throws Exception {
 		for (int i = 1; i <= 11; i++) {
-			Category category = Category.builder()
-				.name("카테고리" + i)
-				.build();
+			Category category = new Category("카테고리" + i);
 			categoryRepository.save(category);
 		}
 
-		ResultActions resultActions = mvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/categories")
+		mvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/categories")
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -145,13 +140,11 @@ public class CategoryControllerTest {
 	@CustomWithMockUser(role = "ROLE_ADMIN")
 	void t6() throws Exception {
 		for (int i = 1; i <= 11; i++) {
-			Category category = Category.builder()
-				.name("카테고리" + i)
-				.build();
+			Category category = new Category("카테고리" + i);
 			categoryRepository.save(category);
 		}
 
-		ResultActions resultActions = mvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/categories?page=1")
+		mvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/categories?page=1")
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -169,9 +162,7 @@ public class CategoryControllerTest {
 	@DisplayName("카테고리 수정")
 	@CustomWithMockUser(role = "ROLE_ADMIN")
 	void t7() throws Exception {
-		Category category = Category.builder()
-			.name("수정전")
-			.build();
+		Category category = new Category("수정전");
 		categoryRepository.save(category);
 
 		String categoryName = "수정후";
@@ -198,12 +189,10 @@ public class CategoryControllerTest {
 	@DisplayName("카테고리 삭제")
 	@CustomWithMockUser(role = "ROLE_ADMIN")
 	void t8() throws Exception {
-		Category category = Category.builder()
-			.name("카테고리")
-			.build();
+		Category category = new Category("삭제할 카테고리");
 		categoryRepository.save(category);
 
-		ResultActions resultActions = mvc.perform(MockMvcRequestBuilders.delete("/api/v1/admin/categories/{id}", category.getId())
+		mvc.perform(MockMvcRequestBuilders.delete("/api/v1/admin/categories/{id}", category.getId())
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
@@ -220,9 +209,7 @@ public class CategoryControllerTest {
 	@CustomWithMockUser(role = "ROLE_ADMIN")
 	void t9() throws Exception {
 		for (int i = 1; i <= 11; i++) {
-			Category category = Category.builder()
-				.name("카테고리" + i)
-				.build();
+			Category category = new Category("카테고리" + i);
 			categoryRepository.save(category);
 		}
 
@@ -230,7 +217,7 @@ public class CategoryControllerTest {
 		category1.softDelete();
 		categoryRepository.save(category1);
 
-		ResultActions resultActions = mvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/categories")
+		mvc.perform(MockMvcRequestBuilders.get("/api/v1/admin/categories")
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))

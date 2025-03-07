@@ -34,7 +34,6 @@ import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.domain.post.entity.Post;
 import com.app.backend.domain.post.entity.PostStatus;
 import com.app.backend.domain.post.repository.post.PostRepository;
-import com.app.backend.global.annotation.CustomWithMockUser;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -64,35 +63,36 @@ class CommentLikeControllerTest {
 	@BeforeEach
 	void setUp() {
 
-		testMember = Member.builder()
-			.username("testUser")
-			.password("password")
-			.nickname("테스터")
-			.role("ROLE_USER")
-			.disabled(false)
-			.build();
+		testMember = Member.create(
+			"testUser",
+			"password",
+			"테스터",
+			"USER",
+			false,
+			null,
+			null
+		);
 		testMember = memberRepository.save(testMember);
 
-
-		testPost = Post.builder()
-			.title("테스트 게시글")
-			.content("테스트 내용")
-			.memberId(testMember.getId())
-			.nickName(testMember.getNickname())
-			.postStatus(PostStatus.PUBLIC)
-			.groupId(1L)
-			.build();
+		testPost = Post.Companion.of(
+			"테스트 게시글",
+			"테스트 내용",
+			PostStatus.PUBLIC,
+			1L,
+			testMember.getId(),
+			"테스트 닉"
+		);
 		testPost = postRepository.save(testPost);
 
-
-		testComment = Comment.builder()
-			.content("테스트 댓글")
-			.member(testMember)
-			.post(testPost)
-			.build();
+		testComment = new Comment(
+			null,
+			"테스트 댓글",
+			testPost,
+			testMember,
+			null,
+			new ArrayList<>()
+		);
 		testComment = commentRepository.save(testComment);
-
-
 
 		memberDetails = new MemberDetails(testMember);
 	}
@@ -133,32 +133,40 @@ class CommentLikeControllerTest {
 
 	@Test
 	@DisplayName("여러 사용자의 좋아요 정합성 테스트")
-	@CustomWithMockUser(role="USER")
 	void testMultipleUserLikes() throws Exception {
-
-		Comment testComment = Comment.builder()
-			.content("테스트 댓글")
-			.post(testPost)
-			.member(testMember)
-			.build();
+		Comment testComment = new Comment(
+			null,
+			"테스트 댓글",
+			testPost,
+			testMember,
+			null,
+			new ArrayList<>()
+		);
 		commentRepository.save(testComment);
 
-
 		int numberOfUsers = 10;
+		List<Member> users = new ArrayList<>();
 		for (int i = 0; i < numberOfUsers; i++) {
-			Member user = Member.builder()
-				.username("testUser" + i)
-				.nickname("테스터" + i)
-				.role("ROLE_USER")
-				.build();
-			memberRepository.save(user);
+			Member user = Member.create(
+				"testUser" + i,
+				null,
+				"테스터" + i,
+				"ROLE_USER",
+				false,
+				null,
+				null
+			);
+			users.add(memberRepository.save(user));
+		}
 
-			mockMvc.perform(post("/api/v1/comment/" + testComment.getId() + "/like")
+		// 각 사용자가 좋아요를 누름
+		for (Member user : users) {
+			mockMvc.perform(post("/api/v1/comment/{id}/like", testComment.getId())
 					.with(user(new MemberDetails(user))))
 				.andExpect(status().isOk());
 		}
 
-
+		// 좋아요 수 확인
 		mockMvc.perform(get("/api/v1/comment/" + testPost.getId())
 				.with(user(memberDetails)))
 			.andExpect(status().isOk())
@@ -195,12 +203,15 @@ class CommentLikeControllerTest {
 
 
 		for (int i = 0; i < numberOfUsers; i++) {
-			Member user = Member.builder()
-				.username("testUser" + i)
-				.password("password")
-				.nickname("테스터" + i)
-				.role("ROLE_USER")
-				.build();
+			Member user = Member.create(
+				"testUser" + i,
+				"password",
+				"테스터" + i,
+				"ROLE_USER",
+				false,
+				null,
+				null
+			);
 			users.add(memberRepository.save(user));
 		}
 
