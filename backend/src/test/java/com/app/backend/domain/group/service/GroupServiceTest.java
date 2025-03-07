@@ -162,13 +162,13 @@ class GroupServiceTest extends SpringBootTestSupporter {
         afterEach();
 
         //When
-        List<GroupResponse.ListInfo> responseList = groupService.getGroups();
+        List<ListInfo> responseList = groupService.getGroups();
 
         //Then
         assertThat(responseList).hasSize(size);
         for (int i = 0; i < size; i++) {
             Group                  group       = groups.get(i);
-            GroupResponse.ListInfo responseDto = responseList.get(i);
+            ListInfo responseDto = responseList.get(i);
 
             assertThat(responseDto.getName()).isEqualTo(group.getName());
             assertThat(responseDto.getProvince()).isEqualTo(group.getProvince());
@@ -206,16 +206,16 @@ class GroupServiceTest extends SpringBootTestSupporter {
         Pageable pageable = PageRequest.of(0, 10);
 
         //When
-        Page<GroupResponse.ListInfo> responsePage = groupService.getGroups(pageable);
+        Page<ListInfo> responsePage = groupService.getGroups(pageable);
 
         //Then
-        List<GroupResponse.ListInfo> responseList = responsePage.getContent();
+        List<ListInfo> responseList = responsePage.getContent();
         groups = groups.subList(0, pageable.getPageSize());
 
         assertThat(responseList).hasSizeLessThanOrEqualTo(pageable.getPageSize());
         for (int i = 0; i < groups.size(); i++) {
             Group                  group       = groups.get(i);
-            GroupResponse.ListInfo responseDto = responseList.get(i);
+            ListInfo responseDto = responseList.get(i);
 
             assertThat(responseDto.getName()).isEqualTo(group.getName());
             assertThat(responseDto.getProvince()).isEqualTo(group.getProvince());
@@ -253,7 +253,7 @@ class GroupServiceTest extends SpringBootTestSupporter {
         String name = "5";
 
         //When
-        List<GroupResponse.ListInfo> responseList = groupService.getGroupsByNameContaining(name);
+        List<ListInfo> responseList = groupService.getGroupsByNameContaining(name);
 
         //Then
         groups = groups.stream().filter(group -> group.getName().contains(name)).toList();
@@ -261,7 +261,7 @@ class GroupServiceTest extends SpringBootTestSupporter {
         assertThat(responseList).hasSize(groups.size());
         for (int i = 0; i < groups.size(); i++) {
             Group                  group       = groups.get(i);
-            GroupResponse.ListInfo responseDto = responseList.get(i);
+            ListInfo responseDto = responseList.get(i);
 
             assertThat(responseDto.getName()).isEqualTo(group.getName());
             assertThat(responseDto.getProvince()).isEqualTo(group.getProvince());
@@ -300,16 +300,16 @@ class GroupServiceTest extends SpringBootTestSupporter {
         String   name     = "5";
 
         //When
-        Page<GroupResponse.ListInfo> responsePage = groupService.getGroupsByNameContaining(name, pageable);
+        Page<ListInfo> responsePage = groupService.getGroupsByNameContaining(name, pageable);
 
         //Then
-        List<GroupResponse.ListInfo> responseList = responsePage.getContent();
+        List<ListInfo> responseList = responsePage.getContent();
         groups = groups.stream().filter(group -> group.getName().contains(name)).limit(pageable.getPageSize()).toList();
 
         assertThat(responseList).hasSize(groups.size());
         for (int i = 0; i < groups.size(); i++) {
             Group                  group       = groups.get(i);
-            GroupResponse.ListInfo responseDto = responseList.get(i);
+            ListInfo responseDto = responseList.get(i);
 
             assertThat(responseDto.getName()).isEqualTo(group.getName());
             assertThat(responseDto.getProvince()).isEqualTo(group.getProvince());
@@ -349,7 +349,7 @@ class GroupServiceTest extends SpringBootTestSupporter {
         String town     = "test town10";
 
         //When
-        List<GroupResponse.ListInfo> responseList = groupService.getGroupsByRegion(province, city, town);
+        List<ListInfo> responseList = groupService.getGroupsByRegion(province, city, town);
 
         //Then
         groups = groups.stream().filter(group -> group.getProvince().equals(province)
@@ -359,7 +359,7 @@ class GroupServiceTest extends SpringBootTestSupporter {
         assertThat(responseList).hasSize(groups.size());
         for (int i = 0; i < groups.size(); i++) {
             Group                  group       = groups.get(i);
-            GroupResponse.ListInfo responseDto = responseList.get(i);
+            ListInfo responseDto = responseList.get(i);
 
             assertThat(responseDto.getName()).isEqualTo(group.getName());
             assertThat(responseDto.getProvince()).isEqualTo(group.getProvince());
@@ -401,18 +401,18 @@ class GroupServiceTest extends SpringBootTestSupporter {
         String town     = "test town10";
 
         //When
-        Page<GroupResponse.ListInfo> responsePage = groupService.getGroupsByRegion(province, city, town, pageable);
+        Page<ListInfo> responsePage = groupService.getGroupsByRegion(province, city, town, pageable);
 
         //Then
         groups = groups.stream().filter(group -> group.getProvince().equals(province)
                                                  && group.getCity().equals(city)
                                                  && group.getTown().equals(town)).toList();
-        List<GroupResponse.ListInfo> responseList = responsePage.getContent();
+        List<ListInfo> responseList = responsePage.getContent();
 
         assertThat(responseList).hasSizeLessThanOrEqualTo(pageable.getPageSize());
         for (int i = 0; i < groups.size(); i++) {
             Group                  group       = groups.get(i);
-            GroupResponse.ListInfo responseDto = responseList.get(i);
+            ListInfo responseDto = responseList.get(i);
 
             assertThat(responseDto.getName()).isEqualTo(group.getName());
             assertThat(responseDto.getProvince()).isEqualTo(group.getProvince());
@@ -454,7 +454,7 @@ class GroupServiceTest extends SpringBootTestSupporter {
         String town     = "test town10";
 
         //When
-        List<GroupResponse.ListInfo> responseList = groupService.getGroupsByNameContainingAndRegion(name,
+        List<ListInfo> responseList = groupService.getGroupsByNameContainingAndRegion(name,
                                                                                                     province,
                                                                                                     city,
                                                                                                     town);
@@ -468,7 +468,7 @@ class GroupServiceTest extends SpringBootTestSupporter {
         assertThat(responseList).hasSize(groups.size());
         for (int i = 0; i < groups.size(); i++) {
             Group                  group       = groups.get(i);
-            GroupResponse.ListInfo responseDto = responseList.get(i);
+            ListInfo responseDto = responseList.get(i);
 
             assertThat(responseDto.getName()).isEqualTo(group.getName());
             assertThat(responseDto.getProvince()).isEqualTo(group.getProvince());
@@ -512,7 +512,7 @@ class GroupServiceTest extends SpringBootTestSupporter {
         String town     = "test town10";
 
         //When
-        Page<GroupResponse.ListInfo> responsePage = groupService.getGroupsByNameContainingAndRegion(name,
+        Page<ListInfo> responsePage = groupService.getGroupsByNameContainingAndRegion(name,
                                                                                                     province,
                                                                                                     city,
                                                                                                     town,
@@ -523,12 +523,12 @@ class GroupServiceTest extends SpringBootTestSupporter {
                                                  && group.getProvince().equals(province)
                                                  && group.getCity().equals(city)
                                                  && group.getTown().equals(town)).toList();
-        List<GroupResponse.ListInfo> responseList = responsePage.getContent();
+        List<ListInfo> responseList = responsePage.getContent();
 
         assertThat(responseList).hasSizeLessThanOrEqualTo(pageable.getPageSize());
         for (int i = 0; i < groups.size(); i++) {
             Group                  group       = groups.get(i);
-            GroupResponse.ListInfo responseDto = responseList.get(i);
+            ListInfo responseDto = responseList.get(i);
 
             assertThat(responseDto.getName()).isEqualTo(group.getName());
             assertThat(responseDto.getProvince()).isEqualTo(group.getProvince());
@@ -571,7 +571,7 @@ class GroupServiceTest extends SpringBootTestSupporter {
                                                           "test town10");
 
         //When
-        List<GroupResponse.ListInfo> responseList = groupService.getGroupsBySearch(dto);
+        List<ListInfo> responseList = groupService.getGroupsBySearch(dto);
 
         //Then
         groups = groups.stream().filter(group -> group.getCategory().getName().equals(dto.getCategoryName())
@@ -583,7 +583,7 @@ class GroupServiceTest extends SpringBootTestSupporter {
         assertThat(responseList).hasSize(groups.size());
         for (int i = 0; i < groups.size(); i++) {
             Group                  group       = groups.get(i);
-            GroupResponse.ListInfo responseDto = responseList.get(i);
+            ListInfo responseDto = responseList.get(i);
 
             assertThat(responseDto.getName()).isEqualTo(group.getName());
             assertThat(responseDto.getProvince()).isEqualTo(group.getProvince());
@@ -627,7 +627,7 @@ class GroupServiceTest extends SpringBootTestSupporter {
                                                           "test town10");
 
         //When
-        Page<GroupResponse.ListInfo> responsePage = groupService.getGroupsBySearch(dto, pageable);
+        Page<ListInfo> responsePage = groupService.getGroupsBySearch(dto, pageable);
 
         //Then
         groups = groups.stream().filter(group -> group.getCategory().getName().equals(dto.getCategoryName())
@@ -640,7 +640,7 @@ class GroupServiceTest extends SpringBootTestSupporter {
         assertThat(responseList).hasSizeLessThanOrEqualTo(pageable.getPageSize());
         for (int i = 0; i < groups.size(); i++) {
             Group                  group       = groups.get(i);
-            GroupResponse.ListInfo responseDto = responseList.get(i);
+            ListInfo responseDto = responseList.get(i);
 
             assertThat(responseDto.getName()).isEqualTo(group.getName());
             assertThat(responseDto.getProvince()).isEqualTo(group.getProvince());

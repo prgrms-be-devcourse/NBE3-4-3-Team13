@@ -1,4 +1,4 @@
-package com.app.backend.domain.member;
+package com.app.backend.domain.post.service.post.domain.member;
 
 import com.app.backend.domain.member.dto.request.MemberJoinRequestDto;
 import com.app.backend.domain.member.dto.request.MemberLoginRequestDto;
@@ -110,10 +110,35 @@ public class MemberControllerTest {
 			.orElseThrow(() -> new IllegalArgumentException("가입되지 않은 사용자입니다"));
 
 		assertAll(
-			() -> assertEquals(request.getUsername(), savedMember.getUsername()),
+			() -> assertEquals(request.username(), savedMember.getUsername()),
 			() -> assertNotNull(savedMember.getPassword())
 		);
 	}
+
+	// @Test
+	// @DisplayName("카카오 로그인")
+	// void 카카오로그인() throws Exception {
+		// // given
+		// String code = "test_auth_code";
+		// KakaoUserInfo kakaoUserInfo = new KakaoUserInfo("123", "테스트유저");
+		// TokenDto expectedTokens = new TokenDto("test.access.token", "test.refresh.token");
+		//
+		// // KakaoAuthService 모킹
+		// when(kakaoAuthService.kakaoLogin(anyString()))
+		// 	.thenReturn(expectedTokens);
+		//
+		// // when & then
+		// mvc.perform(get("/api/v1/members/kakao/callback")
+		// 		.param("code", code)
+		// 		.contentType(MediaType.APPLICATION_JSON))
+		// 	.andExpect(status().isOk())
+		// 	.andExpect(cookie().exists("accessToken"))
+		// 	.andExpect(cookie().exists("refreshToken"))
+		// 	.andDo(print());
+		//
+		// // 서비스 호출 검증
+		// verify(kakaoAuthService).kakaoLogin(code);
+	// }
 
 	@Test
 	@DisplayName("로그아웃")
@@ -174,7 +199,7 @@ public class MemberControllerTest {
 			.orElseThrow(() -> new IllegalArgumentException("가입되지 않은 사용자입니다"));
 
 		assertAll(
-			() -> assertNotEquals(request.getNickname(), savedMember.getNickname()),
+			() -> assertNotEquals(request.nickname(), savedMember.getNickname()),
 			() -> assertNotNull(savedMember.getPassword())
 		);
 	}
