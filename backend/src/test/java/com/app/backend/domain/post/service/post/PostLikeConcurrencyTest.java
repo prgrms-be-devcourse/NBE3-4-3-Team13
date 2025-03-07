@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.app.backend.domain.member.entity.Member;
+import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.domain.post.entity.Post;
 import com.app.backend.domain.post.entity.PostStatus;
 import com.app.backend.domain.post.repository.post.PostLikeRepository;

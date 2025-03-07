@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.category.exception.CategoryErrorCode;
 import com.app.backend.domain.category.exception.CategoryException;
 import com.app.backend.domain.category.repository.CategoryRepository;

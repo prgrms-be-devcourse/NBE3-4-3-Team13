@@ -4,8 +4,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.time.LocalDateTime;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +16,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import com.app.backend.domain.category.entity.Category;
-import com.app.backend.domain.chat.message.MessageUtil;
 import com.app.backend.domain.chat.message.entity.Message;
 import com.app.backend.domain.chat.message.repository.MessageRepository;
 import com.app.backend.domain.chat.room.entity.ChatRoom;
@@ -129,8 +126,13 @@ class MessageControllerTest {
 	}
 
 	public void createAndSaveMessage(Long chatRoomId, Long senderId, String senderNickname, String content) {
-		MessageUtil messageUtil = new MessageUtil();
-		Message message = messageUtil.createMessage(chatRoomId, senderId, senderNickname, content, LocalDateTime.now());
+		Message message = Message.builder()
+			.chatRoomId(chatRoomId)
+			.senderId(senderId)
+			.senderNickname(senderNickname)
+			.content(content)
+			.disabled(false)
+			.build();
 		messageRepository.save(message);
 	}
 
