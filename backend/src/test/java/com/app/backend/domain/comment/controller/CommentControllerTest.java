@@ -30,7 +30,6 @@ import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.domain.post.entity.Post;
 import com.app.backend.domain.post.entity.PostStatus;
 import com.app.backend.domain.post.repository.post.PostRepository;
-import com.app.backend.global.annotation.CustomWithMockUser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
@@ -359,7 +358,6 @@ public class CommentControllerTest {
 
 	@Test
 	@DisplayName("댓글 페이징 조회")
-	@CustomWithMockUser(role="USER")
 	void getCommentsWithPaging() throws Exception {
 
 		for (int i = 1; i <= 15; i++) {
@@ -379,6 +377,7 @@ public class CommentControllerTest {
 					.param("page", "0")
 					.param("size", "10")
 					.param("sort", "createdAt,desc")
+					.with(user(memberDetails))
 			)
 			.andDo(print())
 
@@ -397,6 +396,7 @@ public class CommentControllerTest {
 					.param("page", "1")
 					.param("size", "10")
 					.param("sort", "createdAt,desc")
+					.with(user(memberDetails))
 			)
 			.andDo(print())
 
@@ -413,7 +413,6 @@ public class CommentControllerTest {
 
 	@Test
 	@DisplayName("댓글 페이징 조회 (게시물 없음)")
-	@CustomWithMockUser(role="USER")
 	void getComments3() throws Exception {
 		ResultActions resultActions = mvc
 			.perform(
@@ -421,6 +420,7 @@ public class CommentControllerTest {
 					.param("page", "0")
 					.param("size", "10")
 					.param("sort", "createdAt,desc")
+					.with(user(memberDetails))
 			)
 			.andDo(print());
 
@@ -433,7 +433,6 @@ public class CommentControllerTest {
 
 	@Test
 	@DisplayName("댓글 페이징 조회 (댓글 없음)")
-	@CustomWithMockUser(role="USER")
 	void getComments4() throws Exception {
 		ResultActions resultActions = mvc
 			.perform(
@@ -441,6 +440,7 @@ public class CommentControllerTest {
 					.param("page", "0")
 					.param("size", "10")
 					.param("sort", "createdAt,desc")
+					.with(user(memberDetails))
 			)
 			.andDo(print());
 
@@ -457,7 +457,6 @@ public class CommentControllerTest {
 
 	@DisplayName("댓글 조회 (좋아요 수)")
 	@Test
-	@CustomWithMockUser(role="USER")
 	void getCommentsLike() throws Exception {
 
 		Comment testComment = new Comment(
@@ -484,7 +483,8 @@ public class CommentControllerTest {
 				.param("page", "0")
 				.param("size", "10")
 				.param("sort", "createdAt,desc")
-				.contentType(MediaType.APPLICATION_JSON))
+				.contentType(MediaType.APPLICATION_JSON)
+				.with(user(memberDetails)))
 
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.data.content[0].likeCount").value(3))
@@ -492,6 +492,3 @@ public class CommentControllerTest {
 	}
 
 }
-
-
-
