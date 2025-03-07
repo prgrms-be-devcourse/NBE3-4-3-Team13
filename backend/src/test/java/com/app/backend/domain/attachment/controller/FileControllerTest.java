@@ -8,6 +8,7 @@ import com.app.backend.domain.member.entity.Member;
 import com.app.backend.domain.member.entity.MemberDetails;
 import com.app.backend.domain.post.entity.PostAttachment;
 import com.app.backend.domain.post.service.postAttachment.PostAttachmentService;
+import com.app.backend.global.annotation.CustomWithMockUser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,16 +44,9 @@ public class FileControllerTest {
 
     @Test
     @DisplayName("Success : 존재하는 파일 다운로드")
+    @CustomWithMockUser
     void downloadFile_Success() throws Exception {
         // given
-        Member member = Member.builder()
-                .id(1L)
-                .username("test")
-                .nickname("test_name")
-                .role("ROLE_USER")
-                .build();
-
-        MemberDetails mockUser = new MemberDetails(member);
 
         Resource mockResource =
                 new ByteArrayResource("test file content".getBytes()) {
@@ -72,14 +66,13 @@ public class FileControllerTest {
                         FileType.DOCUMENT,
                         1L);
 
-        FileRespDto.downloadDto mockDto = FileRespDto.downloadDto.builder().resource(mockResource).attachment(mockAttachment).build();
+        FileRespDto.DownloadDto mockDto = new FileRespDto.DownloadDto(mockResource, mockAttachment);
 
-        given(postAttachmentService.downloadFile(eq(1L), any())).willReturn(mockDto);
+        given(postAttachmentService.downloadFile(eq(1L), any(Long.class))).willReturn(mockDto);
 
         // when
         ResultActions resultActions = mockMvc
-                .perform(get("/api/v1/download/post/{id}", 1L)
-                        .with(user(mockUser)));
+                .perform(get("/api/v1/download/post/{id}", 1L));
 
         // Then
         resultActions.andExpect(status().isOk());
@@ -93,24 +86,15 @@ public class FileControllerTest {
 
     @Test
     @DisplayName("Fail : 파일 존재하지 않을 경우")
+    @CustomWithMockUser
     void downloadFile_Fail1() throws Exception {
         // given
-        Member member = Member.builder()
-                .id(1L)
-                .username("test")
-                .nickname("test_name")
-                .role("ROLE_USER")
-                .build();
-
-        MemberDetails mockUser = new MemberDetails(member);
-
-        given(postAttachmentService.downloadFile(eq(11L), any()))
+        given(postAttachmentService.downloadFile(eq(11L), any(Long.class)))
                 .willThrow(new FileException(FileErrorCode.FILE_NOT_FOUND));
 
         // when
         ResultActions resultActions = mockMvc
-                .perform(get("/api/v1/download/post/{id}", 11L)
-                        .with(user(mockUser)));
+                .perform(get("/api/v1/download/post/{id}", 11L));
 
         // Then
         resultActions.andExpect(status().isNotFound());
@@ -121,16 +105,7 @@ public class FileControllerTest {
     @DisplayName("Fail : 인증된 유저가 아닐경우")
     void downloadFile_Fail2() throws Exception {
         // given
-        Member member = Member.builder()
-                .id(1L)
-                .username("test")
-                .nickname("test_name")
-                .role("ROLE_USER")
-                .build();
-
-        MemberDetails mockUser = new MemberDetails(member);
-
-        given(postAttachmentService.downloadFile(eq(1L), any()))
+        given(postAttachmentService.downloadFile(eq(1L), any(Long.class)))
                 .willThrow(new FileException(FileErrorCode.FILE_NOT_FOUND));
 
         // when
