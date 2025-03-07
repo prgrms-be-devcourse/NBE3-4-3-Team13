@@ -55,24 +55,21 @@ class GroupControllerTest extends WebMvcTestSupporter {
 
     @BeforeEach
     void beforeEach() {
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         ReflectionUtil.setPrivateFieldValue(Group.class, group, "createdAt", LocalDateTime.now());
+        ReflectionUtil.setPrivateFieldValue(Group.class, group, "id", 1L);
 
-        response = GroupResponse.toDetail(group);
-        responsePage = new PageImpl<>(List.of(GroupResponse.toListInfo(group)), PageRequest.of(0, 10), 1);
+        response = GroupResponse.Companion.toDetail(group);
+        responsePage = new PageImpl<>(List.of(GroupResponse.Companion.toListInfo(group)), PageRequest.of(0, 10), 1);
 
         when(groupService.createGroup(anyLong(), any(GroupRequest.Create.class))).thenReturn(1L);
         when(groupService.getGroup(anyLong(), anyLong())).thenReturn(response);
@@ -91,15 +88,13 @@ class GroupControllerTest extends WebMvcTestSupporter {
     @DisplayName("[성공] 신규 모임 생성")
     void createGroup() throws Exception {
         //Given
-        GroupRequest.Create requestDto = GroupRequest.Create.builder()
-                                                            .name("test")
-                                                            .province("test province")
-                                                            .city("test city")
-                                                            .town("test town")
-                                                            .description("test description")
-                                                            .maxRecruitCount(10)
-                                                            .categoryName("category")
-                                                            .build();
+        GroupRequest.Create requestDto = new GroupRequest.Create("test",
+                                                                 "test province",
+                                                                 "test city",
+                                                                 "test town",
+                                                                 "test description",
+                                                                 10,
+                                                                 "category");
         String requestBody = objectMapper.writeValueAsString(requestDto);
 
         //When
@@ -109,9 +104,9 @@ class GroupControllerTest extends WebMvcTestSupporter {
                                                               .content(requestBody));
 
         //Then
-        ApiResponse<Object> apiResponse = ApiResponse.of(true,
-                                                         HttpStatus.CREATED,
-                                                         GroupMessageConstant.CREATE_GROUP_SUCCESS);
+        ApiResponse<Object> apiResponse = ApiResponse.Companion.of(true,
+                                                                   HttpStatus.CREATED,
+                                                                   GroupMessageConstant.CREATE_GROUP_SUCCESS);
         String responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -126,15 +121,13 @@ class GroupControllerTest extends WebMvcTestSupporter {
     @DisplayName("[예외] 신규 모임 생성 요청 DTO에 올바르지 않은 값 존재 시")
     void createGroup_invalidValue() throws Exception {
         //Given
-        GroupRequest.Create requestDto = GroupRequest.Create.builder()
-                                                            .name("")
-                                                            .province("     ")
-                                                            .city("     ")
-                                                            .town("")
-                                                            .description(null)
-                                                            .maxRecruitCount(-1234567890)
-                                                            .categoryName(null)
-                                                            .build();
+        GroupRequest.Create requestDto = new GroupRequest.Create("",
+                                                                 "     ",
+                                                                 "     ",
+                                                                 "",
+                                                                 "",
+                                                                 -1234567890,
+                                                                 "");
         String requestBody = objectMapper.writeValueAsString(requestDto);
 
         //When
@@ -145,7 +138,7 @@ class GroupControllerTest extends WebMvcTestSupporter {
 
         //Then
         GlobalErrorCode     errorCode    = GlobalErrorCode.INVALID_INPUT_VALUE;
-        ApiResponse<Object> apiResponse  = ApiResponse.of(false, errorCode.getCode(), errorCode.getMessage());
+        ApiResponse<Object> apiResponse  = ApiResponse.Companion.of(false, errorCode.getCode(), errorCode.getMessage());
         String              responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -171,10 +164,10 @@ class GroupControllerTest extends WebMvcTestSupporter {
                                                               .contentType(MediaType.APPLICATION_JSON_VALUE));
 
         //Then
-        ApiResponse<Object> apiResponse = ApiResponse.of(true,
-                                                         HttpStatus.OK,
-                                                         GroupMessageConstant.READ_GROUP_SUCCESS,
-                                                         response);
+        ApiResponse<Object> apiResponse = ApiResponse.Companion.of(true,
+                                                                   HttpStatus.OK,
+                                                                   GroupMessageConstant.READ_GROUP_SUCCESS,
+                                                                   response);
         String responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -198,7 +191,7 @@ class GroupControllerTest extends WebMvcTestSupporter {
 
         //Then
         GlobalErrorCode     errorCode    = GlobalErrorCode.INVALID_INPUT_VALUE;
-        ApiResponse<Object> apiResponse  = ApiResponse.of(false, errorCode.getCode(), errorCode.getMessage());
+        ApiResponse<Object> apiResponse  = ApiResponse.Companion.of(false, errorCode.getCode(), errorCode.getMessage());
         String              responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -257,20 +250,12 @@ class GroupControllerTest extends WebMvcTestSupporter {
         objectMapper.registerModules(new JavaTimeModule(), new CustomPageModule(annotation));
         objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        GroupRequest.Search requestDto = GroupRequest.Search.builder()
-                                                            .recruitStatus("RECRUITING")
-                                                            .categoryName("category")
-                                                            .name("1")
-                                                            .province("test province10")
-                                                            .city("test city10")
-                                                            .town("test town10")
-                                                            .build();
-
         //When
         ResultActions resultActions = mockMvc.perform(get("/api/v1/groups")
                                                               .accept(MediaType.APPLICATION_JSON_VALUE)
                                                               .contentType(MediaType.APPLICATION_JSON_VALUE)
                                                               .param("categoryName", "category")
+                                                              .param("recruitStatus", "RECRUITING")
                                                               .param("keyword", "1")
                                                               .param("province", "test province10")
                                                               .param("city", "test city10")
@@ -280,10 +265,10 @@ class GroupControllerTest extends WebMvcTestSupporter {
                                                               .param("sort", "createdAt,DESC"));
 
         //Then
-        ApiResponse<Page<ListInfo>> apiResponse = ApiResponse.of(true,
-                                                                 HttpStatus.OK,
-                                                                 GroupMessageConstant.READ_GROUPS_SUCCESS,
-                                                                 responsePage);
+        ApiResponse<Page<ListInfo>> apiResponse = ApiResponse.Companion.of(true,
+                                                                           HttpStatus.OK,
+                                                                           GroupMessageConstant.READ_GROUPS_SUCCESS,
+                                                                           responsePage);
         String responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -298,16 +283,14 @@ class GroupControllerTest extends WebMvcTestSupporter {
     @DisplayName("[성공] 기존 모임 수정")
     void modifyGroup() throws Exception {
         //Given
-        GroupRequest.Update requestDto = GroupRequest.Update.builder()
-                                                            .name("new test")
-                                                            .province("new test province")
-                                                            .city("new test city")
-                                                            .town("new test town")
-                                                            .description("new test description")
-                                                            .recruitStatus("CLOSED")
-                                                            .maxRecruitCount(20)
-                                                            .categoryName("category")
-                                                            .build();
+        GroupRequest.Update requestDto = new GroupRequest.Update("new test",
+                                                                 "new test province",
+                                                                 "new test city",
+                                                                 "new test town",
+                                                                 "new test description",
+                                                                 "CLOSED",
+                                                                 20,
+                                                                 "category");
         String requestBody = objectMapper.writeValueAsString(requestDto);
 
         //When
@@ -317,9 +300,9 @@ class GroupControllerTest extends WebMvcTestSupporter {
                                                               .content(requestBody));
 
         //Then
-        ApiResponse<Object> apiResponse = ApiResponse.of(true,
-                                                         HttpStatus.OK,
-                                                         GroupMessageConstant.UPDATE_GROUP_SUCCESS);
+        ApiResponse<Object> apiResponse = ApiResponse.Companion.of(true,
+                                                                   HttpStatus.OK,
+                                                                   GroupMessageConstant.UPDATE_GROUP_SUCCESS);
         String responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -336,16 +319,14 @@ class GroupControllerTest extends WebMvcTestSupporter {
         //Given
         Long invalidId = -1234567890L;
 
-        GroupRequest.Update requestDto = GroupRequest.Update.builder()
-                                                            .name("new test")
-                                                            .province("new test province")
-                                                            .city("new test city")
-                                                            .town("new test town")
-                                                            .description("new test description")
-                                                            .recruitStatus("CLOSED")
-                                                            .maxRecruitCount(20)
-                                                            .categoryName("category")
-                                                            .build();
+        GroupRequest.Update requestDto = new GroupRequest.Update("new test",
+                                                                 "new test province",
+                                                                 "new test city",
+                                                                 "new test town",
+                                                                 "new test description",
+                                                                 "CLOSED",
+                                                                 20,
+                                                                 "category");
         String requestBody = objectMapper.writeValueAsString(requestDto);
 
         //When
@@ -356,7 +337,7 @@ class GroupControllerTest extends WebMvcTestSupporter {
 
         //Then
         GlobalErrorCode     errorCode    = GlobalErrorCode.INVALID_INPUT_VALUE;
-        ApiResponse<Object> apiResponse  = ApiResponse.of(false, errorCode.getCode(), errorCode.getMessage());
+        ApiResponse<Object> apiResponse  = ApiResponse.Companion.of(false, errorCode.getCode(), errorCode.getMessage());
         String              responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -381,9 +362,9 @@ class GroupControllerTest extends WebMvcTestSupporter {
                                                               .contentType(MediaType.APPLICATION_JSON_VALUE));
 
         //Then
-        ApiResponse<Object> apiResponse = ApiResponse.of(true,
-                                                         HttpStatus.OK,
-                                                         GroupMessageConstant.DELETE_GROUP_SUCCESS);
+        ApiResponse<Object> apiResponse = ApiResponse.Companion.of(true,
+                                                                   HttpStatus.OK,
+                                                                   GroupMessageConstant.DELETE_GROUP_SUCCESS);
         String responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -407,7 +388,7 @@ class GroupControllerTest extends WebMvcTestSupporter {
 
         //Then
         GlobalErrorCode     errorCode    = GlobalErrorCode.INVALID_INPUT_VALUE;
-        ApiResponse<Object> apiResponse  = ApiResponse.of(false, errorCode.getCode(), errorCode.getMessage());
+        ApiResponse<Object> apiResponse  = ApiResponse.Companion.of(false, errorCode.getCode(), errorCode.getMessage());
         String              responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -432,9 +413,9 @@ class GroupControllerTest extends WebMvcTestSupporter {
                                                               .contentType(MediaType.APPLICATION_JSON_VALUE));
 
         //Then
-        ApiResponse<Object> apiResponse = ApiResponse.of(true,
-                                                         HttpStatus.OK,
-                                                         GroupMessageConstant.LEAVE_GROUP_SUCCESS);
+        ApiResponse<Object> apiResponse = ApiResponse.Companion.of(true,
+                                                                   HttpStatus.OK,
+                                                                   GroupMessageConstant.LEAVE_GROUP_SUCCESS);
         String responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -458,7 +439,7 @@ class GroupControllerTest extends WebMvcTestSupporter {
 
         //Then
         GlobalErrorCode     errorCode    = GlobalErrorCode.INVALID_INPUT_VALUE;
-        ApiResponse<Object> apiResponse  = ApiResponse.of(false, errorCode.getCode(), errorCode.getMessage());
+        ApiResponse<Object> apiResponse  = ApiResponse.Companion.of(false, errorCode.getCode(), errorCode.getMessage());
         String              responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -476,11 +457,8 @@ class GroupControllerTest extends WebMvcTestSupporter {
     @DisplayName("[성공] 모임 관리자가 모임 가입 신청을 승인")
     void approveJoining_approve() throws Exception {
         //Given
-        GroupRequest.ApproveJoining requestDto = GroupRequest.ApproveJoining.builder()
-                                                                            .memberId(1L)
-                                                                            .isAccept(true)
-                                                                            .build();
-        String requestBody = objectMapper.writeValueAsString(requestDto);
+        GroupRequest.ApproveJoining requestDto  = new GroupRequest.ApproveJoining(1L, true);
+        String                      requestBody = objectMapper.writeValueAsString(requestDto);
 
         //When
         ResultActions resultActions = mockMvc.perform(post("/api/v1/groups/{groupId}/approve", 1)
@@ -489,9 +467,9 @@ class GroupControllerTest extends WebMvcTestSupporter {
                                                               .content(requestBody));
 
         //Then
-        ApiResponse<Object> apiResponse = ApiResponse.of(true,
-                                                         HttpStatus.OK,
-                                                         GroupMessageConstant.APPROVE_JOINING_SUCCESS);
+        ApiResponse<Object> apiResponse = ApiResponse.Companion.of(true,
+                                                                   HttpStatus.OK,
+                                                                   GroupMessageConstant.APPROVE_JOINING_SUCCESS);
         String responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -506,11 +484,8 @@ class GroupControllerTest extends WebMvcTestSupporter {
     @DisplayName("[성공] 모임 관리자가 모임 가입 신청을 거절")
     void approveJoining_reject() throws Exception {
         //Given
-        GroupRequest.ApproveJoining requestDto = GroupRequest.ApproveJoining.builder()
-                                                                            .memberId(1L)
-                                                                            .isAccept(false)
-                                                                            .build();
-        String requestBody = objectMapper.writeValueAsString(requestDto);
+        GroupRequest.ApproveJoining requestDto  = new GroupRequest.ApproveJoining(1L, false);
+        String                      requestBody = objectMapper.writeValueAsString(requestDto);
 
         //When
         ResultActions resultActions = mockMvc.perform(post("/api/v1/groups/{groupId}/approve", 1)
@@ -519,9 +494,9 @@ class GroupControllerTest extends WebMvcTestSupporter {
                                                               .content(requestBody));
 
         //Then
-        ApiResponse<Object> apiResponse = ApiResponse.of(true,
-                                                         HttpStatus.OK,
-                                                         GroupMessageConstant.REJECT_JOINING_SUCCESS);
+        ApiResponse<Object> apiResponse = ApiResponse.Companion.of(true,
+                                                                   HttpStatus.OK,
+                                                                   GroupMessageConstant.REJECT_JOINING_SUCCESS);
         String responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -536,12 +511,9 @@ class GroupControllerTest extends WebMvcTestSupporter {
     @DisplayName("[예외] 올바르지 않은 모임 ID로 가입 신청 승인/거절 시도")
     void approveJoining_invalidId() throws Exception {
         //Given
-        GroupRequest.ApproveJoining requestDto = GroupRequest.ApproveJoining.builder()
-                                                                            .memberId(1L)
-                                                                            .isAccept(true)
-                                                                            .build();
-        String requestBody = objectMapper.writeValueAsString(requestDto);
-        Long   invalidId   = -1234567890L;
+        GroupRequest.ApproveJoining requestDto  = new GroupRequest.ApproveJoining(1L, true);
+        String                      requestBody = objectMapper.writeValueAsString(requestDto);
+        Long                        invalidId   = -1234567890L;
 
         //When
         ResultActions resultActions = mockMvc.perform(post("/api/v1/groups/{groupId}/approve", invalidId)
@@ -551,9 +523,9 @@ class GroupControllerTest extends WebMvcTestSupporter {
 
         //Then
         GlobalErrorCode errorCode = GlobalErrorCode.INVALID_INPUT_VALUE;
-        ApiResponse<Object> apiResponse = ApiResponse.of(false,
-                                                         errorCode.getCode(),
-                                                         errorCode.getMessage());
+        ApiResponse<Object> apiResponse = ApiResponse.Companion.of(false,
+                                                                   errorCode.getCode(),
+                                                                   errorCode.getMessage());
         String responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -571,11 +543,8 @@ class GroupControllerTest extends WebMvcTestSupporter {
     @DisplayName("[예외] 모임 가입 신청 승인/거절 DTO에 올바르지 않은 값 존재 시")
     void approveJoining_invalidValue() throws Exception {
         //Given
-        GroupRequest.ApproveJoining requestDto = GroupRequest.ApproveJoining.builder()
-                                                                            .memberId(-1234567890L)
-                                                                            .isAccept(true)
-                                                                            .build();
-        String requestBody = objectMapper.writeValueAsString(requestDto);
+        GroupRequest.ApproveJoining requestDto  = new GroupRequest.ApproveJoining(-1234567890L, true);
+        String                      requestBody = objectMapper.writeValueAsString(requestDto);
 
         //When
         ResultActions resultActions = mockMvc.perform(post("/api/v1/groups/{groupId}/approve", 1)
@@ -585,9 +554,9 @@ class GroupControllerTest extends WebMvcTestSupporter {
 
         //Then
         GlobalErrorCode errorCode = GlobalErrorCode.INVALID_INPUT_VALUE;
-        ApiResponse<Object> apiResponse = ApiResponse.of(false,
-                                                         errorCode.getCode(),
-                                                         errorCode.getMessage());
+        ApiResponse<Object> apiResponse = ApiResponse.Companion.of(false,
+                                                                   errorCode.getCode(),
+                                                                   errorCode.getMessage());
         String responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -606,10 +575,8 @@ class GroupControllerTest extends WebMvcTestSupporter {
     @DisplayName("[성공] 모임 관리자가 모임 내 회원의 권한을 변경")
     void modifyGroupRole() throws Exception {
         //Given
-        GroupRequest.Permission requestDto = GroupRequest.Permission.builder()
-                                                                    .memberId(1L)
-                                                                    .build();
-        String requestBody = objectMapper.writeValueAsString(requestDto);
+        GroupRequest.Permission requestDto  = new GroupRequest.Permission(1L);
+        String                  requestBody = objectMapper.writeValueAsString(requestDto);
 
         //When
         ResultActions resultActions = mockMvc.perform(patch("/api/v1/groups/{groupId}/permission", 1)
@@ -618,9 +585,9 @@ class GroupControllerTest extends WebMvcTestSupporter {
                                                               .content(requestBody));
 
         //Then
-        ApiResponse<Object> apiResponse = ApiResponse.of(true,
-                                                         HttpStatus.OK,
-                                                         GroupMessageConstant.MODIFY_GROUP_ROLE_SUCCESS);
+        ApiResponse<Object> apiResponse = ApiResponse.Companion.of(true,
+                                                                   HttpStatus.OK,
+                                                                   GroupMessageConstant.MODIFY_GROUP_ROLE_SUCCESS);
         String responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -635,11 +602,9 @@ class GroupControllerTest extends WebMvcTestSupporter {
     @DisplayName("[예외] 올바르지 않은 모임 ID로 가입 신청 승인/거절 시도")
     void modifyGroupRole_invalidId() throws Exception {
         //Given
-        GroupRequest.Permission requestDto = GroupRequest.Permission.builder()
-                                                                    .memberId(1L)
-                                                                    .build();
-        String requestBody = objectMapper.writeValueAsString(requestDto);
-        Long   invalidId   = -1234567890L;
+        GroupRequest.Permission requestDto  = new GroupRequest.Permission(1L);
+        String                  requestBody = objectMapper.writeValueAsString(requestDto);
+        Long                    invalidId   = -1234567890L;
 
         //When
         ResultActions resultActions = mockMvc.perform(patch("/api/v1/groups/{groupId}/permission", invalidId)
@@ -649,7 +614,7 @@ class GroupControllerTest extends WebMvcTestSupporter {
 
         //Then
         GlobalErrorCode     errorCode    = GlobalErrorCode.INVALID_INPUT_VALUE;
-        ApiResponse<Object> apiResponse  = ApiResponse.of(false, errorCode.getCode(), errorCode.getMessage());
+        ApiResponse<Object> apiResponse  = ApiResponse.Companion.of(false, errorCode.getCode(), errorCode.getMessage());
         String              responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -666,10 +631,8 @@ class GroupControllerTest extends WebMvcTestSupporter {
     @DisplayName("[예외] 모임 탈퇴 DTO에 올바르지 않은 값 존재 시")
     void modifyGroupRole_invalidValue() throws Exception {
         //Given
-        GroupRequest.Permission requestDto = GroupRequest.Permission.builder()
-                                                                    .memberId(-1234567890L)
-                                                                    .build();
-        String requestBody = objectMapper.writeValueAsString(requestDto);
+        GroupRequest.Permission requestDto  = new GroupRequest.Permission(-1234567890L);
+        String                  requestBody = objectMapper.writeValueAsString(requestDto);
 
         //When
         ResultActions resultActions = mockMvc.perform(patch("/api/v1/groups/{groupId}/permission", 1)
@@ -679,7 +642,7 @@ class GroupControllerTest extends WebMvcTestSupporter {
 
         //Then
         GlobalErrorCode     errorCode    = GlobalErrorCode.INVALID_INPUT_VALUE;
-        ApiResponse<Object> apiResponse  = ApiResponse.of(false, errorCode.getCode(), errorCode.getMessage());
+        ApiResponse<Object> apiResponse  = ApiResponse.Companion.of(false, errorCode.getCode(), errorCode.getMessage());
         String              responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))

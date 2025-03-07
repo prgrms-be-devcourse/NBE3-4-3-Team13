@@ -11,6 +11,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.method.annotation.HandlerMethodValidationException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -40,6 +41,20 @@ class GlobalExceptionHandler {
     fun handleHttpRequestMethodNotSupportedException(e: HttpRequestMethodNotSupportedException): ResponseEntity<ApiResponse<Unit>> {
         log.error(e) { "handleHttpRequestMethodNotSupportedException" }
         val errorCode = GlobalErrorCode.METHOD_NOT_ALLOWED
+        return ResponseEntity.status(errorCode.status)
+            .body(ApiResponse.of(false, errorCode.code, errorCode.message))
+    }
+
+    /**
+     * HandlerMethodValidationException 발생 시(단일 값, @Valid 또는 @Validated 에서 바인딩 에러)
+     *
+     * @param e
+     * @return
+     */
+    @ExceptionHandler(HandlerMethodValidationException::class)
+    fun handleHandlerMethodValidationException(e: HandlerMethodValidationException): ResponseEntity<ApiResponse<Unit>> {
+        log.error(e) { "handleHandlerMethodValidationException" }
+        val errorCode = GlobalErrorCode.INVALID_INPUT_VALUE
         return ResponseEntity.status(errorCode.status)
             .body(ApiResponse.of(false, errorCode.code, errorCode.message))
     }
