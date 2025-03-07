@@ -35,7 +35,7 @@ class SecurityConfig(
     private val customOAuth2UserService: CustomOAuth2UserService,
     private val oAuth2SuccessHandler: OAuth2SuccessHandler
 ) {
-    private val allowedOrigins = arrayOf(
+    private val origins = arrayOf(
         "http://localhost:3000", // React
         "http://localhost:8080"  // Spring Boot
     )
@@ -76,18 +76,7 @@ class SecurityConfig(
                 .frameOptions { it.sameOrigin() }
                 .contentSecurityPolicy { csp ->
                     csp.policyDirectives(
-                        """
-                        default-src 'self'; 
-                        script-src 'self' 'unsafe-inline' 'unsafe-eval'; 
-                        style-src 'self' 'unsafe-inline'; 
-                        img-src 'self' data: https:; 
-                        object-src 'none'; 
-                        base-uri 'self'; 
-                        connect-src 'self' https://kauth.kakao.com https://kapi.kakao.com; 
-                        frame-ancestors 'self'; 
-                        form-action 'self'; 
-                        block-all-mixed-content
-                        """.trimIndent()
+                        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; object-src 'none'; base-uri 'self'; connect-src 'self' https://kauth.kakao.com https://kapi.kakao.com; frame-ancestors 'self'; form-action 'self'; block-all-mixed-content"
                     )
                 }
         }
@@ -108,7 +97,7 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration().apply {
-            allowedOrigins = allowedOrigins!!.toList()
+            allowedOrigins = origins.toList()
             allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
             allowedHeaders = listOf(
                 "Authorization",

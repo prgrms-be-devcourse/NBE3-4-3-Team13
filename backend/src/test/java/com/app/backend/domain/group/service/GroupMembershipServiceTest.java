@@ -3,6 +3,7 @@ package com.app.backend.domain.group.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.group.entity.Group;
 import com.app.backend.domain.group.entity.GroupMembership;
 import com.app.backend.domain.group.entity.GroupMembershipId;
