@@ -34,7 +34,6 @@ import com.app.backend.domain.member.repository.MemberRepository;
 import com.app.backend.domain.post.entity.Post;
 import com.app.backend.domain.post.entity.PostStatus;
 import com.app.backend.domain.post.repository.post.PostRepository;
-import com.app.backend.global.annotation.CustomWithMockUser;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -134,9 +133,7 @@ class CommentLikeControllerTest {
 
 	@Test
 	@DisplayName("여러 사용자의 좋아요 정합성 테스트")
-	@CustomWithMockUser(role="USER")
 	void testMultipleUserLikes() throws Exception {
-
 		Comment testComment = new Comment(
 			null,
 			"테스트 댓글",
@@ -147,8 +144,8 @@ class CommentLikeControllerTest {
 		);
 		commentRepository.save(testComment);
 
-
 		int numberOfUsers = 10;
+		List<Member> users = new ArrayList<>();
 		for (int i = 0; i < numberOfUsers; i++) {
 			Member user = Member.create(
 				"testUser" + i,
@@ -159,10 +156,17 @@ class CommentLikeControllerTest {
 				null,
 				null
 			);
-			memberRepository.save(user);
+			users.add(memberRepository.save(user));
 		}
 
+		// 각 사용자가 좋아요를 누름
+		for (Member user : users) {
+			mockMvc.perform(post("/api/v1/comment/{id}/like", testComment.getId())
+					.with(user(new MemberDetails(user))))
+				.andExpect(status().isOk());
+		}
 
+		// 좋아요 수 확인
 		mockMvc.perform(get("/api/v1/comment/" + testPost.getId())
 				.with(user(memberDetails)))
 			.andExpect(status().isOk())
