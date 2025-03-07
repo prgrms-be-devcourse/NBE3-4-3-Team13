@@ -1,11 +1,12 @@
 package com.app.backend.global.dto.response
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.http.HttpStatus
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class ApiResponse<T> private constructor(
-    val isSuccess: Boolean,
+    @get:JsonProperty("isSuccess") val isSuccess: Boolean,
     val code: String,
     val message: String,
     val data: T?

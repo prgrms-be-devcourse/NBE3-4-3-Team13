@@ -69,12 +69,12 @@ class GroupController(
         empty = false
     )
     fun getGroups(
-        @RequestParam(required = false) categoryName: String,
-        @RequestParam(required = false) recruitStatus: String,
-        @RequestParam(required = false) province: String,
-        @RequestParam(required = false) city: String,
-        @RequestParam(required = false) town: String,
-        @RequestParam(required = false) keyword: String,
+        @RequestParam(required = false, defaultValue = "") categoryName: String,
+        @RequestParam(required = false, defaultValue = "") recruitStatus: String,
+        @RequestParam(required = false, defaultValue = "") province: String,
+        @RequestParam(required = false, defaultValue = "") city: String,
+        @RequestParam(required = false, defaultValue = "") town: String,
+        @RequestParam(required = false, defaultValue = "") keyword: String,
         @PageableDefault(
             size = 10,
             page = 0,

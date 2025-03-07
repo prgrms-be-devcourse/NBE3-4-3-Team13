@@ -1,5 +1,6 @@
 package com.app.backend.domain.group.dto.request
 
+import com.fasterxml.jackson.annotation.JsonAlias
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 
@@ -27,7 +28,7 @@ class GroupRequest {
 
     data class ApproveJoining(
         @field:Min(1) val memberId: Long,
-        val isAccept: Boolean
+        @param:JsonAlias("accept", "isAccept") val isAccept: Boolean
     )
 
     data class Permission(

@@ -1,17 +1,27 @@
 package com.app.backend.domain.group.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.chat.room.entity.ChatRoom;
 import com.app.backend.domain.group.dto.request.GroupRequest;
 import com.app.backend.domain.group.dto.response.GroupResponse;
 import com.app.backend.domain.group.dto.response.GroupResponse.ListInfo;
-import com.app.backend.domain.group.entity.*;
+import com.app.backend.domain.group.entity.Group;
+import com.app.backend.domain.group.entity.GroupMembership;
+import com.app.backend.domain.group.entity.GroupMembershipId;
+import com.app.backend.domain.group.entity.GroupRole;
+import com.app.backend.domain.group.entity.RecruitStatus;
 import com.app.backend.domain.group.exception.GroupErrorCode;
 import com.app.backend.domain.group.exception.GroupException;
 import com.app.backend.domain.group.exception.GroupMembershipErrorCode;
 import com.app.backend.domain.group.exception.GroupMembershipException;
 import com.app.backend.domain.group.supporter.SpringBootTestSupporter;
 import com.app.backend.domain.member.entity.Member;
+import com.app.backend.domain.member.entity.Member.Provider;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,12 +29,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Transactional
 class GroupServiceTest extends SpringBootTestSupporter {
@@ -39,29 +43,27 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모임 저장")
     void createGroup() {
         //Given
-        Member member = Member.builder()
-                              .username("testUsername")
-                              .password("testPassword")
-                              .nickname("testNickname")
-                              .build();
+        Member member = Member.create("testUsername",
+                                      "testPassword",
+                                      "testNickname",
+                                      "ROLE_USER",
+                                      false,
+                                      Provider.LOCAL,
+                                      null);
         em.persist(member);
         Long memberId = member.getId();
 
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
         String categoryName = category.getName();
 
-        GroupRequest.Create request = GroupRequest.Create.builder()
-                                                         .name("test")
-                                                         .province("test province")
-                                                         .city("test city")
-                                                         .town("test town")
-                                                         .description("test description")
-                                                         .maxRecruitCount(10)
-                                                         .categoryName(categoryName)
-                                                         .build();
+        GroupRequest.Create request = new GroupRequest.Create("test",
+                                                              "test province",
+                                                              "test city",
+                                                              "test town",
+                                                              "test description",
+                                                              10,
+                                                              categoryName);
 
         //When
         Long id = groupService.createGroup(memberId, request);
@@ -89,21 +91,18 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] ID로 Group Detail DTO 조회")
     void getGroup() {
         //Given
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
+
         em.persist(group);
         Long id = group.getId();
         afterEach();
@@ -143,24 +142,20 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모든 Group ListInfo DTO 목록 조회")
     void getGroupList() {
         //Given
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -189,24 +184,20 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모든 Group ListInfo DTO 페이징 목록 조회")
     void getGroupPage() {
         //Given
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -240,24 +231,20 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모임 이름으로 ListInfo DTO 목록 조회")
     void getGroupsByNameContainingList() {
         //Given
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -290,24 +277,20 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모임 이름으로 ListInfo DTO 페이징 목록 조회")
     void getGroupsByNameContainingPage() {
         //Given
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -342,24 +325,20 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 주소로 ListInfo DTO 목록 조회")
     void getGroupsByRegionList() {
         //Given
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -396,24 +375,20 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 주소로 ListInfo DTO 페이징 목록 조회")
     void getGroupsByRegionPage() {
         //Given
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -453,24 +428,20 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모임 이름과 주소로 ListInfo DTO 목록 조회")
     void getGroupsByNameContainingAndRegionList() {
         //Given
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -513,24 +484,20 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 모임 이름과 주소로 ListInfo DTO 페이징 목록 조회")
     void getGroupsByNameContainingAndRegionPage() {
         //Given
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
@@ -577,37 +544,31 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 카테고리와 모임 이름, 상세 주소로 ListInfo DTO 목록 조회")
     void getGroupsBySearchList() {
         //Given
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
         afterEach();
 
-        GroupRequest.Search dto = GroupRequest.Search.builder()
-                                                     .categoryName("category")
-                                                     .recruitStatus("RECRUITING")
-                                                     .name("1")
-                                                     .province("test province10")
-                                                     .city("test city10")
-                                                     .town("test town10")
-                                                     .build();
+        GroupRequest.Search dto = new GroupRequest.Search("category",
+                                                          "RECRUITING",
+                                                          "1",
+                                                          "test province10",
+                                                          "test city10",
+                                                          "test town10");
 
         //When
         List<ListInfo> responseList = groupService.getGroupsBySearch(dto);
@@ -638,38 +599,32 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] 카테고리와 모임 이름, 상세 주소로 ListInfo DTO 페이징 목록 조회")
     void getGroupsBySearchPage() {
         //Given
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
 
         int         size   = 20;
         List<Group> groups = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            Group group = Group.builder()
-                               .name("test%d".formatted(i))
-                               .province("test province%d".formatted(i))
-                               .city("test city%d".formatted(i))
-                               .town("test town%d".formatted(i))
-                               .description("test description%d".formatted(i))
-                               .recruitStatus(RecruitStatus.RECRUITING)
-                               .maxRecruitCount(10)
-                               .category(category)
-                               .build();
+            Group group = Group.Companion.of("test%d".formatted(i),
+                                             "test province%d".formatted(i),
+                                             "test city%d".formatted(i),
+                                             "test town%d".formatted(i),
+                                             "test description%d".formatted(i),
+                                             RecruitStatus.RECRUITING,
+                                             10,
+                                             category);
             groups.add(group);
             em.persist(group);
         }
         afterEach();
 
         Pageable pageable = PageRequest.of(0, 10);
-        GroupRequest.Search dto = GroupRequest.Search.builder()
-                                                     .categoryName("category")
-                                                     .recruitStatus("RECRUITING")
-                                                     .name("1")
-                                                     .province("test province10")
-                                                     .city("test city10")
-                                                     .town("test town10")
-                                                     .build();
+        GroupRequest.Search dto = new GroupRequest.Search("category",
+                                                          "RECRUITING",
+                                                          "1",
+                                                          "test province10",
+                                                          "test city10",
+                                                          "test town10");
 
         //When
         Page<ListInfo> responsePage = groupService.getGroupsBySearch(dto, pageable);
@@ -701,55 +656,45 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] ID로 모임 조회 후 값 수정")
     void modifyGroup() {
         //Given
-        Member member = Member.builder()
-                              .username("testUsername")
-                              .password("testPassword")
-                              .nickname("testNickname")
-                              .build();
+        Member member = Member.create("testUsername",
+                                      "testPassword",
+                                      "testNickname",
+                                      "ROLE_USER",
+                                      false,
+                                      Provider.LOCAL,
+                                      null);
         em.persist(member);
         Long memberId = member.getId();
 
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
-        Category newCategory = Category.builder()
-                                       .name("nCategory")
-                                       .build();
+        Category newCategory = new Category("nCategory");
         em.persist(newCategory);
         String newCategoryName = newCategory.getName();
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .member(member)
-                                                         .group(group)
-                                                         .groupRole(GroupRole.LEADER)
-                                                         .build();
+        GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.LEADER);
         em.persist(groupMembership);
         afterEach();
 
-        GroupRequest.Update update = GroupRequest.Update.builder()
-                                                        .name("new test")
-                                                        .province("new test province")
-                                                        .city("new test city")
-                                                        .town("new test town")
-                                                        .description("new test description")
-                                                        .recruitStatus(RecruitStatus.CLOSED.name())
-                                                        .maxRecruitCount(20)
-                                                        .categoryName(newCategoryName)
-                                                        .build();
+        GroupRequest.Update update = new GroupRequest.Update("new test",
+                                                             "new test province",
+                                                             "new test city",
+                                                             "new test town",
+                                                             "new test description",
+                                                             RecruitStatus.CLOSED.name(),
+                                                             20,
+                                                             newCategoryName);
 
         //When
         GroupResponse.Detail response = groupService.modifyGroup(groupId, memberId, update);
@@ -779,15 +724,14 @@ class GroupServiceTest extends SpringBootTestSupporter {
         //Given
         Long unknownId = 1234567890L;
 
-        GroupRequest.Update update = GroupRequest.Update.builder()
-                                                        .name("new test")
-                                                        .province("new test province")
-                                                        .city("new test city")
-                                                        .town("new test town")
-                                                        .description("new test description")
-                                                        .recruitStatus(RecruitStatus.CLOSED.name())
-                                                        .maxRecruitCount(20)
-                                                        .build();
+        GroupRequest.Update update = new GroupRequest.Update("new test",
+                                                             "new test province",
+                                                             "new test city",
+                                                             "new test town",
+                                                             "new test description",
+                                                             RecruitStatus.CLOSED.name(),
+                                                             20,
+                                                             "nCategory");
 
         //When
 
@@ -804,37 +748,32 @@ class GroupServiceTest extends SpringBootTestSupporter {
     @DisplayName("[성공] ID로 모임 삭제(Soft Delete)")
     void deleteGroup() {
         //Given
-        Member member = Member.builder()
-                              .username("testUsername")
-                              .password("testPassword")
-                              .nickname("testNickname")
-                              .build();
+        Member member = Member.create("testUsername",
+                                      "testPassword",
+                                      "testNickname",
+                                      "ROLE_USER",
+                                      false,
+                                      Provider.LOCAL,
+                                      null);
         em.persist(member);
         Long memberId = member.getId();
 
-        Category category = Category.builder()
-                                    .name("category")
-                                    .build();
+        Category category = new Category("category");
         em.persist(category);
 
-        Group group = Group.builder()
-                           .name("test")
-                           .province("test province")
-                           .city("test city")
-                           .town("test town")
-                           .description("test description")
-                           .recruitStatus(RecruitStatus.RECRUITING)
-                           .maxRecruitCount(10)
-                           .category(category)
-                           .build();
+        Group group = Group.Companion.of("test",
+                                         "test province",
+                                         "test city",
+                                         "test town",
+                                         "test description",
+                                         RecruitStatus.RECRUITING,
+                                         10,
+                                         category);
         em.persist(group);
         Long groupId = group.getId();
 
-        GroupMembership groupMembership = GroupMembership.builder()
-                                                         .member(member)
-                                                         .group(group)
-                                                         .groupRole(GroupRole.LEADER)
-                                                         .build();
+        GroupMembership groupMembership = GroupMembership.Companion.of(member, group, GroupRole.LEADER);
+
         em.persist(groupMembership);
         afterEach();
 
@@ -844,10 +783,7 @@ class GroupServiceTest extends SpringBootTestSupporter {
         //Then
         Group deletedGroup = em.find(Group.class, groupId);
         GroupMembership deletedGroupMembership = em.find(GroupMembership.class,
-                                                         GroupMembershipId.builder()
-                                                                          .groupId(groupId)
-                                                                          .memberId(memberId)
-                                                                          .build());
+                                                         new GroupMembershipId(memberId, groupId));
 
         assertThat(flag).isTrue();
         assertThat(deletedGroup.getDisabled()).isTrue();

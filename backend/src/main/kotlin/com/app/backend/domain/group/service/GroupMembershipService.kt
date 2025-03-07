@@ -65,7 +65,7 @@ class GroupMembershipService(
             false
         ).orElseThrow { GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_NOT_FOUND) }
         if (groupLeaderMembership.groupRole != GroupRole.LEADER)
-            throw GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_UNACCEPTABLE_STATUS)
+            throw GroupMembershipException(GroupMembershipErrorCode.GROUP_MEMBERSHIP_NO_PERMISSION)
 
         //모임 가입을 신청한 회원의 멤버십을 조회
         val groupMembership = groupMembershipRepository.findByGroupIdAndMemberIdAndDisabled(

@@ -4,6 +4,7 @@ import com.app.backend.domain.group.entity.Group
 import com.app.backend.domain.group.entity.GroupRole
 import com.app.backend.domain.group.entity.MembershipStatus
 import com.app.backend.global.util.AppUtil
+import com.fasterxml.jackson.annotation.JsonProperty
 
 class GroupResponse {
     companion object {
@@ -16,7 +17,7 @@ class GroupResponse {
             town = group.town,
             description = group.description,
             recruitStatus = group.recruitStatus.name,
-            maxRecruitStatus = group.maxRecruitCount,
+            maxRecruitCount = group.maxRecruitCount,
             currentMemberCount = group.members.count { it.status == MembershipStatus.APPROVED && !it.disabled },
             createdAt = AppUtil.localDateTimeToString(group.createdAt),
             groupLeaders = group.members.filter { it.status == MembershipStatus.APPROVED && it.groupRole == GroupRole.LEADER && !it.disabled }
@@ -32,7 +33,7 @@ class GroupResponse {
             town = group.town,
             description = group.description,
             recruitStatus = group.recruitStatus.name,
-            maxRecruitStatus = group.maxRecruitCount,
+            maxRecruitCount = group.maxRecruitCount,
             currentMemberCount = group.members.count { it.status == MembershipStatus.APPROVED && !it.disabled },
             createdAt = AppUtil.localDateTimeToString(group.createdAt),
             isApplying = isApplying,
@@ -50,7 +51,7 @@ class GroupResponse {
             city = group.city,
             town = group.town,
             recruitStatus = group.recruitStatus.name,
-            maxRecruitStatus = group.maxRecruitCount,
+            maxRecruitCount = group.maxRecruitCount,
             currentMemberCount = group.members.count { it.status == MembershipStatus.APPROVED && !it.disabled },
             createdAt = AppUtil.localDateTimeToString(group.createdAt),
             groupLeaders = group.members.filter { it.status == MembershipStatus.APPROVED && it.groupRole == GroupRole.LEADER && !it.disabled }
@@ -67,12 +68,12 @@ class GroupResponse {
         val town: String,
         val description: String,
         val recruitStatus: String,
-        val maxRecruitStatus: Int,
+        val maxRecruitCount: Int,
         val currentMemberCount: Int,
         val createdAt: String,
-        val isApplying: Boolean? = null,
-        val isMember: Boolean? = null,
-        val isAdmin: Boolean? = null,
+        @get:JsonProperty("isApplying") val isApplying: Boolean? = null,
+        @get:JsonProperty("isMember") val isMember: Boolean? = null,
+        @get:JsonProperty("isAdmin") val isAdmin: Boolean? = null,
         val groupLeaders: List<String>
     )
 
@@ -84,7 +85,7 @@ class GroupResponse {
         val city: String,
         val town: String,
         val recruitStatus: String,
-        val maxRecruitStatus: Int,
+        val maxRecruitCount: Int,
         val currentMemberCount: Int,
         val createdAt: String,
         val groupLeaders: List<String>
