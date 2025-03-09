@@ -4,7 +4,7 @@ spring:
     url: jdbc:h2:file:./data/testdb;MODE=MySQL
     username: sa
     password:
-    hikari: # Hikaripool DB 연결 끊어져서 사이즈 제한 + 테스트
+    hikari:
       maximum-pool-size: 30
       connection-timeout: 5000
       validation-timeout: 2000

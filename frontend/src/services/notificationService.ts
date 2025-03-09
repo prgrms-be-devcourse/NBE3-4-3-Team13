@@ -4,9 +4,10 @@ class NotificationService {
   private controller: AbortController | null = null;
   private isConnecting: boolean = false;
   private listeners: ((notification: any) => void)[] = [];
+  private isConnected: boolean = false;
 
   async connect() {
-    if (this.isConnecting) return;
+    if (this.isConnected) return;
     this.isConnecting = true;
 
     const token = localStorage.getItem('accessToken');
@@ -28,6 +29,7 @@ class NotificationService {
         onopen: async (response) => {
           console.log('SSE 연결 성공');
           this.isConnecting = false;
+          this.isConnected = true;
         },
         onmessage: (event: EventSourceMessage) => {
           try {
@@ -143,8 +145,13 @@ class NotificationService {
     if (this.controller) {
       this.controller.abort();
       this.controller = null;
+      this.isConnected = false;
     }
     this.isConnecting = false;
+  }
+
+  isConnectionActive(): boolean {
+    return this.isConnected;
   }
 }
 
