@@ -1,5 +1,4 @@
 import { Post } from "@/types/Post";
-import { Comment } from "@/types/Comment";
 import api from "@/api";
 
 export const getPost = async (postId: number, token: string): Promise<Post> => {
@@ -34,6 +33,18 @@ export const getPosts = async (
     return response.data.data;
   } catch (error: any) {
     throw new Error("게시물 목록을 불러오는데 실패했습니다");
+  }
+};
+
+export const getHotPosts = async (groupId: number, token: string) => {
+  try {
+    const response = await api.get(`/post/hot`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: {groupId}
+    });
+    return response.data.data;
+  } catch (error: any) {
+    throw error.response.data.code;
   }
 };
 
