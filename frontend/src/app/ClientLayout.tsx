@@ -58,6 +58,7 @@ export function ClientLayout({
 }: React.ComponentProps<typeof NextThemesProvider>) {
   const router = useRouter();
   const INITIAL_SESSION_TIME = 30 * 60; // 30분
+  const SSE_RECONNECT_DELAY = 5000; // 5초
   const [sessionTime, setSessionTime] = React.useState<number>(0);
   const [tokenExpirationTime, setTokenExpirationTime] =
     React.useState<number>(0); // 토큰 만료 시간을 저장할 state
@@ -192,16 +193,46 @@ export function ClientLayout({
   }, []); // 컴포넌트 마운트 시 한 번만 실행
 
   useEffect(() => {
-    if (isLogin) {
-      setSessionTime(INITIAL_SESSION_TIME);
-      notificationService.connect();
+    let reconnectTimer: NodeJS.Timeout;
 
-      // 컴포넌트 언마운트나 로그아웃 시 연결 해제
-      return () => {
+    const setupNotificationService = async () => {
+      if (isLogin) {
+        // 세션 시간 설정
+        setSessionTime(INITIAL_SESSION_TIME);
+        
+        // 브라우저 알림 권한 요청
+        if (Notification.permission === 'default') {
+          await Notification.requestPermission();
+        }
+
+        try {
+          // 연결이 활성화되지 않은 경우에만 연결 시도
+          if (!notificationService.isConnectionActive()) {
+            console.log('알림 서비스 연결 시도');
+            await notificationService.connect();
+          }
+        } catch (error) {
+          console.error('알림 서비스 연결 실패:', error);
+          // 연결 실패 시 재시도
+          reconnectTimer = setTimeout(setupNotificationService, SSE_RECONNECT_DELAY);
+        }
+      }
+    };
+
+    // 초기 설정 실행
+    setupNotificationService();
+
+    // 클린업 함수
+    return () => {
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+      if (isLogin) {
+        console.log('알림 서비스 연결 해제');
         notificationService.disconnect();
-      };
-    }
-  }, [isLogin]); // 로그인 상태가 변경될 때만 실행
+      }
+    };
+  }, [isLogin]); // isLogin 상태 변경시에만 실행
 
   useEffect(() => {
     // 로그인 상태일 때만 타이머 실행
@@ -224,24 +255,6 @@ export function ClientLayout({
       if (timer) clearInterval(timer);
     };
   }, [isLogin, sessionTime]); // sessionTime 의존성 추가
-
-  useEffect(() => {
-    // 로그인된 상태일 때만 SSE 연결
-    if (isLogin) {
-      // 브라우저 알림 권한 요청
-      if (Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
-
-      // SSE 연결
-      notificationService.connect();
-
-      // 컴포넌트 언마운트나 로그아웃 시 연결 해제
-      return () => {
-        notificationService.disconnect();
-      };
-    }
-  }, [isLogin]); // isLogin이 변경될 때마다 실행
 
   if (isLoginMemberPending) {
     return (
