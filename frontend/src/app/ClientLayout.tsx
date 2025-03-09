@@ -194,45 +194,33 @@ export function ClientLayout({
 
   useEffect(() => {
     let reconnectTimer: NodeJS.Timeout;
-
+  
     const setupNotificationService = async () => {
-      if (isLogin) {
-        // 세션 시간 설정
-        setSessionTime(INITIAL_SESSION_TIME);
-        
-        // 브라우저 알림 권한 요청
-        if (Notification.permission === 'default') {
-          await Notification.requestPermission();
-        }
-
+      if (isLogin && !notificationService.isConnectionActive()) {
         try {
-          // 연결이 활성화되지 않은 경우에만 연결 시도
-          if (!notificationService.isConnectionActive()) {
-            console.log('알림 서비스 연결 시도');
-            await notificationService.connect();
-          }
+          console.log('알림 서비스 연결 시도');
+          await notificationService.connect();
         } catch (error) {
           console.error('알림 서비스 연결 실패:', error);
-          // 연결 실패 시 재시도
           reconnectTimer = setTimeout(setupNotificationService, SSE_RECONNECT_DELAY);
         }
       }
     };
-
-    // 초기 설정 실행
-    setupNotificationService();
-
-    // 클린업 함수
+  
+    if (isLogin) {
+      setupNotificationService();
+    }
+  
     return () => {
       if (reconnectTimer) {
         clearTimeout(reconnectTimer);
       }
-      if (isLogin) {
-        console.log('알림 서비스 연결 해제');
+      // 로그아웃 시에만 연결 해제
+      if (!isLogin && notificationService.isConnectionActive()) {
         notificationService.disconnect();
       }
     };
-  }, [isLogin]); // isLogin 상태 변경시에만 실행
+  }, [isLogin]);
 
   useEffect(() => {
     // 로그인 상태일 때만 타이머 실행

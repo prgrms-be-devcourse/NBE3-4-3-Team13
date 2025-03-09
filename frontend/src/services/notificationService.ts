@@ -1,14 +1,26 @@
 import { EventSourceMessage, fetchEventSource } from '@microsoft/fetch-event-source';
 
 class NotificationService {
+  private static instance: NotificationService | null = null;
   private controller: AbortController | null = null;
   private isConnecting: boolean = false;
   private listeners: ((notification: any) => void)[] = [];
   private isConnected: boolean = false;
 
+  private constructor() {} // private 생성자
+
+  public static getInstance(): NotificationService {
+    if (!NotificationService.instance) {
+      NotificationService.instance = new NotificationService();
+    }
+    return NotificationService.instance;
+  }
+
   async connect() {
-    if (this.isConnected) return;
-    this.isConnecting = true;
+    if (this.isConnected || this.isConnecting) {
+      console.log('이미 연결됨 또는 연결 시도 중');
+      return;
+    }
 
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -141,6 +153,8 @@ class NotificationService {
     }
   }
 
+  
+
   disconnect() {
     if (this.controller) {
       this.controller.abort();
@@ -155,4 +169,5 @@ class NotificationService {
   }
 }
 
-export const notificationService = new NotificationService(); 
+// 싱글톤 인스턴스 export
+export const notificationService = NotificationService.getInstance(); 
