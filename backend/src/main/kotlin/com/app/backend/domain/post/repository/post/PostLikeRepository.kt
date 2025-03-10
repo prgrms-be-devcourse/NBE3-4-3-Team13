@@ -10,5 +10,5 @@ import org.springframework.data.jpa.repository.Lock
 interface PostLikeRepository : JpaRepository<PostLike, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    fun findByPostAndMemberAndDisabled(post: Post, member: Member, disabled: Boolean = false): PostLike?
+    fun findByPostAndMemberAndDisabled(post: Post, member: Member, disabled: Boolean): PostLike?
 }
