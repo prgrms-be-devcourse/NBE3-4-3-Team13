@@ -8,8 +8,8 @@ import java.util.concurrent.TimeUnit
 class LockHelper(private val redissonClient: RedissonClient, private val lockUtil: LockUtil) {
     fun <R> executeWithLock(
         lockKey: String,
-        maxWaitTime: Long,
-        leaseTime: Long,
+        maxWaitTime: Long = 1000L,
+        leaseTime: Long = 5000L,
         timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
         block: () -> R
     ): R {
@@ -27,8 +27,8 @@ class LockHelper(private val redissonClient: RedissonClient, private val lockUti
 
     fun executeWithLock(
         lockKey: String,
-        maxWaitTime: Long,
-        leaseTime: Long,
+        maxWaitTime: Long = 1000L,
+        leaseTime: Long = 5000L,
         timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
         block: () -> Unit
     ) {
