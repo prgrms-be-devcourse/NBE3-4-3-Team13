@@ -1,14 +1,15 @@
-package com.app.backend.domain.chat.message.service;
+package com.app.backend.domain.chat.message.service
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
+import org.springframework.stereotype.Service
 
-import com.app.backend.domain.chat.message.dto.request.MessageRequest;
-import com.app.backend.domain.chat.message.dto.response.MessageResponse;
-import com.app.backend.domain.chat.message.repository.MessageRepository;
+import com.app.backend.domain.chat.message.dto.request.MessageRequest
+import com.app.backend.domain.chat.message.dto.response.MessageResponse
+import com.app.backend.domain.chat.message.repository.MessageRepository
+import org.springframework.scheduling.annotation.Async
 
 @Service
 class MessageService(private val messageRepository: MessageRepository) {
@@ -18,7 +19,8 @@ class MessageService(private val messageRepository: MessageRepository) {
 		return messageRepository.findByChatRoomIdAndDisabledFalse(chatRoomId, pageable).map { MessageResponse.from(it) }
 	}
 
-	fun saveMessage(messageRequest: MessageRequest): MessageResponse {
-		return MessageResponse.from(messageRepository.save(messageRequest.toEntity()))
+	@Async
+	fun saveMessageAsync(messageRequest: MessageRequest) {
+		MessageResponse.from(messageRepository.save(messageRequest.toEntity()))
 	}
 }

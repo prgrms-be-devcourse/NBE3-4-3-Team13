@@ -5,14 +5,13 @@ import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
 
-import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
 import java.time.LocalDateTime
 
 @Document(collection = "messages")
 data class Message(
 	@Id
-	val id: ObjectId? = null,
+	val id: String,
 
 	@Field("chat_room_id")
 	val chatRoomId: Long,
