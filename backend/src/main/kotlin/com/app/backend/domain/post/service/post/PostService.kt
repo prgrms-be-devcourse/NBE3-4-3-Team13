@@ -241,7 +241,7 @@ class PostService(
         val member = memberRepository.findById(memberId)
             .orElseThrow { PostException(GlobalErrorCode.ENTITY_NOT_FOUND) }
 
-        val postLike = postLikeRepository.findByPostAndMember(post, member)
+        val postLike = postLikeRepository.findByPostAndMemberAndDisabled(post, member)
 
         if (postLike != null) {
             postLike.delete()
@@ -258,6 +258,6 @@ class PostService(
         val member = memberRepository.findById(memberId)
             .orElseThrow { PostException(GlobalErrorCode.ENTITY_NOT_FOUND) }
 
-        return postLikeRepository.findByPostAndMember(post, member) != null
+        return postLikeRepository.findByPostAndMemberAndDisabled(post, member) != null
     }
 }
