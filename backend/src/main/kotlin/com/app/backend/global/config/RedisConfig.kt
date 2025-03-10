@@ -54,6 +54,16 @@ class RedisConfig(
         }
 
     @Bean
+    fun sessionRedisTemplate(redisConnectionFactory: RedisConnectionFactory): RedisTemplate<String, String> {
+        return RedisTemplate<String, String>().apply {
+            connectionFactory = redisConnectionFactory
+            keySerializer = StringRedisSerializer()
+            hashKeySerializer = StringRedisSerializer() // 해시 키를 문자열로 저장
+            hashValueSerializer = StringRedisSerializer() // 해시 값을 문자열로 저장
+        }
+    }
+
+    @Bean
     fun redissonClient(): RedissonClient {
         val config = Config()
         if (passwordStr.isNotBlank()) config.useSingleServer()
