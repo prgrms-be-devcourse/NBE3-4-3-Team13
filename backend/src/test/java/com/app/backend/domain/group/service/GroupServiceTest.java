@@ -1,19 +1,11 @@
-/*
 package com.app.backend.domain.group.service;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.chat.room.entity.ChatRoom;
 import com.app.backend.domain.group.dto.request.GroupRequest;
 import com.app.backend.domain.group.dto.response.GroupResponse;
 import com.app.backend.domain.group.dto.response.GroupResponse.ListInfo;
-import com.app.backend.domain.group.entity.Group;
-import com.app.backend.domain.group.entity.GroupMembership;
-import com.app.backend.domain.group.entity.GroupMembershipId;
-import com.app.backend.domain.group.entity.GroupRole;
-import com.app.backend.domain.group.entity.RecruitStatus;
+import com.app.backend.domain.group.entity.*;
 import com.app.backend.domain.group.exception.GroupErrorCode;
 import com.app.backend.domain.group.exception.GroupException;
 import com.app.backend.domain.group.exception.GroupMembershipErrorCode;
@@ -21,8 +13,6 @@ import com.app.backend.domain.group.exception.GroupMembershipException;
 import com.app.backend.domain.group.supporter.SpringBootTestSupporter;
 import com.app.backend.domain.member.entity.Member;
 import com.app.backend.domain.member.entity.Member.Provider;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +20,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Transactional
 class GroupServiceTest extends SpringBootTestSupporter {
@@ -809,4 +805,3 @@ class GroupServiceTest extends SpringBootTestSupporter {
     }
 
 }
-*/

@@ -87,6 +87,8 @@ class GroupService(
         return groupId
     }
 
+
+
     /**
      * 모임(Group) 단 건 조회
      *
@@ -135,6 +137,13 @@ class GroupService(
      *
      * @return 모임 응답 DTO 목록(List)
      */
+    fun getGroups() = groupRepository.findAllByDisabled(false).map { GroupResponse.toListInfo(it) }
+
+    /**
+     * 모임(Group) 다 건 조회 with Like
+     *
+     * @return 모임 응답 DTO 목록(List)
+     */
     fun getGroups(memberId: Long) = groupRepository.findAllByDisabled(false)
         .map { group ->
             val isLiked = groupLikeService.isLiked(group.id!!, memberId) // isLiked 값 계산
@@ -146,6 +155,14 @@ class GroupService(
      *
      * @return 모임 응답 DTO 목록(Page)
      */
+    fun getGroups(pageable: Pageable) = groupRepository.findAllByDisabled(false, pageable)
+        .map { GroupResponse.toListInfo(it) }
+
+    /**
+     * 모임(Group) 다 건 조회 with Like
+     *
+     * @return 모임 응답 DTO 목록(Page)
+     */
     fun getGroups(pageable: Pageable, memberId: Long) = groupRepository.findAllByDisabled(false, pageable)
         .map { group ->
             val isLiked = groupLikeService.isLiked(group.id!!, memberId) // isLiked 값 계산
@@ -154,6 +171,15 @@ class GroupService(
 
     /**
      * 모임 이름으로 모임(Group) 다 건 조회
+     *
+     * @param name - 모임 이름
+     * @return 모임 응답 DTO 목록(List)
+     */
+    fun getGroupsByNameContaining(name: String) = groupRepository.findAllByNameContainingAndDisabled(name, false)
+        .map { GroupResponse.toListInfo(it) }
+
+    /**
+     * 모임 이름으로 모임(Group) 다 건 조회 with Like
      *
      * @param name - 모임 이름
      * @return 모임 응답 DTO 목록(List)
@@ -171,6 +197,17 @@ class GroupService(
      * @param pageable - 페이징 객체
      * @return 모임 응답 DTO 목록(Page)
      */
+    fun getGroupsByNameContaining(name: String, pageable: Pageable) =
+        groupRepository.findAllByNameContainingAndDisabled(name, false, pageable)
+            .map { GroupResponse.toListInfo(it) }
+
+    /**
+     * 모임 이름으로 모임(Group) 다 건 조회 with Like
+     *
+     * @param name     - 모임 이름
+     * @param pageable - 페이징 객체
+     * @return 모임 응답 DTO 목록(Page)
+     */
     fun getGroupsByNameContaining(name: String, pageable: Pageable, memberId: Long) =
         groupRepository.findAllByNameContainingAndDisabled(name, false, pageable)
             .map { group ->
@@ -180,6 +217,18 @@ class GroupService(
 
     /**
      * 상세 주소로 모임(Group) 다 건 조회
+     *
+     * @param province - 시/도
+     * @param city     - 시/군/구
+     * @param town     - 읍/면/동
+     * @return 모임 응답 DTO 목록(List)
+     */
+    fun getGroupsByRegion(province: String, city: String, town: String) =
+        groupRepository.findAllByRegion(province, city, town, false)
+            .map { GroupResponse.toListInfo(it) }
+
+    /**
+     * 상세 주소로 모임(Group) 다 건 조회 with Like
      *
      * @param province - 시/도
      * @param city     - 시/군/구
@@ -202,6 +251,18 @@ class GroupService(
      * @param pageable - 페이징 객체
      * @return 모임 응답 DTO 목록(Page)
      */
+    fun getGroupsByRegion(province: String, city: String, town: String, pageable: Pageable) =
+        groupRepository.findAllByRegion(province, city, town, false, pageable).map { GroupResponse.toListInfo(it) }
+
+    /**
+     * 상세 주소로 모임(Group) 다 건 조회 with Like
+     *
+     * @param province - 시/도
+     * @param city     - 시/군/구
+     * @param town     - 읍/면/동
+     * @param pageable - 페이징 객체
+     * @return 모임 응답 DTO 목록(Page)
+     */
     fun getGroupsByRegion(province: String, city: String, town: String, pageable: Pageable, memberId: Long) =
         groupRepository.findAllByRegion(province, city, town, false, pageable)
             .map { group ->
@@ -211,6 +272,19 @@ class GroupService(
 
     /**
      * 모임 이름과 상세 주소로 모임(Group) 다 건 조회
+     *
+     * @param name     - 모임 이름
+     * @param province - 시/도
+     * @param city     - 시/군/구
+     * @param town     - 읍/면/동
+     * @return 모임 응답 DTO 목록(List)
+     */
+    fun getGroupsByNameContainingAndRegion(name: String, province: String, city: String, town: String) =
+        groupRepository.findAllByNameContainingAndRegion(name, province, city, town, false)
+            .map { GroupResponse.toListInfo(it) }
+
+    /**
+     * 모임 이름과 상세 주소로 모임(Group) 다 건 조회 with Like
      *
      * @param name     - 모임 이름
      * @param province - 시/도
@@ -240,6 +314,25 @@ class GroupService(
         province: String,
         city: String,
         town: String,
+        pageable: Pageable
+    ) = groupRepository.findAllByNameContainingAndRegion(name, province, city, town, false, pageable)
+        .map { GroupResponse.toListInfo(it) }
+
+    /**
+     * 모임 이름과 상세 주소로 모임(Group) 다 건 조회 with Like
+     *
+     * @param name     - 모임 이름
+     * @param province - 시/도
+     * @param city     - 시/군/구
+     * @param town     - 읍/면/동
+     * @param pageable - 페이징 객체
+     * @return 모임 응답 DTO 목록(Page)
+     */
+    fun getGroupsByNameContainingAndRegion(
+        name: String,
+        province: String,
+        city: String,
+        town: String,
         pageable: Pageable,
         memberId: Long
     ) = groupRepository.findAllByNameContainingAndRegion(name, province, city, town, false, pageable)
@@ -250,6 +343,23 @@ class GroupService(
 
     /**
      * 카테고리와 모임 이름, 상세 주소로 모임(Group) 다 건 조회
+     *
+     * @param dto - 모임 검색 요청 DTO
+     * @return 모임 응답 DTO 목록(List)
+     */
+    fun getGroupsBySearch(dto: GroupRequest.Search) =
+        groupRepository.findAllByCategoryAndRecruitStatusAndNameContainingAndRegion(
+            dto.categoryName,
+            dto.recruitStatus,
+            dto.name,
+            dto.province,
+            dto.city,
+            dto.town,
+            false
+        ).map { GroupResponse.toListInfo(it) }
+
+    /**
+     * 카테고리와 모임 이름, 상세 주소로 모임(Group) 다 건 조회 with Like
      *
      * @param dto - 모임 검색 요청 DTO
      * @return 모임 응답 DTO 목록(List)
@@ -270,6 +380,25 @@ class GroupService(
 
     /**
      * 카테고리와 모임 이름, 상세 주소로 모임(Group) 다 건 조회
+     *
+     * @param dto      - 모임 검색 요청 DTO
+     * @param pageable - 페이징 객체
+     * @return 모임 응답 DTO 목록(Page)
+     */
+    fun getGroupsBySearch(dto: GroupRequest.Search, pageable: Pageable) =
+        groupRepository.findAllByCategoryAndRecruitStatusAndNameContainingAndRegion(
+            dto.categoryName,
+            dto.recruitStatus,
+            dto.name,
+            dto.province,
+            dto.city,
+            dto.town,
+            false,
+            pageable
+        ).map { GroupResponse.toListInfo(it) }
+
+    /**
+     * 카테고리와 모임 이름, 상세 주소로 모임(Group) 다 건 조회 with Like
      *
      * @param dto      - 모임 검색 요청 DTO
      * @param pageable - 페이징 객체
