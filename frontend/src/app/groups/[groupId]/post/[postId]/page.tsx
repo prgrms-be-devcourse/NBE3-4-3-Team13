@@ -35,7 +35,7 @@ function PostPage() {
         console.log(error);
         if (error && error == "GM001") {
           alert("접근권한이 없습니다");
-        }else{error == "P001"}{
+        }else if(error == "P001"){
           alert("존재하지 않는 게시글입니다")
         }
         router.back();
