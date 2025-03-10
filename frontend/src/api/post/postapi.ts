@@ -91,3 +91,20 @@ export const downloadDoc = async (
     throw new Error("파일 다운로드에 실패했습니다");
   }
 };
+
+export const likePost = async (
+  postId: number,
+  token: string
+): Promise<any> => {
+  try {
+    const response = await api.post(`/post/${postId}/like`, null, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data.data;
+  } catch (error: any) {
+    if (error.response.data.code) {
+      throw error.response.data.code;
+    }
+    throw new Error("게시글 좋아요 처리에 실패했습니다.");
+  }
+};

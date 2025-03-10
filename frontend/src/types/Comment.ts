@@ -5,4 +5,6 @@ export interface Comment {
   nickname: string;
   createdAt: string;
   replyCount: number;
+  likeCount: number;
+  liked: boolean;
 }

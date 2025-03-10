@@ -7,15 +7,47 @@ import { usedownloadFile } from "@/app/groups/[groupId]/post/hooks/useFileDownlo
 import { LoginMemberContext } from "@/stores/auth/LoginMember";
 import { MoreVertical, Edit, Trash2 } from "lucide-react";
 import { Post } from "@/types/Post";
-import { deletePost } from "@/api/post/postapi";
+import { deletePost, likePost } from "@/api/post/postapi";
 
-function PostContent({ post }: { post: Post }) {
+interface PostContentProps {
+  post: Post;
+  onPostUpdated?: (updatedPost: Post) => void;
+}
+
+function PostContent({ post, onPostUpdated }: PostContentProps) {
   const [showActions, setShowActions] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { handleDownload } = usedownloadFile();
   const { loginMember } = use(LoginMemberContext);
-  const token = localStorage.getItem("accessToken");
+  const token = localStorage.getItem("accessToken") || "";
   const router = useRouter();
+
+  // 좋아요 상태 관리
+  const [liked, setLiked] = useState(post.liked || false);
+  const [likeCount, setLikeCount] = useState(post.likeCount || 0);
+
+  // 좋아요 토글 함수
+  const handleLikeToggle = async () => {
+    try {
+      // 좋아요 상태 임시 업데이트 (UI 즉시 반영)
+      const newLiked = !liked;
+      setLiked(newLiked);
+      setLikeCount((prevCount: number) => newLiked ? prevCount + 1 : prevCount - 1);
+
+      // 서버에 좋아요 상태 변경 요청
+      const updatedPost = await likePost(post.postId, token);
+      
+      // 부모 컴포넌트에 업데이트 알림
+      if (onPostUpdated) {
+        onPostUpdated(updatedPost);
+      }
+    } catch (error) {
+      console.error("게시글 좋아요 처리 중 오류:", error);
+      // 오류 발생 시 원래 상태로 복원
+      setLiked(!liked);
+      setLikeCount((prev: number) => liked ? prev + 1 : prev - 1);
+    }
+  };
 
   // 드롭다운 닫기
   useEffect(() => {
@@ -141,6 +173,17 @@ function PostContent({ post }: { post: Post }) {
           )}
         </div>
       )}
+
+      {/* 좋아요 버튼 */}
+      <div className="mt-6 flex items-center space-x-4">
+        <button
+          onClick={handleLikeToggle}
+          className="flex items-center space-x-1 text-sm hover:text-red-500 transition-colors"
+        >
+          <span>{liked ? "❤️" : "🤍"}</span>
+          <span>{likeCount}</span>
+        </button>
+      </div>
     </div>
   );
 }
