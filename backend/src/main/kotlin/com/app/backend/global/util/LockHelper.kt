@@ -24,4 +24,17 @@ class LockHelper(private val redissonClient: RedissonClient, private val lockUti
         else
             throw RuntimeException("Failed to acquire lock: $lockKey")
     }
+
+    fun executeWithLock(
+        lockKey: String,
+        maxWaitTime: Long,
+        leaseTime: Long,
+        timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
+        block: () -> Unit
+    ) {
+        executeWithLock(lockKey, maxWaitTime, leaseTime, timeUnit) {
+            block()
+            Unit
+        }
+    }
 }
