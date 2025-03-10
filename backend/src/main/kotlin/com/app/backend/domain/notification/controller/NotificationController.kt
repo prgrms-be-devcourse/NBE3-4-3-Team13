@@ -27,38 +27,46 @@ class NotificationController(
     ): SseEmitter {
         val member = memberService.getCurrentMember(token)
         val userId = member.id.toString()
-        val emitter = SseEmitter(Long.MAX_VALUE)
-
+        
+        // 기존 연결 강제 종료
+        sseEmitters.remove(userId)
+        
+        val emitter = SseEmitter(30 * 60 * 1000L)  // 30분 타임아웃
+        
         try {
+            // 연결 즉시 초기 메시지 전송
             emitter.send(
                 SseEmitter.event()
                     .name("connect")
-                    .data("Connected!")
+                    .data("Connected! Active connections: ${sseEmitters.getActiveEmittersCount()}")
             )
-        } catch (e: IOException) {
-            log.warn("SSE 연결 재시도 중: {}", e.message)
-            Thread.sleep(1000)
-            try {
-                emitter.send(SseEmitter.event().name("retry").data("Reconnecting..."))
-            } catch (retryEx: IOException) {
-                log.error("SSE 재연결 실패: {}", retryEx.message)
-                emitter.complete()
+            
+            sseEmitters.add(userId, emitter)
+            
+            emitter.onCompletion {
+                sseEmitters.remove(userId)
+                log.info("SSE connection completed for user: {}", userId)
             }
-        }
-
-        sseEmitters.add(userId, emitter)
-
-        emitter.onCompletion {
+            
+            emitter.onTimeout {
+                sseEmitters.remove(userId)
+                log.info("SSE connection timed out for user: {}", userId)
+            }
+            
+            emitter.onError { e ->
+                sseEmitters.remove(userId)
+                log.error("SSE connection error for user: {}", userId, e)
+            }
+            
+        } catch (e: Exception) {
             sseEmitters.remove(userId)
+            log.error("SSE connection failed for user: {}", userId, e)
+            throw e
         }
-        emitter.onTimeout {
-            sseEmitters.remove(userId)
-        }
-        emitter.onError { e ->
-            log.error("SSE connection error for user: {}", userId, e)
-            sseEmitters.remove(userId)
-        }
-
+        
+        log.info("New SSE connection established for user: {}. Total active: {}", 
+                 userId, sseEmitters.getActiveEmittersCount())
+        
         return emitter
     }
 
