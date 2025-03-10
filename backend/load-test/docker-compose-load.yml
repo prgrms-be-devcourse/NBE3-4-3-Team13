@@ -3,8 +3,8 @@ services:
   backend:
     env_file:
       - ../.env
-    image: linkus:2
-    container_name: linkus-2
+    image: linkus:4
+    container_name: linkus-4
     entrypoint:
       - "java"
       - "-Xlog:gc*"
