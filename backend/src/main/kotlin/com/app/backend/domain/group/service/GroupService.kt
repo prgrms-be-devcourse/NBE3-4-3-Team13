@@ -429,6 +429,7 @@ class GroupService(
      * @return 모임 응답 DTO
      */
     @CustomLock(key = "'group:' + #groupId")
+    @Transactional
     fun modifyGroup(@Min(1) groupId: Long, @Min(1) memberId: Long, dto: GroupRequest.Update): GroupResponse.Detail {
         val groupMembership = groupMembershipRepository.findByGroupIdAndMemberIdAndDisabled(
             groupId,
