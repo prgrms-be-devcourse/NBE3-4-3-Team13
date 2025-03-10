@@ -8,6 +8,8 @@ export interface Post {
   groupId: number;
   createdAt: string;
   modifiedAt: string;
+  likeCount: number;
+  liked: boolean;
   images: PostImage[];
   documents: PostDocument[];
 }
