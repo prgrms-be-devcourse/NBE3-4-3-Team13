@@ -1,8 +1,8 @@
 package com.app.backend.domain.chat.message
 
 import com.app.backend.domain.chat.message.entity.Message
-import org.bson.types.ObjectId
 import java.time.LocalDateTime
+import java.util.*
 
 open class MessageUtil {
     fun createMessage(
@@ -13,7 +13,7 @@ open class MessageUtil {
         createdAt: LocalDateTime = LocalDateTime.now()
     ): Message {
         return Message(
-            id = ObjectId(),
+            id = UUID.randomUUID().toString(),
             chatRoomId = chatRoomId,
             senderId = senderId,
             senderNickname = senderNickname,
