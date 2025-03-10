@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { getPosts } from "@/api/post/postapi";
+import { getPosts, getHotPosts } from "@/api/post/postapi";
 import { Plus } from "lucide-react";
 
 const postStatusOptions = ["ALL", "PUBLIC", "PRIVATE", "NOTICE"];
@@ -19,6 +19,7 @@ export default function PostListPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [hotPosts, setHotPosts] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchPosts() {
@@ -28,6 +29,10 @@ export default function PostListPage() {
           router.push("/");
           return;
         }
+        const hotPost = await getHotPosts(groupId, token);
+        setHotPosts(hotPost || []);
+        console.log("핫 포스트");
+        console.log(hotPost);
         const data = await getPosts(groupId, search, postStatus, page, token);
         setPosts(data.content || []);
         setTotalPages(data.totalPages || 0);
@@ -55,6 +60,41 @@ export default function PostListPage() {
           </Link>
         </div>
       </div>
+
+      {/* Hot Post 섹션 */}
+      {hotPosts.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            실시간 HOT 게시물
+          </h2>
+          <div className="grid grid-cols-5 gap-4 pb-2">
+            {hotPosts.map((post, index) => (
+              <Link
+                key={post.postId}
+                href={`/groups/${groupId}/post/${post.postId}`}
+              >
+                <div className="flex items-center">
+                  {/* 순위 뱃지 */}
+                  <div className="mr-2">
+                    <span className="text-gray-800 text-lg font-bold">
+                      {index + 1}
+                    </span>
+                  </div>
+                  {/* 게시글 카드 */}
+                  <div className="flex-1 bg-white p-4 rounded-lg shadow hover:shadow-md transition">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {post.title}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      작성자: {post.nickName}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 검색  */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
