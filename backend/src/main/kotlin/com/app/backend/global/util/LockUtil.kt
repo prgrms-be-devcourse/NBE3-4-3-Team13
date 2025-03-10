@@ -2,12 +2,11 @@ package com.app.backend.global.util
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.redisson.api.RLock
-import org.redisson.api.RedissonClient
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
 @Component
-class LockUtil(private val redissonClient: RedissonClient) {
+class LockUtil {
     companion object {
         private const val MAX_UNLOCK_RETRY_COUNT = 3
         private const val RETRY_DELAY = 100L
