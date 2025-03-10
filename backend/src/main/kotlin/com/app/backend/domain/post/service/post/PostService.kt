@@ -60,7 +60,7 @@ class PostService(
             throw PostException(PostErrorCode.POST_UNAUTHORIZATION)
         }
 
-        val member = getMemberEntity(memberId)
+        val member = getMemberEntity(post.memberId)
 
         val documents = postAttachmentRepository
             .findByPostIdAndFileTypeAndDisabledOrderByCreatedAtDesc(postId, FileType.DOCUMENT, false)
@@ -70,7 +70,8 @@ class PostService(
             .findByPostIdAndFileTypeAndDisabledOrderByCreatedAtDesc(postId, FileType.IMAGE, false)
             .map { PostAttachmentRespDto.GetPostImageDto.from(it, fileConfig.getBaseDir()) }
 
-        return PostRespDto.GetPostDto.from(post, member.id!!, member.nickname!!, images, documents, isLiked(postId, memberId))
+        return PostRespDto.GetPostDto.from(post, member.id!!, member.nickname!!, images, documents, isLiked(postId, memberId)
+        )
     }
 
     @CustomCache(prefix = "post", key = "groupid", id = "groupId", ttl = 1)
@@ -235,20 +236,22 @@ class PostService(
 
     @Transactional
     @CustomCacheDelete(prefix = "post", key = "postid", id = "postId")
-    fun PostLike(postId: Long, memberId: Long) {
+    fun PostLike(postId: Long, memberId: Long): Boolean {
         val post = postRepository.findByIdWithLock(postId) ?: throw PostException(PostErrorCode.POST_NOT_FOUND)
 
         val member = memberRepository.findById(memberId)
             .orElseThrow { PostException(GlobalErrorCode.ENTITY_NOT_FOUND) }
 
-        val postLike = postLikeRepository.findByPostAndMemberAndDisabled(post, member)
+        val postLike = postLikeRepository.findByPostAndMemberAndDisabled(post, member, false)
 
         if (postLike != null) {
             postLike.delete()
             post.removeLikeCount()
+            return false
         } else {
             postLikeRepository.save(PostLike(null, member, post))
             post.addLikeCount()
+            return true
         }
     }
 
@@ -258,6 +261,6 @@ class PostService(
         val member = memberRepository.findById(memberId)
             .orElseThrow { PostException(GlobalErrorCode.ENTITY_NOT_FOUND) }
 
-        return postLikeRepository.findByPostAndMemberAndDisabled(post, member) != null
+        return postLikeRepository.findByPostAndMemberAndDisabled(post, member, false) != null
     }
 }
