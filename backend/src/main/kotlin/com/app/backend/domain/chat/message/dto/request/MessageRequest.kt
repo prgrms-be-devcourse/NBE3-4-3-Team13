@@ -8,6 +8,8 @@ data class MessageRequest(
 	val senderNickname: String,
 	val content: String
 ) {
+	constructor() : this(0L, 0L, "", "")
+
 	fun toEntity(): Message {
 		return Message(
 			chatRoomId = chatRoomId,
