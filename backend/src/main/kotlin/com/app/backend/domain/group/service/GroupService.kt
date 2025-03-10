@@ -33,7 +33,8 @@ class GroupService(
     private val groupMembershipRepository: GroupMembershipRepository,
     private val memberRepository: MemberRepository,
     private val chatRoomRepository: ChatRoomRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val groupLikeService: GroupLikeService
 ) {
     /**
      * 모임(Group) 저장
@@ -102,24 +103,28 @@ class GroupService(
      * @param memberId - 회원 ID
      * @return 모임 응답 DTO
      */
-    fun getGroup(@Min(1) groupId: Long, @Min(1) memberId: Long): GroupResponse.Detail {
+    fun getGroup(@Min(1) groupId: Long, @Min(1) memberId: Long): GroupResponse.DetailWithLike {
         val opGroupMembership = groupMembershipRepository.findByGroupIdAndMemberIdAndDisabled(
             groupId, memberId, false
         )
 
+        val isLiked = groupLikeService.isLiked(groupId, memberId)
+
         if (opGroupMembership.isPresent) {
             val groupMembership = opGroupMembership.get()
-            return GroupResponse.toDetail(
+            return GroupResponse.toDetailWithLike(
                 groupMembership.group,
                 opGroupMembership.get().status == MembershipStatus.PENDING,
                 opGroupMembership.get().status == MembershipStatus.APPROVED,
-                opGroupMembership.get().status == MembershipStatus.APPROVED && opGroupMembership.get().groupRole == GroupRole.LEADER
+                opGroupMembership.get().status == MembershipStatus.APPROVED && opGroupMembership.get().groupRole == GroupRole.LEADER,
+                isLiked
             )
         }
 
-        return GroupResponse.toDetail(
+        return GroupResponse.toDetailWithLike(
             groupRepository.findByIdAndDisabled(groupId, false)
-                .orElseThrow { GroupException(GroupErrorCode.GROUP_NOT_FOUND) }
+                .orElseThrow { GroupException(GroupErrorCode.GROUP_NOT_FOUND) },
+            isLiked
         )
     }
 
@@ -128,15 +133,22 @@ class GroupService(
      *
      * @return 모임 응답 DTO 목록(List)
      */
-    fun getGroups() = groupRepository.findAllByDisabled(false).map { GroupResponse.toListInfo(it) }
+    fun getGroups(memberId: Long) = groupRepository.findAllByDisabled(false)
+        .map { group ->
+            val isLiked = groupLikeService.isLiked(group.id!!, memberId) // isLiked 값 계산
+            GroupResponse.toListInfoWithLike(group, isLiked) // isLiked 값을 전달
+        }
 
     /**
      * 모임(Group) 다 건 조회
      *
      * @return 모임 응답 DTO 목록(Page)
      */
-    fun getGroups(pageable: Pageable) = groupRepository.findAllByDisabled(false, pageable)
-        .map { GroupResponse.toListInfo(it) }
+    fun getGroups(pageable: Pageable, memberId: Long) = groupRepository.findAllByDisabled(false, pageable)
+        .map { group ->
+            val isLiked = groupLikeService.isLiked(group.id!!, memberId) // isLiked 값 계산
+            GroupResponse.toListInfoWithLike(group, isLiked) // isLiked 값을 전달
+        }
 
     /**
      * 모임 이름으로 모임(Group) 다 건 조회
@@ -144,8 +156,11 @@ class GroupService(
      * @param name - 모임 이름
      * @return 모임 응답 DTO 목록(List)
      */
-    fun getGroupsByNameContaining(name: String) = groupRepository.findAllByNameContainingAndDisabled(name, false)
-        .map { GroupResponse.toListInfo(it) }
+    fun getGroupsByNameContaining(name: String, memberId: Long) = groupRepository.findAllByNameContainingAndDisabled(name, false)
+        .map { group ->
+            val isLiked = groupLikeService.isLiked(group.id!!, memberId) // isLiked 값 계산
+            GroupResponse.toListInfoWithLike(group, isLiked) // isLiked 값을 전달
+        }
 
     /**
      * 모임 이름으로 모임(Group) 다 건 조회
@@ -154,9 +169,12 @@ class GroupService(
      * @param pageable - 페이징 객체
      * @return 모임 응답 DTO 목록(Page)
      */
-    fun getGroupsByNameContaining(name: String, pageable: Pageable) =
+    fun getGroupsByNameContaining(name: String, pageable: Pageable, memberId: Long) =
         groupRepository.findAllByNameContainingAndDisabled(name, false, pageable)
-            .map { GroupResponse.toListInfo(it) }
+            .map { group ->
+                val isLiked = groupLikeService.isLiked(group.id!!, memberId) // isLiked 값 계산
+                GroupResponse.toListInfoWithLike(group, isLiked) // isLiked 값을 전달
+            }
 
     /**
      * 상세 주소로 모임(Group) 다 건 조회
@@ -166,9 +184,12 @@ class GroupService(
      * @param town     - 읍/면/동
      * @return 모임 응답 DTO 목록(List)
      */
-    fun getGroupsByRegion(province: String, city: String, town: String) =
+    fun getGroupsByRegion(province: String, city: String, town: String, memberId: Long) =
         groupRepository.findAllByRegion(province, city, town, false)
-            .map { GroupResponse.toListInfo(it) }
+            .map { group ->
+                val isLiked = groupLikeService.isLiked(group.id!!, memberId) // isLiked 값 계산
+                GroupResponse.toListInfoWithLike(group, isLiked) // isLiked 값을 전달
+            }
 
     /**
      * 상세 주소로 모임(Group) 다 건 조회
@@ -179,8 +200,12 @@ class GroupService(
      * @param pageable - 페이징 객체
      * @return 모임 응답 DTO 목록(Page)
      */
-    fun getGroupsByRegion(province: String, city: String, town: String, pageable: Pageable) =
-        groupRepository.findAllByRegion(province, city, town, false, pageable).map { GroupResponse.toListInfo(it) }
+    fun getGroupsByRegion(province: String, city: String, town: String, pageable: Pageable, memberId: Long) =
+        groupRepository.findAllByRegion(province, city, town, false, pageable)
+            .map { group ->
+                val isLiked = groupLikeService.isLiked(group.id!!, memberId) // isLiked 값 계산
+                GroupResponse.toListInfoWithLike(group, isLiked) // isLiked 값을 전달
+            }
 
     /**
      * 모임 이름과 상세 주소로 모임(Group) 다 건 조회
@@ -191,9 +216,12 @@ class GroupService(
      * @param town     - 읍/면/동
      * @return 모임 응답 DTO 목록(List)
      */
-    fun getGroupsByNameContainingAndRegion(name: String, province: String, city: String, town: String) =
+    fun getGroupsByNameContainingAndRegion(name: String, province: String, city: String, town: String, memberId: Long) =
         groupRepository.findAllByNameContainingAndRegion(name, province, city, town, false)
-            .map { GroupResponse.toListInfo(it) }
+            .map { group ->
+                val isLiked = groupLikeService.isLiked(group.id!!, memberId) // isLiked 값 계산
+                GroupResponse.toListInfoWithLike(group, isLiked) // isLiked 값을 전달
+            }
 
     /**
      * 모임 이름과 상세 주소로 모임(Group) 다 건 조회
@@ -210,9 +238,13 @@ class GroupService(
         province: String,
         city: String,
         town: String,
-        pageable: Pageable
+        pageable: Pageable,
+        memberId: Long
     ) = groupRepository.findAllByNameContainingAndRegion(name, province, city, town, false, pageable)
-        .map { GroupResponse.toListInfo(it) }
+        .map { group ->
+            val isLiked = groupLikeService.isLiked(group.id!!, memberId) // isLiked 값 계산
+            GroupResponse.toListInfoWithLike(group, isLiked) // isLiked 값을 전달
+        }
 
     /**
      * 카테고리와 모임 이름, 상세 주소로 모임(Group) 다 건 조회
@@ -220,7 +252,7 @@ class GroupService(
      * @param dto - 모임 검색 요청 DTO
      * @return 모임 응답 DTO 목록(List)
      */
-    fun getGroupsBySearch(dto: GroupRequest.Search) =
+    fun getGroupsBySearch(dto: GroupRequest.Search, memberId: Long) =
         groupRepository.findAllByCategoryAndRecruitStatusAndNameContainingAndRegion(
             dto.categoryName,
             dto.recruitStatus,
@@ -229,7 +261,10 @@ class GroupService(
             dto.city,
             dto.town,
             false
-        ).map { GroupResponse.toListInfo(it) }
+        ).map { group ->
+            val isLiked = groupLikeService.isLiked(group.id!!, memberId) // isLiked 값 계산
+            GroupResponse.toListInfoWithLike(group, isLiked) // isLiked 값을 전달
+        }
 
     /**
      * 카테고리와 모임 이름, 상세 주소로 모임(Group) 다 건 조회
@@ -238,7 +273,7 @@ class GroupService(
      * @param pageable - 페이징 객체
      * @return 모임 응답 DTO 목록(Page)
      */
-    fun getGroupsBySearch(dto: GroupRequest.Search, pageable: Pageable) =
+    fun getGroupsBySearch(dto: GroupRequest.Search, pageable: Pageable, memberId: Long) =
         groupRepository.findAllByCategoryAndRecruitStatusAndNameContainingAndRegion(
             dto.categoryName,
             dto.recruitStatus,
@@ -248,7 +283,10 @@ class GroupService(
             dto.town,
             false,
             pageable
-        ).map { GroupResponse.toListInfo(it) }
+        ).map { group ->
+            val isLiked = groupLikeService.isLiked(group.id!!, memberId) // isLiked 값 계산
+            GroupResponse.toListInfoWithLike(group, isLiked) // isLiked 값을 전달
+        }
 
     /**
      * 모임(Group) 수정
@@ -259,7 +297,6 @@ class GroupService(
      * @return 모임 응답 DTO
      */
     @CustomLock(key = "'group:' + #groupId")
-    @Transactional
     fun modifyGroup(@Min(1) groupId: Long, @Min(1) memberId: Long, dto: GroupRequest.Update): GroupResponse.Detail {
         val groupMembership = groupMembershipRepository.findByGroupIdAndMemberIdAndDisabled(
             groupId,
