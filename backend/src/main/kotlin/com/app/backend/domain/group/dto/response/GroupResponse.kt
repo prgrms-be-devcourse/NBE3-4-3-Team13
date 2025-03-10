@@ -24,6 +24,24 @@ class GroupResponse {
                 .map { it.member.nickname!! }
         )
 
+        fun toDetailWithLike(group: Group, isLiked: Boolean) = DetailWithLike(
+            id = group.id!!,
+            categoryName = group.category.name,
+            name = group.name,
+            province = group.province,
+            city = group.city,
+            town = group.town,
+            description = group.description,
+            recruitStatus = group.recruitStatus.name,
+            maxRecruitCount = group.maxRecruitCount,
+            currentMemberCount = group.members.count { it.status == MembershipStatus.APPROVED && !it.disabled },
+            createdAt = AppUtil.localDateTimeToString(group.createdAt),
+            groupLeaders = group.members.filter { it.status == MembershipStatus.APPROVED && it.groupRole == GroupRole.LEADER && !it.disabled }
+                .map { it.member.nickname!! },
+            isLiked = isLiked,
+            likeCount = group.likeCount
+        )
+
         fun toDetail(group: Group, isApplying: Boolean, isMember: Boolean, isAdmin: Boolean) = Detail(
             id = group.id!!,
             categoryName = group.category.name,
@@ -43,6 +61,27 @@ class GroupResponse {
                 .map { it.member.nickname!! }
         )
 
+        fun toDetailWithLike(group: Group, isApplying: Boolean, isMember: Boolean, isAdmin: Boolean, isLiked: Boolean) = DetailWithLike(
+            id = group.id!!,
+            categoryName = group.category.name,
+            name = group.name,
+            province = group.province,
+            city = group.city,
+            town = group.town,
+            description = group.description,
+            recruitStatus = group.recruitStatus.name,
+            maxRecruitCount = group.maxRecruitCount,
+            currentMemberCount = group.members.count { it.status == MembershipStatus.APPROVED && !it.disabled },
+            createdAt = AppUtil.localDateTimeToString(group.createdAt),
+            isApplying = isApplying,
+            isMember = isMember,
+            isAdmin = isAdmin,
+            groupLeaders = group.members.filter { it.status == MembershipStatus.APPROVED && it.groupRole == GroupRole.LEADER && !it.disabled }
+                .map { it.member.nickname!! },
+            isLiked = isLiked,
+            likeCount = group.likeCount
+        )
+
         fun toListInfo(group: Group) = ListInfo(
             id = group.id!!,
             categoryName = group.category.name,
@@ -57,6 +96,25 @@ class GroupResponse {
             groupLeaders = group.members.filter { it.status == MembershipStatus.APPROVED && it.groupRole == GroupRole.LEADER && !it.disabled }
                 .map { it.member.nickname!! }
         )
+
+        fun toListInfoWithLike(group: Group, isLiked: Boolean) = ListInfoWithLike(
+            id = group.id!!,
+            categoryName = group.category.name,
+            name = group.name,
+            province = group.province,
+            city = group.city,
+            town = group.town,
+            recruitStatus = group.recruitStatus.name,
+            maxRecruitCount = group.maxRecruitCount,
+            currentMemberCount = group.members.count { it.status == MembershipStatus.APPROVED && !it.disabled },
+            createdAt = AppUtil.localDateTimeToString(group.createdAt),
+            groupLeaders = group.members.filter { it.status == MembershipStatus.APPROVED && it.groupRole == GroupRole.LEADER && !it.disabled }
+                .map { it.member.nickname!! },
+            isLiked = isLiked,
+            likeCount = group.likeCount
+        )
+
+
     }
 
     data class Detail(
@@ -77,6 +135,26 @@ class GroupResponse {
         val groupLeaders: List<String>
     )
 
+    data class DetailWithLike(
+        val id: Long,
+        val categoryName: String,
+        val name: String,
+        val province: String,
+        val city: String,
+        val town: String,
+        val description: String,
+        val recruitStatus: String,
+        val maxRecruitCount: Int,
+        val currentMemberCount: Int,
+        val createdAt: String,
+        @get:JsonProperty("isApplying") val isApplying: Boolean? = null,
+        @get:JsonProperty("isMember") val isMember: Boolean? = null,
+        @get:JsonProperty("isAdmin") val isAdmin: Boolean? = null,
+        val groupLeaders: List<String>,
+        val isLiked: Boolean,
+        val likeCount: Int
+    )
+
     data class ListInfo(
         val id: Long,
         val categoryName: String,
@@ -89,5 +167,21 @@ class GroupResponse {
         val currentMemberCount: Int,
         val createdAt: String,
         val groupLeaders: List<String>
+    )
+
+    data class ListInfoWithLike(
+        val id: Long,
+        val categoryName: String,
+        val name: String,
+        val province: String,
+        val city: String,
+        val town: String,
+        val recruitStatus: String,
+        val maxRecruitCount: Int,
+        val currentMemberCount: Int,
+        val createdAt: String,
+        val groupLeaders: List<String>,
+        val isLiked: Boolean,
+        val likeCount: Int
     )
 }

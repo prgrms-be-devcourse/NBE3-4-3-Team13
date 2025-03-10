@@ -92,7 +92,7 @@ class Group private constructor(
     var category: Category = category
         protected set
 
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "group", cascade = [CascadeType.REMOVE])
     var likes: MutableList<GroupLike> = mutableListOf()
         protected set
 

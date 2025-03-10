@@ -1,24 +1,9 @@
 package com.app.backend.domain.group.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.handler;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.app.backend.domain.category.entity.Category;
 import com.app.backend.domain.group.constant.GroupMessageConstant;
 import com.app.backend.domain.group.dto.request.GroupRequest;
 import com.app.backend.domain.group.dto.response.GroupResponse;
-import com.app.backend.domain.group.dto.response.GroupResponse.ListInfo;
 import com.app.backend.domain.group.entity.Group;
 import com.app.backend.domain.group.entity.RecruitStatus;
 import com.app.backend.domain.group.exception.GroupException;
@@ -33,9 +18,6 @@ import com.app.backend.global.util.ReflectionUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.lang.reflect.Proxy;
-import java.time.LocalDateTime;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,13 +30,26 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
+import java.lang.reflect.Proxy;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 class GroupControllerTest extends WebMvcTestSupporter {
 
-    GroupResponse.Detail response;
-    Page<ListInfo>       responsePage;
+    GroupResponse.DetailWithLike response;
+    GroupResponse.Detail response1;
+    Page<GroupResponse.ListInfoWithLike>       responsePage;
 
     @BeforeEach
     void beforeEach() {
+
         Category category = new Category("category");
 
         Group group = Group.Companion.of("test",
@@ -68,14 +63,14 @@ class GroupControllerTest extends WebMvcTestSupporter {
         ReflectionUtil.setPrivateFieldValue(Group.class, group, "createdAt", LocalDateTime.now());
         ReflectionUtil.setPrivateFieldValue(Group.class, group, "id", 1L);
 
-        response = GroupResponse.Companion.toDetail(group);
-        responsePage = new PageImpl<>(List.of(GroupResponse.Companion.toListInfo(group)), PageRequest.of(0, 10), 1);
+        response = GroupResponse.Companion.toDetailWithLike(group, false);
+        responsePage = new PageImpl<>(List.of(GroupResponse.Companion.toListInfoWithLike(group, false)), PageRequest.of(0, 10), 1);
 
         when(groupService.createGroup(anyLong(), any(GroupRequest.Create.class))).thenReturn(1L);
         when(groupService.getGroup(anyLong(), anyLong())).thenReturn(response);
-        when(groupService.getGroupsBySearch(any(GroupRequest.Search.class), any(Pageable.class)))
+        when(groupService.getGroupsBySearch(any(GroupRequest.Search.class), any(Pageable.class), anyLong()))
                 .thenReturn(responsePage);
-        when(groupService.modifyGroup(anyLong(), anyLong(), any(GroupRequest.Update.class))).thenReturn(response);
+        when(groupService.modifyGroup(anyLong(), anyLong(), any(GroupRequest.Update.class))).thenReturn(response1);
         when(groupService.deleteGroup(anyLong(), anyLong())).thenReturn(true);
         when(groupMembershipService.approveJoining(anyLong(), anyLong(), anyLong(), eq(true))).thenReturn(true);
         when(groupMembershipService.approveJoining(anyLong(), anyLong(), anyLong(), eq(false))).thenReturn(false);
@@ -167,7 +162,7 @@ class GroupControllerTest extends WebMvcTestSupporter {
         ApiResponse<Object> apiResponse = ApiResponse.Companion.of(true,
                                                                    HttpStatus.OK,
                                                                    GroupMessageConstant.READ_GROUP_SUCCESS,
-                                                                   response);
+                                                                   response1);
         String responseBody = objectMapper.writeValueAsString(apiResponse);
 
         resultActions.andExpect(handler().handlerType(GroupController.class))
@@ -265,7 +260,7 @@ class GroupControllerTest extends WebMvcTestSupporter {
                                                               .param("sort", "createdAt,DESC"));
 
         //Then
-        ApiResponse<Page<ListInfo>> apiResponse = ApiResponse.Companion.of(true,
+        ApiResponse<Page<GroupResponse.ListInfoWithLike>> apiResponse = ApiResponse.Companion.of(true,
                                                                            HttpStatus.OK,
                                                                            GroupMessageConstant.READ_GROUPS_SUCCESS,
                                                                            responsePage);
