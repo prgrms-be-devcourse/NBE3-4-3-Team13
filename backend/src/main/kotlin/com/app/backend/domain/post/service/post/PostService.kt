@@ -74,11 +74,9 @@ class PostService(
         return PostRespDto.GetPostDto.from(post, member.id!!, member.nickname!!, images, documents, true)
     }
 
-    @CustomCache(prefix = "post", key = "groupid", id = "groupId", ttl = 2)
-    fun getTopFivePosts(groupId: Long): kotlin.collections.List<PostRespDto.GetPostListDto> =
-        postRepository.findPostsByGroupIdOrderByTodayViewsCountDesc(groupId, 5, false)
-            .map { PostRespDto.GetPostListDto.from(it) }
-
+    @CustomCache(prefix = "post", key = "groupid", id = "groupId", ttl = 1)
+    fun getTopFivePosts(groupId: Long) = postRepository.findPostsByGroupIdOrderByTodayViewsCountDesc(groupId, 5, false)
+        .map { PostRespDto.GetPostListDto.from(it) }
 
     fun getPostsBySearch(
         groupId: Long,
@@ -103,7 +101,6 @@ class PostService(
             pageable
         )
         .map { PostRespDto.GetPostListDto.from(it) }
-
 
     @Transactional
     fun savePost(memberId: Long, savePost: PostReqDto.SavePostDto, files: Array<MultipartFile?>?): Post {
@@ -185,7 +182,7 @@ class PostService(
 
 
     fun getPostEntity(postId: Long): Post =
-        postRepository.findByIdAndDisabled(postId, false)?: throw PostException(PostErrorCode.POST_NOT_FOUND)
+        postRepository.findByIdAndDisabled(postId, false) ?: throw PostException(PostErrorCode.POST_NOT_FOUND)
 
 
     fun getMemberShipEntity(groupId: Long, memberId: Long): GroupMembership =
@@ -239,7 +236,7 @@ class PostService(
 
     @Transactional
     fun PostLike(postId: Long, memberId: Long) {
-        val post = postRepository.findByIdWithLock(postId)?: throw PostException(PostErrorCode.POST_NOT_FOUND)
+        val post = postRepository.findByIdWithLock(postId) ?: throw PostException(PostErrorCode.POST_NOT_FOUND)
 
         val member = memberRepository.findById(memberId)
             .orElseThrow { PostException(GlobalErrorCode.ENTITY_NOT_FOUND) }
