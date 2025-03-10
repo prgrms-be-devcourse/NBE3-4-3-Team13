@@ -10,6 +10,7 @@ import com.app.backend.domain.chat.message.dto.request.MessageRequest
 import com.app.backend.domain.chat.message.dto.response.MessageResponse
 import com.app.backend.domain.chat.message.repository.MessageRepository
 import org.springframework.scheduling.annotation.Async
+import java.util.concurrent.CompletableFuture
 
 @Service
 class MessageService(private val messageRepository: MessageRepository) {
@@ -20,7 +21,8 @@ class MessageService(private val messageRepository: MessageRepository) {
 	}
 
 	@Async
-	fun saveMessageAsync(messageRequest: MessageRequest) {
-		MessageResponse.from(messageRepository.save(messageRequest.toEntity()))
+	fun saveMessageAsync(messageRequest: MessageRequest): CompletableFuture<Void> {
+		messageRepository.save(messageRequest.toEntity())
+		return CompletableFuture.completedFuture(null)
 	}
 }
