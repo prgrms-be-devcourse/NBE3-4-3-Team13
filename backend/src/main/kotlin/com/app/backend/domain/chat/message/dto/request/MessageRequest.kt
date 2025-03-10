@@ -1,6 +1,7 @@
 package com.app.backend.domain.chat.message.dto.request
 
 import com.app.backend.domain.chat.message.entity.Message
+import java.time.LocalDateTime
 
 data class MessageRequest(
 	var id: String? = null,
@@ -18,7 +19,8 @@ data class MessageRequest(
 			senderId = senderId,
 			senderNickname = senderNickname,
 			content = content,
-			disabled = false
+			disabled = false,
+			createdAt = LocalDateTime.now()
 		)
 	}
 }
