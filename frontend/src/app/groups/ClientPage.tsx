@@ -19,6 +19,8 @@ interface GroupListInfo {
   currentMemberCount: number;
   createdAt: string;
   groupLeaders: string[];
+  liked: boolean;
+  likeCount: number;
 }
 
 interface SearchParams {
@@ -105,11 +107,13 @@ export default function ClientPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
+        credentials: 'include',
       });
 
       const data: ApiResponse<GroupListInfo> = await response.json();
       if (data.isSuccess) {
         const pageData = data.data;
+        console.log('서버에서 받아온 그룹 데이터:', pageData.content);
         setGroups(pageData.content);
         setTotalPages(pageData.totalPages);
         setCurrentPage(pageData.number);
@@ -147,6 +151,7 @@ export default function ClientPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
+        credentials: 'include',
       });
 
       const data = await response.json();
@@ -253,6 +258,71 @@ export default function ClientPage() {
       fetchGroupLocations(groups);
     }
   }, [groups]);
+
+  const handleLikeToggle = async (e: React.MouseEvent, groupId: number) => {
+    e.stopPropagation();
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+
+      const group = groups.find(g => g.id === groupId);
+      if (!group) return;
+
+      // 즉시 UI 업데이트
+      setGroups(groups.map(g => {
+        if (g.id === groupId) {
+          return {
+            ...g,
+            liked: !g.liked,
+            likeCount: g.liked ? g.likeCount - 1 : g.likeCount + 1
+          };
+        }
+        return g;
+      }));
+
+      const response = await fetch(`http://localhost:8080/api/v1/groups/${groupId}/like`, {
+        method: group.liked ? 'DELETE' : 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('좋아요 토글 응답:', data);
+
+      if (!data.isSuccess) {
+        // 실패시 원래 상태로 되돌리기
+        setGroups(groups.map(g => {
+          if (g.id === groupId) {
+            return {
+              ...g,
+              liked: !g.liked,
+              likeCount: g.liked ? g.likeCount - 1 : g.likeCount + 1
+            };
+          }
+          return g;
+        }));
+      }
+    } catch (error) {
+      console.error('좋아요 처리 중 오류 발생:', error);
+      // 에러 발생시 원래 상태로 되돌리기
+      setGroups(groups.map(g => {
+        if (g.id === groupId) {
+          return {
+            ...g,
+            liked: !g.liked,
+            likeCount: g.liked ? g.likeCount - 1 : g.likeCount + 1
+          };
+        }
+        return g;
+      }));
+    }
+  };
 
   return (
     <div className='container mx-auto px-4 py-8'>
@@ -387,13 +457,30 @@ export default function ClientPage() {
               onClick={() => handleGroupClick(group.id)}
               className='bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 cursor-pointer'
             >
-              <div className='flex justify-between items-center mb-4'>
+              <div className='flex justify-between items-start mb-4'>
                 <span className='bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 px-3 py-1 rounded-full text-sm font-medium'>
                   {group.categoryName}
                 </span>
-                <span className='text-gray-600 dark:text-gray-400 text-sm'>
-                  생성일: {new Date(group.createdAt).toLocaleDateString()}
-                </span>
+                <div className='flex flex-col items-end gap-2'>
+                  <span className='text-gray-600 dark:text-gray-400 text-sm'>
+                    생성일: {new Date(group.createdAt).toLocaleDateString()}
+                  </span>
+                  <button
+                    onClick={(e) => handleLikeToggle(e, group.id)}
+                    className='flex items-center gap-1 text-gray-600 hover:text-red-500 transition-colors'
+                  >
+                    {group.liked ? (
+                      <svg className="w-5 h-5 fill-red-500" viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                      </svg>
+                    )}
+                    <span className="text-sm">{group.likeCount}</span>
+                  </button>
+                </div>
               </div>
 
               <h3 className='text-xl font-bold text-gray-900 dark:text-white mb-2'>{group.name}</h3>

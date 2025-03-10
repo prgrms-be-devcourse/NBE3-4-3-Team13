@@ -12,6 +12,7 @@ import com.app.backend.domain.group.exception.GroupErrorCode
 import com.app.backend.domain.group.exception.GroupException
 import com.app.backend.domain.group.exception.GroupMembershipErrorCode
 import com.app.backend.domain.group.exception.GroupMembershipException
+import com.app.backend.domain.group.repository.GroupLikeRepository
 import com.app.backend.domain.group.repository.GroupMembershipRepository
 import com.app.backend.domain.group.repository.GroupRepository
 import com.app.backend.domain.member.exception.MemberErrorCode
@@ -34,7 +35,8 @@ class GroupService(
     private val memberRepository: MemberRepository,
     private val chatRoomRepository: ChatRoomRepository,
     private val categoryRepository: CategoryRepository,
-    private val groupLikeService: GroupLikeService
+    private val groupLikeService: GroupLikeService,
+    private val groupLikeRepository: GroupLikeRepository
 ) {
     /**
      * 모임(Group) 저장
@@ -285,7 +287,8 @@ class GroupService(
             pageable
         ).map { group ->
             val isLiked = groupLikeService.isLiked(group.id!!, memberId) // isLiked 값 계산
-            GroupResponse.toListInfoWithLike(group, isLiked) // isLiked 값을 전달
+            val groupResponse = GroupResponse.toListInfoWithLike(group, isLiked)
+            groupResponse // 반환
         }
 
     /**
@@ -358,6 +361,8 @@ class GroupService(
 
         val group = groupRepository.findByIdAndDisabled(groupId, false)
             .orElseThrow { GroupException(GroupErrorCode.GROUP_NOT_FOUND) }
+
+        groupLikeRepository.deleteByGroupId(groupId)
 
         group.deactivate()
         groupMembershipRepository.updateDisabledForAllGroupMembership(
