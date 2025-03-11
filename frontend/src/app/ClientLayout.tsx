@@ -60,8 +60,6 @@ export function ClientLayout({
   const INITIAL_SESSION_TIME = 30 * 60; // 30분
   const SSE_RECONNECT_DELAY = 5000; // 5초
   const [sessionTime, setSessionTime] = React.useState<number>(0);
-  const [tokenExpirationTime, setTokenExpirationTime] =
-    React.useState<number>(0); // 토큰 만료 시간을 저장할 state
 
   // formatTime 함수를 컴포넌트 내부로 이동
   const formatTime = (seconds: number) => {
@@ -177,6 +175,7 @@ export function ClientLayout({
             authorities: data.data.authorities || [],
             modifiedAt: data.data.modifiedAt
           });
+          setSessionTime(INITIAL_SESSION_TIME); // 로그인 성공 시 세션 시간 초기화
         } else {
           setNoLoginMember();
         }
@@ -220,6 +219,14 @@ export function ClientLayout({
         notificationService.disconnect();
       }
     };
+  }, [isLogin]);
+
+  useEffect(() => {
+    if (isLogin) {
+      setSessionTime(INITIAL_SESSION_TIME);
+    } else {
+      setSessionTime(0);
+    }
   }, [isLogin]);
 
   useEffect(() => {
