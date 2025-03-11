@@ -5,7 +5,6 @@ import org.aspectj.lang.reflect.MethodSignature
 import org.springframework.expression.ExpressionParser
 import org.springframework.expression.spel.standard.SpelExpressionParser
 import org.springframework.expression.spel.support.StandardEvaluationContext
-import java.lang.reflect.Array
 import java.time.LocalDateTime
 import java.util.*
 
@@ -28,21 +27,27 @@ class LockKeyGenerator {
             return "${method.name}:${convertToKey(value)}"
         }
 
+        fun generateLockKey(keyParam: String) = "${
+            Thread.currentThread().stackTrace.first {
+                it.methodName != "generateLockKey"
+            }.methodName
+        }:$keyParam"
+
         private fun convertToKey(value: Any): String = when (value) {
             is String -> value
             is Number, is Boolean -> value.toString()
             is Enum<*> -> value.name
             is LocalDateTime -> AppUtil.localDateTimeToString(value)
             is Date -> AppUtil.DateToString(value)
-            is Array -> arrayToString(value)
+            is Array<*> -> arrayToString(value)
             is Collection<*> -> collectionToString(value)
             is Map<*, *> -> mapToString(value)
             else -> value.toString()
         }
 
         private fun arrayToString(array: Any): String =
-            (0 until Array.getLength(array)).joinToString(",", prefix = "[", postfix = "]") {
-                convertToKey(Array.get(array, it))
+            (0 until java.lang.reflect.Array.getLength(array)).joinToString(",", prefix = "[", postfix = "]") {
+                convertToKey(java.lang.reflect.Array.get(array, it))
             }
 
         private fun collectionToString(collection: Collection<*>): String =
@@ -54,5 +59,6 @@ class LockKeyGenerator {
                 prefix = "[",
                 postfix = "]"
             ) { "${convertToKey(it.key!!)}=${convertToKey(it.value!!)}" }
+
     }
 }
