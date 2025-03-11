@@ -47,6 +47,7 @@ export default function MeetingApplicationsPage({ groupId }: Props) {
   });
   const [hasNext, setHasNext] = useState(false);
   const [hasPrevious, setHasPrevious] = useState(false);
+  const [permissionChangeResult, setPermissionChangeResult] = useState<string | null>(null);
 
   const fetchApplications = async () => {
     try {
@@ -116,7 +117,6 @@ export default function MeetingApplicationsPage({ groupId }: Props) {
       const response = await fetch(`http://localhost:8080/api/v1/groups/${groupId}/permission`, {
         method: 'PATCH',
         headers: {
-          Accept: 'application/json',
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
@@ -127,7 +127,12 @@ export default function MeetingApplicationsPage({ groupId }: Props) {
 
       const data = await response.json();
       if (data.isSuccess) {
-        fetchApplications(); // 목록 새로고침
+        setPermissionChangeResult('권한 변경이 완료되었습니다.');
+        fetchApplications();
+
+        setTimeout(() => {
+          setPermissionChangeResult(null);
+        }, 3000);
       } else {
         setError(data.message || '권한 변경에 실패했습니다.');
       }
@@ -165,6 +170,16 @@ export default function MeetingApplicationsPage({ groupId }: Props) {
   return (
     <div className='container mx-auto px-4 py-8'>
       <h1 className='text-2xl font-bold mb-6'>모임 신청 목록</h1>
+
+      {permissionChangeResult && (
+        <div
+          className={`mb-4 p-3 rounded ${
+            permissionChangeResult.includes('오류') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+          }`}
+        >
+          {permissionChangeResult}
+        </div>
+      )}
 
       {applications.length === 0 ? (
         <div className='text-center py-8 text-gray-600 dark:text-gray-400'>신청 내역이 없습니다.</div>
