@@ -19,13 +19,14 @@ import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/api/v1/post")
-class PostController(private val postService: PostService) {  // ✅ lateinit var 제거, 생성자로 의존성 주입
+class PostController(private val postService: PostService) {
 
     @GetMapping("/{id}")
     fun getPost(
         @PathVariable id: Long,
         @AuthenticationPrincipal memberDetails: MemberDetails
-    ): ApiResponse<PostRespDto.GetPostDto> {  // ✅ ApiResponse에 제네릭 명시
+    ): ApiResponse<PostRespDto.GetPostDto> {
+        postService.checkMembership(id,memberDetails.id!!)
         val post = postService.getPost(id, memberDetails.id!!)
         return ApiResponse.of(true, HttpStatus.OK, "게시글을 성공적으로 불러왔습니다", post)
     }
@@ -37,7 +38,7 @@ class PostController(private val postService: PostService) {  // ✅ lateinit va
         @RequestParam(defaultValue = "") search: String,
         @RequestParam(defaultValue = "ALL") postStatus: PostStatus,
         @PageableDefault pageable: Pageable
-    ): ApiResponse<Page<PostRespDto.GetPostListDto>> {  // ✅ 명확한 타입 지정
+    ): ApiResponse<Page<PostRespDto.GetPostListDto>> {
         val posts = postService.getPostsBySearch(groupId, search, postStatus, pageable)
         return ApiResponse.of(true, HttpStatus.OK, "게시물 목록을 성공적으로 불러왔습니다", posts)
     }
@@ -53,7 +54,7 @@ class PostController(private val postService: PostService) {  // ✅ lateinit va
         @Valid @RequestPart("post") savePost: SavePostDto,
         @RequestPart(value = "file", required = false) files: Array<MultipartFile?>?,
         @AuthenticationPrincipal memberDetails: MemberDetails
-    ): ApiResponse<GetPostIdDto> {  // ✅ BindingResult 제거 (Spring이 자동 처리)
+    ): ApiResponse<GetPostIdDto> {
         val post = postService.savePost(memberDetails.id!!, savePost, files ?: emptyArray())
         return ApiResponse.of(true, HttpStatus.OK, "게시글이 성공적으로 저장되었습니다", GetPostIdDto(post.id!!))
     }
@@ -73,7 +74,7 @@ class PostController(private val postService: PostService) {  // ✅ lateinit va
     fun deletePost(
         @PathVariable id: Long,
         @AuthenticationPrincipal memberDetails: MemberDetails
-    ): ApiResponse<Unit> {  // ✅ `Unit`을 사용하여 명확한 반환 타입 지정
+    ): ApiResponse<Unit> {
         postService.deletePost(memberDetails.id!!, id)
         return ApiResponse.of(true, HttpStatus.OK, "게시글이 성공적으로 삭제되었습니다")
     }
