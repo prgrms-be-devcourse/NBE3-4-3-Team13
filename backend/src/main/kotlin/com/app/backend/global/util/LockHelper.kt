@@ -36,18 +36,5 @@ class LockHelper(
             else
                 throw RuntimeException("Failed to acquire lock: $lockKey")
         }
-
-        fun executeWithLock(
-            lockKey: String,
-            maxWaitTime: Long = 1000L,
-            leaseTime: Long = 5000L,
-            timeUnit: TimeUnit = TimeUnit.MILLISECONDS,
-            block: () -> Unit
-        ) {
-            executeWithLock(lockKey, maxWaitTime, leaseTime, timeUnit) {
-                block()
-                Unit
-            }
-        }
     }
 }

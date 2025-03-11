@@ -14,13 +14,24 @@ class TransactionHelper(
     companion object {
         private lateinit var transactionTemplate: TransactionTemplate
 
-        fun <R> execute(block: () -> R) {
+        fun <R> execute(block: () -> R): R =
             transactionTemplate.execute { status ->
-                kotlin.runCatching { block() }
-                    .onSuccess { status.isCompleted }
-                    .onFailure { status.setRollbackOnly() }
-                    .getOrThrow()
+                try {
+                    block().also { return@execute it }
+                } catch (e: Exception) {
+                    status.setRollbackOnly()
+                    throw e
+                }
             } ?: throw IllegalStateException("Transaction execution failed")
-        }
+
+        fun execute(block: () -> Unit) =
+            transactionTemplate.execute { status ->
+                try {
+                    block()
+                } catch (e: Exception) {
+                    status.setRollbackOnly()
+                    throw e
+                }
+            }
     }
 }
