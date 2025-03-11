@@ -203,10 +203,8 @@ export default function ChatRoom() {
         if (files) {
             const fileArray = Array.from(files);
             const newFiles = fileArray.map((file) => {
-                // 중복된 파일 이름 처리
                 const existingFile = selectedFiles.find(f => f.name === file.name);
                 if (existingFile) {
-                    // 중복된 경우, 파일 이름에 UUID 추가
                     return new File([file], `${uuidv4()}_${file.name}`, { type: file.type });
                 }
                 return file;
@@ -215,7 +213,28 @@ export default function ChatRoom() {
             setShowFileInfo(true); // 파일 정보 창 열기
         }
     };
-    
+
+    const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+    };
+
+    const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault(); // 기본 동작 방지
+    };
+
+    const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault(); // 기본 동작 방지
+        const files = event.dataTransfer.files;
+        if (files) {
+            handleFileChange({ target: { files } } as React.ChangeEvent<HTMLInputElement>);
+        }
+    };
+
+    const handleCloseFileInfo = () => {
+        setShowFileInfo(false); // 파일 정보 창 닫기
+        setSelectedFiles([]); // 선택된 파일 목록 초기화
+    };
+
     if (isLoading) {
         return <div className="flex justify-center items-center h-screen">로딩 중...</div>;
     }
@@ -384,9 +403,22 @@ export default function ChatRoom() {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-4rem)]">
+        <div className="flex flex-col h-[calc(100vh-4rem)] relative">
+            {/* 드래그 앤 드롭 영역 */}
+            <div 
+                onDrop={handleDrop} 
+                onDragOver={handleDragOver} 
+                onDragLeave={handleDragLeave} // 드래그가 취소되었을 때 호출
+                // className="absolute inset-0 border-dashed border-2 border-gray-400 p-4 flex items-center justify-center"
+                className="absolute inset-0 p-4 flex items-center justify-center"
+                style={{ zIndex: 0, pointerEvents: 'none' }} // 클릭 이벤트 무시하고 채팅 화면 뒤로 보내기
+            >
+                {/* 드래그 앤 드롭 안내 텍스트를 숨기고 싶다면 아래 주석을 해제하세요 */}
+                {/* <p>여기에 파일을 드래그 앤 드롭하세요</p> */}
+            </div>
+
             {/* 채팅방 헤더 */}
-            <div className="bg-white dark:bg-gray-800 border-b p-4 flex-shrink-0">
+            <div className="bg-white dark:bg-gray-800 border-b p-4 flex-shrink-0 z-10"> {/* z-index 추가 */}
                 <h1 className="text-xl font-bold dark:text-white">{chatRoomDetail?.group.groupName}</h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                     <Users className="w-4 h-4" />
@@ -423,7 +455,7 @@ export default function ChatRoom() {
                                             // 파일 메시지 내용 (이미지)
                                             <div className="flex flex-wrap">
                                                 {message.fileUrls.map((url, index) => (
-                                                    <div key={index} className="m-1">
+                                                    <div key={index} className="m-1 flex items-center">
                                                         <img 
                                                             src={url} 
                                                             alt={`Uploaded file ${index}`} 
@@ -471,7 +503,7 @@ export default function ChatRoom() {
                     zIndex: 1000 // 다른 요소 위에 표시
                 }}>
                     <button 
-                        onClick={() => setShowFileInfo(false)} 
+                        onClick={handleCloseFileInfo}
                         style={{
                             position: 'absolute',
                             top: '10px',
@@ -517,9 +549,8 @@ export default function ChatRoom() {
                 </div>
             )}
             {/* 메시지 입력 */}
-            <div className="border-t p-4 flex-shrink-0 bg-white dark:bg-gray-800">
+            <div className="border-t p-4 flex-shrink-0 bg-white dark:bg-gray-800 z-10"> {/* z-index 추가 */}
                 <div className="flex gap-2 items-center">
-                    {/* // 이미지 및 문서 업로드 아이콘 추가 */}
                     <Upload className="w-6 h-6 cursor-pointer" onClick={handleImageUpload} />
                     <input
                         type="file"
