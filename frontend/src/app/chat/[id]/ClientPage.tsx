@@ -100,9 +100,13 @@ export default function ChatRoom() {
 
     // 소켓 연결
     const connectWebSocket = (chatRoomId: string | string[]) => {
-        const socket = new SockJS('http://localhost:8080/ws/chat');
+        const token = localStorage.getItem('accessToken');
+        const socket = new SockJS(`http://localhost:8080/ws/chat?token=${token}`);
         const client = new Client({
             webSocketFactory: () => socket,
+            connectHeaders: {
+                'Authorization': `Bearer ${token}`
+            },
             onConnect: () => {
                 // 새 메시지는 배열 앞에 추가
                 client.subscribe(`/exchange/chat.exchange/chat.${chatRoomId}`, (message) => {

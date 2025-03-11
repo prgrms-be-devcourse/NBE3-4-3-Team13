@@ -25,6 +25,8 @@ interface GroupDetail {
   groupLeaders: string[];
   latitude: string;
   longitude: string;
+  isLiked: boolean;
+  likeCount: number;
 }
 
 interface Post {
@@ -65,8 +67,11 @@ export default function ClientPage({ groupId }: Props) {
           credentials: 'include',
         });
         const data = await response.json();
+        console.log('서버에서 받은 그룹 데이터:', data);  // 전체 응답 데이터 확인
+        console.log('그룹 상세 정보:', data.data);  // 실제 그룹 데이터 확인
         if (data.isSuccess) {
           setGroup(data.data);
+          console.log('저장된 그룹 상태:', data.data);  // 저장되는 데이터 확인
         }
       } catch (error) {
         console.error('Error fetching group:', error);
@@ -205,6 +210,48 @@ export default function ClientPage({ groupId }: Props) {
     }
   };
 
+  const handleLikeToggle = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setError('로그인이 필요합니다.');
+        return;
+      }
+
+      // 현재 상태 저장
+      const currentLikeStatus = group?.isLiked;
+      console.log('현재 좋아요 상태:', currentLikeStatus);  // 디버깅용
+
+      // API 요청
+      const response = await fetch(`http://localhost:8080/api/v1/groups/${groupId}/like`, {
+        method: currentLikeStatus ? 'DELETE' : 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      console.log('서버 응답:', data);  // 디버깅용
+
+      if (data.isSuccess) {
+        // API 성공시에만 상태 업데이트
+        setGroup(prev => prev ? {
+          ...prev,
+          isLiked: !currentLikeStatus,
+          likeCount: currentLikeStatus ? prev.likeCount - 1 : prev.likeCount + 1
+        } : null);
+      } else {
+        console.log('실패 이유:', data.message);  // 디버깅용
+        setError(data.message || '좋아요 처리에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('좋아요 처리 중 오류 발생:', error);
+      setError('좋아요 처리 중 오류가 발생했습니다.');
+    }
+  };
+
   if (!group) {
     return <div>Loading...</div>;
   }
@@ -228,8 +275,25 @@ export default function ClientPage({ groupId }: Props) {
       {/* 그룹 상세 정보 */}
       <div className='bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8'>
         <div className='flex justify-between items-center mb-6'>
-          <div>
+          <div className='flex items-center gap-4'>
             <h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>{group.name}</h1>
+            <button
+              onClick={handleLikeToggle}
+              className='flex items-center gap-1 text-gray-600 hover:text-red-500 transition-colors'
+            >
+              {group.isLiked ? (
+                <svg className="w-6 h-6 fill-red-500" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              ) : (
+                <svg className="w-6 h-6 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+              )}
+              <span>{group.likeCount}</span>
+            </button>
+          </div>
+          <div>
             <div className='flex items-center gap-2'>
               <span className='bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 px-3 py-1 rounded-full text-sm font-medium'>
                 {group.categoryName}

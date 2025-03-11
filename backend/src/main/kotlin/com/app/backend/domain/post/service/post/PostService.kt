@@ -48,17 +48,17 @@ class PostService(
 ) {
     private val MAX_FILE_SIZE = 10 * 1024 * 1024;
 
+    fun checkMembership(postId: Long, memberId: Long) {
+        val post = getPostEntity(postId)
+
+        if (post.postStatus != PostStatus.PUBLIC && getMemberShipEntity(post.groupId, memberId).status != MembershipStatus.APPROVED) {
+            throw PostException(PostErrorCode.POST_UNAUTHORIZATION)
+        }
+    }
+
     @CustomCache(prefix = "post", key = "postid", id = "postId", viewCount = true, viewCountTtl = 10, history = true)
     fun getPost(postId: Long, memberId: Long): PostRespDto.GetPostDto {
         val post = getPostEntity(postId)
-
-        if (post.postStatus != PostStatus.PUBLIC && getMemberShipEntity(
-                post.groupId,
-                memberId
-            ).status != MembershipStatus.APPROVED
-        ) {
-            throw PostException(PostErrorCode.POST_UNAUTHORIZATION)
-        }
 
         val member = getMemberEntity(post.memberId)
 
@@ -68,7 +68,7 @@ class PostService(
 
         val images = postAttachmentRepository
             .findByPostIdAndFileTypeAndDisabledOrderByCreatedAtDesc(postId, FileType.IMAGE, false)
-            .map { PostAttachmentRespDto.GetPostImageDto.from(it, fileConfig.getBaseDir()) }
+            .map { PostAttachmentRespDto.GetPostImageDto.from(it, fileConfig.getImageDir()) }
 
         return PostRespDto.GetPostDto.from(post, member.id!!, member.nickname!!, images, documents, isLiked(postId, memberId)
         )
@@ -258,6 +258,7 @@ class PostService(
     fun isLiked(postId: Long, memberId: Long): Boolean {
         val post = postRepository.findById(postId)
             .orElseThrow { PostException(PostErrorCode.POST_NOT_FOUND) }
+
         val member = memberRepository.findById(memberId)
             .orElseThrow { PostException(GlobalErrorCode.ENTITY_NOT_FOUND) }
 

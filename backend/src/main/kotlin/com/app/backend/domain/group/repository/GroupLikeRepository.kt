@@ -3,9 +3,11 @@ package com.app.backend.domain.group.repository
 import com.app.backend.domain.group.entity.Group
 import com.app.backend.domain.group.entity.GroupLike
 import com.app.backend.domain.member.entity.Member
+import io.lettuce.core.dynamic.annotation.Param
 import jakarta.persistence.LockModeType
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import java.util.*
 
@@ -15,4 +17,8 @@ interface GroupLikeRepository : JpaRepository<GroupLike, Long>, GroupLikeReposit
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT gl FROM GroupLike gl WHERE gl.group = :group AND gl.member = :member")
     fun findByGroupAndMember(group: Group, member: Member): Optional<GroupLike>
+
+    @Modifying
+    @Query("DELETE FROM GroupLike gl WHERE gl.group.id = :groupId")
+    fun deleteByGroupId(@Param("groupId") groupId: Long)
 }

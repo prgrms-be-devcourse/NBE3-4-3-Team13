@@ -1,9 +1,7 @@
 package com.app.backend.global.config
 
-import org.springframework.amqp.core.Binding
-import org.springframework.amqp.core.BindingBuilder
-import org.springframework.amqp.core.Queue
-import org.springframework.amqp.core.TopicExchange
+import org.springframework.amqp.core.*
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory
 import org.springframework.amqp.rabbit.connection.ConnectionFactory
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter
@@ -39,4 +37,24 @@ class RabbitConfig(
 
 	@Bean
 	fun jackson2JsonMessageConverter(): MessageConverter = Jackson2JsonMessageConverter()
+
+	@Bean
+	fun rabbitListenerContainerFactory(connectionFactory: ConnectionFactory): SimpleRabbitListenerContainerFactory {
+		return SimpleRabbitListenerContainerFactory().apply {
+			setConnectionFactory(connectionFactory)
+
+			// 동시 Consumer 수 조정 (최소 3개, 최대 10개)
+			setConcurrentConsumers(3)		// 디폴트 값 -> 1
+			setMaxConcurrentConsumers(20)	// 디폴트 값 -> null 설정하지 않으면 제한 없음.
+
+			// 메시지 미리 가져오는 개수 (한 번에 5개씩만 가져오기)
+			setPrefetchCount(5)				// 디폴트 값 -> 1
+
+			// 메시지 변환 설정
+			setMessageConverter(jackson2JsonMessageConverter())
+
+			// ACK 모드 설정 (AUTO or MANUAL)
+			setAcknowledgeMode(AcknowledgeMode.AUTO)	// 디폴트 값
+		}
+	}
 }
