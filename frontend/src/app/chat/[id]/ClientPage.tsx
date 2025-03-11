@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, use } from 'react';
 import { useParams } from 'next/navigation';
-import { Users } from 'lucide-react';
+import { Users, Upload } from 'lucide-react';
 import axios from 'axios';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -305,7 +305,9 @@ export default function ChatRoom() {
     
             {/* 메시지 입력 */}
             <div className="border-t p-4 flex-shrink-0 bg-white dark:bg-gray-800">
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
+                    {/* // 이미지 및 문서 업로드 아이콘 추가 */}
+                    <Upload className="w-6 h-6 cursor-pointer"  />
                     <input
                         type="text"
                         value={newMessage}
