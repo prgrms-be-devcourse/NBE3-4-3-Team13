@@ -2,6 +2,7 @@ package com.app.backend.domain.meetingApplication.dto.response
 
 import com.app.backend.domain.meetingApplication.entity.MeetingApplication
 import com.app.backend.global.util.AppUtil
+import com.fasterxml.jackson.annotation.JsonProperty
 
 object MeetingApplicationResponse {
     fun toDetail(
@@ -14,7 +15,8 @@ object MeetingApplicationResponse {
             id = meetingApplication.id ?: throw IllegalStateException("MeetingApplication ID cannot be null"),
             groupId = meetingApplication.group.id ?: throw IllegalStateException("Group ID cannot be null"),
             memberId = meetingApplication.member.id ?: throw IllegalStateException("Member ID cannot be null"),
-            nickname = meetingApplication.member.nickname ?: throw IllegalStateException("Member or nickname cannot be null"),
+            nickname = meetingApplication.member.nickname
+                ?: throw IllegalStateException("Member or nickname cannot be null"),
             content = meetingApplication.context,
             createdAt = AppUtil.localDateTimeToString(meetingApplication.createdAt),
             rejected = rejected,
@@ -31,7 +33,7 @@ object MeetingApplicationResponse {
         val content: String,
         val createdAt: String,
         val rejected: Boolean,
-        val isMember: Boolean,
-        val isAdmin: Boolean
+        @get:JsonProperty("isMember") val isMember: Boolean,
+        @get:JsonProperty("isAdmin") val isAdmin: Boolean
     )
 }
