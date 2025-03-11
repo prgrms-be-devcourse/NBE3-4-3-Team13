@@ -57,7 +57,7 @@ class NotificationService(
 
     @Transactional(readOnly = true)
     fun getNotifications(userId: String): List<NotificationMessage> {
-        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId)
+        return notificationRepository.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId)
             .map { notification ->
                 NotificationMessage(
                     id = notification.id,
