@@ -9,6 +9,7 @@ import {
   deleteReply,
   updateComment,
   deleteComment,
+  likeComment,
 } from "@/api/comment/commentApi";
 import { LoginMemberContext } from "@/stores/auth/LoginMember";
 import { useParams, useRouter } from "next/navigation";
@@ -220,6 +221,28 @@ export default function CommentItem({
     }
   };
 
+  // 좋아요 상태 관리
+  const [liked, setLiked] = useState(comment.liked || false);
+  const [likeCount, setLikeCount] = useState(comment.likeCount || 0);
+
+  // 좋아요 토글 함수
+  const handleLikeToggle = async () => {
+    try {
+      // 좋아요 상태 임시 업데이트 (UI 즉시 반영)
+      const newLiked = !liked;
+      setLiked(newLiked);
+      setLikeCount((prevCount: number) => newLiked ? prevCount + 1 : prevCount - 1);
+
+      // 서버에 좋아요 상태 변경 요청
+      await likeComment(comment.id, token);
+    } catch (error) {
+      console.error("댓글 좋아요 처리 중 오류:", error);
+      // 오류 발생 시 원래 상태로 복원
+      setLiked(!liked);
+      setLikeCount((prev: number) => liked ? prev + 1 : prev - 1);
+    }
+  };
+
   return (
     <div className="py-4">
       <div className="flex justify-between items-start border-b pb-2">
@@ -250,12 +273,24 @@ export default function CommentItem({
               </div>
             </form>
           ) : (
-            <p className="text-gray-800 text-sm">{comment.content}</p>
+            <>
+              <p className="text-gray-800 text-sm">{comment.content}</p>
+              <div className="text-gray-500 text-xs">
+                작성자: {comment.nickname} | 작성일:{" "}
+                {formatDateFromArray(comment.createdAt)}
+              </div>
+              {/* 좋아요 버튼 추가 */}
+              <div className="mt-2">
+                <button
+                  onClick={handleLikeToggle}
+                  className="text-sm hover:text-red-500 transition-colors"
+                >
+                  <span>{liked ? "❤️" : "🤍"}</span>
+                  <span className="ml-1">{likeCount}</span>
+                </button>
+              </div>
+            </>
           )}
-          <div className="text-gray-500 text-xs">
-            작성자: {comment.nickname} | 작성일:{" "}
-            {formatDateFromArray(comment.createdAt)}
-          </div>
         </div>
 
         {/* 댓글 드롭다운 및 버튼 */}

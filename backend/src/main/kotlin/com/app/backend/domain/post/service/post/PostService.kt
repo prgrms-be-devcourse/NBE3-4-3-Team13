@@ -1,40 +1,39 @@
 package com.app.backend.domain.post.service.post;
 
-import com.app.backend.domain.attachment.entity.FileType;
-import com.app.backend.domain.attachment.exception.FileErrorCode;
-import com.app.backend.domain.attachment.exception.FileException;
-import com.app.backend.domain.attachment.service.FileService;
-import com.app.backend.domain.attachment.util.FileUtil;
-import com.app.backend.domain.group.entity.GroupMembership;
-import com.app.backend.domain.group.entity.GroupMembershipId;
-import com.app.backend.domain.group.entity.GroupRole;
-import com.app.backend.domain.group.entity.MembershipStatus;
-import com.app.backend.domain.group.exception.GroupMembershipErrorCode;
-import com.app.backend.domain.group.exception.GroupMembershipException;
-import com.app.backend.domain.group.repository.GroupMembershipRepository;
-import com.app.backend.domain.member.entity.Member;
-import com.app.backend.domain.member.repository.MemberRepository;
-import com.app.backend.domain.post.dto.req.PostReqDto;
-import com.app.backend.domain.post.dto.resp.PostAttachmentRespDto;
-import com.app.backend.domain.post.dto.resp.PostRespDto;
-import com.app.backend.domain.post.entity.Post;
-import com.app.backend.domain.post.entity.PostAttachment;
-import com.app.backend.domain.post.entity.PostLike;
-import com.app.backend.domain.post.entity.PostStatus;
-import com.app.backend.domain.post.exception.PostErrorCode;
-import com.app.backend.domain.post.exception.PostException;
-import com.app.backend.domain.post.repository.post.PostLikeRepository;
-import com.app.backend.domain.post.repository.post.PostRepository;
-import com.app.backend.domain.post.repository.postAttachment.PostAttachmentRepository;
-import com.app.backend.global.annotation.CustomCache;
-import com.app.backend.global.annotation.CustomCacheDelete;
-import com.app.backend.global.config.FileConfig;
-import com.app.backend.global.error.exception.GlobalErrorCode;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
+import com.app.backend.domain.attachment.entity.FileType
+import com.app.backend.domain.attachment.exception.FileErrorCode
+import com.app.backend.domain.attachment.exception.FileException
+import com.app.backend.domain.attachment.service.FileService
+import com.app.backend.domain.attachment.util.FileUtil
+import com.app.backend.domain.group.entity.GroupMembership
+import com.app.backend.domain.group.entity.GroupRole
+import com.app.backend.domain.group.entity.MembershipStatus
+import com.app.backend.domain.group.exception.GroupMembershipErrorCode
+import com.app.backend.domain.group.exception.GroupMembershipException
+import com.app.backend.domain.group.repository.GroupMembershipRepository
+import com.app.backend.domain.member.entity.Member
+import com.app.backend.domain.member.repository.MemberRepository
+import com.app.backend.domain.post.dto.req.PostReqDto
+import com.app.backend.domain.post.dto.resp.PostAttachmentRespDto
+import com.app.backend.domain.post.dto.resp.PostRespDto
+import com.app.backend.domain.post.entity.Post
+import com.app.backend.domain.post.entity.PostAttachment
+import com.app.backend.domain.post.entity.PostLike
+import com.app.backend.domain.post.entity.PostStatus
+import com.app.backend.domain.post.exception.PostErrorCode
+import com.app.backend.domain.post.exception.PostException
+import com.app.backend.domain.post.repository.post.PostLikeRepository
+import com.app.backend.domain.post.repository.post.PostRepository
+import com.app.backend.domain.post.repository.postAttachment.PostAttachmentRepository
+import com.app.backend.global.annotation.CustomCache
+import com.app.backend.global.annotation.CustomCacheDelete
+import com.app.backend.global.config.FileConfig
+import com.app.backend.global.error.exception.GlobalErrorCode
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 
 @Service
 @Transactional(readOnly = true)
@@ -61,7 +60,7 @@ class PostService(
     fun getPost(postId: Long, memberId: Long): PostRespDto.GetPostDto {
         val post = getPostEntity(postId)
 
-        val member = getMemberEntity(memberId)
+        val member = getMemberEntity(post.memberId)
 
         val documents = postAttachmentRepository
             .findByPostIdAndFileTypeAndDisabledOrderByCreatedAtDesc(postId, FileType.DOCUMENT, false)
@@ -71,7 +70,8 @@ class PostService(
             .findByPostIdAndFileTypeAndDisabledOrderByCreatedAtDesc(postId, FileType.IMAGE, false)
             .map { PostAttachmentRespDto.GetPostImageDto.from(it, fileConfig.getImageDir()) }
 
-        return PostRespDto.GetPostDto.from(post, member.id!!, member.nickname!!, images, documents, true)
+        return PostRespDto.GetPostDto.from(post, member.id!!, member.nickname!!, images, documents, isLiked(postId, memberId)
+        )
     }
 
     @CustomCache(prefix = "post", key = "groupid", id = "groupId", ttl = 1)
@@ -235,20 +235,23 @@ class PostService(
     }
 
     @Transactional
-    fun PostLike(postId: Long, memberId: Long) {
+    @CustomCacheDelete(prefix = "post", key = "postid", id = "postId")
+    fun PostLike(postId: Long, memberId: Long): Boolean {
         val post = postRepository.findByIdWithLock(postId) ?: throw PostException(PostErrorCode.POST_NOT_FOUND)
 
         val member = memberRepository.findById(memberId)
             .orElseThrow { PostException(GlobalErrorCode.ENTITY_NOT_FOUND) }
 
-        val postLike = postLikeRepository.findByPostAndMember(post, member)
+        val postLike = postLikeRepository.findByPostAndMemberAndDisabled(post, member, false)
 
         if (postLike != null) {
             postLike.delete()
             post.removeLikeCount()
+            return false
         } else {
             postLikeRepository.save(PostLike(null, member, post))
             post.addLikeCount()
+            return true
         }
     }
 
@@ -259,6 +262,6 @@ class PostService(
         val member = memberRepository.findById(memberId)
             .orElseThrow { PostException(GlobalErrorCode.ENTITY_NOT_FOUND) }
 
-        return postLikeRepository.findByPostAndMember(post, member)?.let { !it.disabled } ?: false
+        return postLikeRepository.findByPostAndMemberAndDisabled(post, member, false) != null
     }
 }
