@@ -4,5 +4,5 @@ import com.app.backend.domain.notification.entity.Notification
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface NotificationRepository : JpaRepository<Notification, Long> {
-    fun findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId: String): List<Notification>
+    fun findByUserIdOrderByCreatedAtDesc(userId: String): List<Notification>
 }
