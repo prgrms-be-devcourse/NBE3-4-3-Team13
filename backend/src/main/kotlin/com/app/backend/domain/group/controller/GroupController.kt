@@ -51,7 +51,7 @@ class GroupController(
     fun getGroupById(
         @PathVariable @Min(1) groupId: Long,
         @AuthenticationPrincipal userDetails: UserDetails
-    ): ApiResponse<GroupResponse.Detail> =
+    ): ApiResponse<GroupResponse.DetailWithLike> =
         ApiResponse.of(
             true,
             HttpStatus.OK,
@@ -75,20 +75,20 @@ class GroupController(
         @RequestParam(required = false, defaultValue = "") city: String,
         @RequestParam(required = false, defaultValue = "") town: String,
         @RequestParam(required = false, defaultValue = "") keyword: String,
+        @AuthenticationPrincipal userDetails: UserDetails,
         @PageableDefault(
             size = 10,
             page = 0,
             sort = ["createdAt"],
             direction = Sort.Direction.DESC
         ) pageable: Pageable
-    ): ApiResponse<Page<GroupResponse.ListInfo>> =
+    ): ApiResponse<Page<GroupResponse.ListInfoWithLike>> =
         ApiResponse.of(
             true, HttpStatus.OK, GroupMessageConstant.READ_GROUPS_SUCCESS, groupService.getGroupsBySearch(
                 GroupRequest.Search(
                     categoryName,
                     recruitStatus, keyword, province, city, town
-                ), pageable
-            )
+                ), pageable, (userDetails as MemberDetails).id!!)
         )
 
     @PatchMapping("/{groupId}")
