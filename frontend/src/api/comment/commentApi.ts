@@ -146,3 +146,20 @@ export const deleteReply = async (
     throw new Error("답글 삭제에 실패했습니다.");
   }
 };
+
+export const likeComment = async (
+  commentId: number,
+  token: string
+): Promise<any> => {
+  try {
+    const response = await api.post(`/comment/${commentId}/like`, null, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data.data;
+  } catch (error: any) {
+    if (error.response.data.code) {
+      throw error.response.data.code;
+    }
+    throw new Error("댓글 좋아요 처리에 실패했습니다.");
+  }
+};
