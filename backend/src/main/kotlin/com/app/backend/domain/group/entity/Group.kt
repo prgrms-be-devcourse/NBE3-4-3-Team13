@@ -2,6 +2,7 @@ package com.app.backend.domain.group.entity
 
 import com.app.backend.domain.category.entity.Category
 import com.app.backend.domain.chat.room.entity.ChatRoom
+import com.app.backend.domain.meetingApplication.entity.MeetingApplication
 import com.app.backend.global.entity.BaseEntity
 import jakarta.persistence.*
 import jakarta.validation.constraints.Min
@@ -98,6 +99,10 @@ class Group private constructor(
 
     @Column(nullable = false)
     var likeCount: Int = likeCount
+        protected set
+
+    @OneToMany(mappedBy = "group", cascade = [CascadeType.REMOVE])
+    var meetingApplications: MutableList<MeetingApplication> = mutableListOf()
         protected set
 
     //==================== 연관관계 함수 ====================//
