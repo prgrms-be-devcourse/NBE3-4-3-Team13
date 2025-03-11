@@ -6,6 +6,8 @@ import static org.mockito.Mockito.*;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -139,22 +141,21 @@ class MessageServiceTest {
 
 	@Test
 	@DisplayName("[성공] 메세지 저장")
-	void saveMessage_Success() {
+	void saveMessage_Success() throws ExecutionException, InterruptedException {
 		// given
-		MessageRequest request = new MessageRequest(2L, 1L, "user", "테스트 메세지");
+		MessageRequest request = new MessageRequest(null, 2L, 1L, "user", "테스트 메세지");
 		MessageUtil messageUtil = new MessageUtil();
 		Message message = messageUtil.createMessage(2L, 1L, "user", "테스트 메세지", LocalDateTime.now());
 
 		when(messageRepository.save(any(Message.class))).thenReturn(message);
 
 		// when
-		MessageResponse response = messageService.saveMessage(request);
+		CompletableFuture<Void> future = messageService.saveMessageAsync(request);
 
 		// then
-		assertThat(response).isNotNull();
-		assertThat(response.getContent()).isEqualTo("테스트 메세지");
-		assertThat(response.getSenderNickname()).isEqualTo("user");
+		future.get(); // 비동기 작업이 완료될 때까지 기다림
 
+		// verify
 		verify(messageRepository, times(1)).save(any(Message.class));
 	}
 }
