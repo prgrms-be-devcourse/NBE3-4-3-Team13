@@ -12,7 +12,7 @@ class ChatMessageConsumer(
 ) {
 	private val log = KotlinLogging.logger {}
 
-	@RabbitListener(queues = ["\${rabbitmq.queue.name}"])
+	@RabbitListener(queues = ["\${rabbitmq.queue.name}"], containerFactory = "rabbitListenerContainerFactory")
 	fun onMessage(messageResponse: MessageResponse) { // Queue에서 message를 구독
 		try {
 			log.info { "Received message: $messageResponse" }

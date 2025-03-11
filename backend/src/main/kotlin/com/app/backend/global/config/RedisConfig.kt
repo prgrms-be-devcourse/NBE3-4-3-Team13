@@ -14,6 +14,7 @@ import org.redisson.config.Config
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.connection.RedisPassword
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
@@ -52,6 +53,16 @@ class RedisConfig(
                 )
             })
         }
+
+    @Bean
+    fun sessionRedisTemplate(redisConnectionFactory: RedisConnectionFactory): RedisTemplate<String, String> {
+        return RedisTemplate<String, String>().apply {
+            connectionFactory = redisConnectionFactory
+            keySerializer = StringRedisSerializer()
+            hashKeySerializer = StringRedisSerializer() // 해시 키를 문자열로 저장
+            hashValueSerializer = StringRedisSerializer() // 해시 값을 문자열로 저장
+        }
+    }
 
     @Bean
     fun redissonClient(): RedissonClient {
