@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, use } from 'react';
 import { useParams } from 'next/navigation';
-import { Users, Upload } from 'lucide-react';
+import { Users, Upload, Download } from 'lucide-react';
 import axios from 'axios';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -293,7 +293,8 @@ export default function ChatRoom() {
                     method: 'PUT',
                     body: file, // 파일을 PUT 요청으로 전송
                     headers: {
-                        'Content-Type': file.type // 파일의 MIME 타입 설정
+                        'Content-Type': file.type, // 파일의 MIME 타입 설정
+                        'Content-Disposition': 'attachment' // 다운로드로 강제하기 위해 설정
                     }
                 });
 
@@ -409,7 +410,6 @@ export default function ChatRoom() {
                 onDrop={handleDrop} 
                 onDragOver={handleDragOver} 
                 onDragLeave={handleDragLeave} // 드래그가 취소되었을 때 호출
-                // className="absolute inset-0 border-dashed border-2 border-gray-400 p-4 flex items-center justify-center"
                 className="absolute inset-0 p-4 flex items-center justify-center"
                 style={{ zIndex: 0, pointerEvents: 'none' }} // 클릭 이벤트 무시하고 채팅 화면 뒤로 보내기
             >
@@ -455,13 +455,21 @@ export default function ChatRoom() {
                                             // 파일 메시지 내용 (이미지)
                                             <div className="flex flex-wrap">
                                                 {message.fileUrls.map((url, index) => (
-                                                    <div key={index} className="m-1 flex items-center">
+                                                    <div key={index} className="m-1 flex items-center relative">
                                                         <img 
                                                             src={url} 
                                                             alt={`Uploaded file ${index}`} 
                                                             style={{ width: '150px', height: '150px', objectFit: 'cover', cursor: 'pointer' }} 
                                                             onClick={() => window.open(url)} // 클릭 시 이미지 확대
                                                         />
+                                                        <a href={url} download>
+                                                            <button 
+                                                                className="absolute bottom-0 right-1 bg-gray-500 text-black px-2 py-1 rounded-lg flex items-center" // right-2로 오른쪽에서 띄움
+                                                                title="Download"
+                                                            >
+                                                                <Download className="w-4 h-4" />
+                                                            </button>
+                                                        </a>
                                                     </div>
                                                 ))}
                                             </div>
@@ -575,6 +583,29 @@ export default function ChatRoom() {
                     </button>
                 </div>
             </div>
+
+            {/* 다운로드 아이콘 추가 */}
+            {/* {selectedFiles.length > 0 && (
+                <div className="absolute bottom-4 left-4">
+                    <button 
+                        className="bg-gray-300 text-black px-4 py-2 rounded-lg"
+                        onClick={() => {
+                            // 다운로드 로직 추가
+                            selectedFiles.forEach(file => {
+                                const url = URL.createObjectURL(file);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = file.name;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                            });
+                        }}
+                    >
+                        모든 파일 다운로드
+                    </button>
+                </div>
+            )} */}
         </div>
     );
 }
