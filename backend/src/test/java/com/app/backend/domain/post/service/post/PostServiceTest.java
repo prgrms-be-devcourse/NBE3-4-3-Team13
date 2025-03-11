@@ -1007,7 +1007,7 @@ public class PostServiceTest {
         Member savedMember = memberRepository.save(Member.create("test","test","test","ROLE_USER",false, null,null));
 
         // Then
-        assertThatThrownBy(() -> postService.getPost(1L, 2L))
+        assertThatThrownBy(() -> postService.checkMembership(1L, 2L))
                 .isInstanceOf(PostException.class)
                 .hasFieldOrPropertyWithValue("domainErrorCode", PostErrorCode.POST_UNAUTHORIZATION)
                 .hasMessage(PostErrorCode.POST_UNAUTHORIZATION.getMessage());
@@ -1035,7 +1035,7 @@ public class PostServiceTest {
         Member savedMember = memberRepository.save(Member.create("test","test","test","ROLE_USER",false, null,null));
 
         // Then
-        assertThatThrownBy(() -> postService.getPost(1L, 2L))
+        assertThatThrownBy(() -> postService.checkMembership(1L, 2L))
                 .isInstanceOf(PostException.class)
                 .hasFieldOrPropertyWithValue("domainErrorCode", PostErrorCode.POST_UNAUTHORIZATION)
                 .hasMessage(PostErrorCode.POST_UNAUTHORIZATION.getMessage());
@@ -1063,7 +1063,7 @@ public class PostServiceTest {
         Member savedMember = memberRepository.save(Member.create("test","test","test","ROLE_USER",false, null,null));
 
         // Then
-        assertThatThrownBy(() -> postService.getPost(1L, 2L))
+        assertThatThrownBy(() -> postService.checkMembership(1L, 2L))
                 .isInstanceOf(PostException.class)
                 .hasFieldOrPropertyWithValue("domainErrorCode", PostErrorCode.POST_UNAUTHORIZATION)
                 .hasMessage(PostErrorCode.POST_UNAUTHORIZATION.getMessage());
