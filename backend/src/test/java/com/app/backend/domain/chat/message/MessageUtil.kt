@@ -1,6 +1,7 @@
 package com.app.backend.domain.chat.message
 
 import com.app.backend.domain.chat.message.entity.Message
+import java.awt.SystemColor.text
 import java.time.LocalDateTime
 import java.util.*
 
@@ -19,6 +20,7 @@ open class MessageUtil {
             senderNickname = senderNickname,
             content = content,
             createdAt = createdAt,
+            type = "text",
             disabled = false
         )
     }

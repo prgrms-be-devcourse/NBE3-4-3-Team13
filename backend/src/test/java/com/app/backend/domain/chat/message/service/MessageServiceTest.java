@@ -1,6 +1,7 @@
 package com.app.backend.domain.chat.message.service;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.hibernate.internal.util.collections.CollectionHelper.*;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
@@ -143,7 +144,7 @@ class MessageServiceTest {
 	@DisplayName("[성공] 메세지 저장")
 	void saveMessage_Success() throws ExecutionException, InterruptedException {
 		// given
-		MessageRequest request = new MessageRequest(null, 2L, 1L, "user", "테스트 메세지");
+		MessageRequest request = new MessageRequest(null, 2L, 1L, "user", "테스트 메세지", listOf(), "text");
 		MessageUtil messageUtil = new MessageUtil();
 		Message message = messageUtil.createMessage(2L, 1L, "user", "테스트 메세지", LocalDateTime.now());
 
