@@ -40,9 +40,3 @@ spring:
 #  level:
 #    org.hibernate.sql: debug
 #    org.hibernate.type: trace
-
-#Redis instance for Redisson
-redisson:
-  host: localhost
-  port: 6380
-  password:
