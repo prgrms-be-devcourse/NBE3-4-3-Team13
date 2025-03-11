@@ -8,9 +8,11 @@ data class MessageRequest(
 	val chatRoomId: Long,
 	val senderId: Long,
 	val senderNickname: String,
-	val content: String
+	val content: String,
+	val fileUrls: MutableList<String> = mutableListOf(),
+	val type: String
 ) {
-	constructor() : this(null,0L, 0L, "", "")
+	constructor() : this(null,0L, 0L, "", "", mutableListOf(), "")
 
 	fun toEntity(): Message {
 		return Message(
@@ -19,6 +21,8 @@ data class MessageRequest(
 			senderId = senderId,
 			senderNickname = senderNickname,
 			content = content,
+			fileUrls = fileUrls,
+			type = type,
 			disabled = false,
 			createdAt = LocalDateTime.now()
 		)

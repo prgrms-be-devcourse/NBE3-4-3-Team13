@@ -10,6 +10,8 @@ data class MessageResponse(
 	val senderId: Long,
 	val senderNickname: String,
 	val content: String,
+	val fileUrls: List<String>,
+	val type: String,
 	val createdAt: String
 ) {
 	companion object {
@@ -20,6 +22,8 @@ data class MessageResponse(
 				senderId = message.senderId,
 				senderNickname = message.senderNickname,
 				content = message.content,
+				fileUrls = message.fileUrls,
+				type = message.type,
 				createdAt = message.createdAt.toString()
 			)
 		}
@@ -31,6 +35,8 @@ data class MessageResponse(
 				senderId = messageRequest.senderId,
 				senderNickname = messageRequest.senderNickname,
 				content = messageRequest.content,
+				fileUrls = messageRequest.fileUrls,
+				type = messageRequest.type,
 				createdAt = LocalDateTime.now().toString()
 			)
 		}
