@@ -84,6 +84,8 @@ dependencies {
 
     // RabbitMQ
     implementation("org.springframework.boot:spring-boot-starter-amqp")
+    // Google Cloud Storage
+    implementation ("com.google.cloud:google-cloud-storage:2.47.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
