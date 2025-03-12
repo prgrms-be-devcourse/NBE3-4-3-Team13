@@ -55,6 +55,12 @@ jobs:
           echo "$GCP_CREDENTIALS" > linkus-453401.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=linkus-453401.json" >> $GITHUB_ENV
 
+      - name: Check GCS credentials and path
+        run: |
+          echo "${GOOGLE_APPLICATION_CREDENTIALS}"
+          ls
+          cat linkus-453401.json
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
