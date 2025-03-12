@@ -51,11 +51,13 @@ jobs:
 
     steps:
       - name: Set up GCP credentials
+        working-directory: ./backend
         run: |
           echo "$GCP_CREDENTIALS" > linkus-453401.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=linkus-453401.json" >> $GITHUB_ENV
 
       - name: Check GCS credentials and path
+        working-directory: ./backend
         run: |
           echo "${GOOGLE_APPLICATION_CREDENTIALS}"
           ls
