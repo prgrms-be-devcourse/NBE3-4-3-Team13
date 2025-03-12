@@ -50,19 +50,6 @@ jobs:
           RABBITMQ_DEFAULT_PASS: guest
 
     steps:
-      - name: Set up GCP credentials
-        working-directory: ./backend
-        run: |
-          echo "$GCP_CREDENTIALS" > linkus-453401.json
-          echo "GOOGLE_APPLICATION_CREDENTIALS=linkus-453401.json" >> $GITHUB_ENV
-
-      - name: Check GCS credentials and path
-        working-directory: ./backend
-        run: |
-          echo "${GOOGLE_APPLICATION_CREDENTIALS}"
-          ls
-          cat linkus-453401.json
-
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -75,6 +62,19 @@ jobs:
       - name: Grant execute permission for Gradle
         working-directory: ./backend
         run: chmod +x ./gradlew
+
+      - name: Set up GCP credentials
+        working-directory: ./backend
+        run: |
+          echo "$GCP_CREDENTIALS" > linkus-453401.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=linkus-453401.json" >> $GITHUB_ENV
+
+      - name: Check GCS credentials and path
+        working-directory: ./backend
+        run: |
+          echo "${GOOGLE_APPLICATION_CREDENTIALS}"
+          ls
+          cat linkus-453401.json
 
       - name: Set MongoDB URI
         run: echo "TEST_MONGO_DB_URI=${{ secrets.TEST_MONGO_DB_URI }}" >> $GITHUB_ENV
