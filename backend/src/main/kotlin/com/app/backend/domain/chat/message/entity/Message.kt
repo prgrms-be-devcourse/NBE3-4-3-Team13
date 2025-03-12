@@ -25,6 +25,12 @@ data class Message(
 	@Field("content")
 	val content: String,
 
+	@Field("file_urls")
+	val fileUrls : List<String> = listOf(),
+
+	@Field("type")
+	val type: String,
+
 	@Field("disabled")
 	var disabled: Boolean = false,
 

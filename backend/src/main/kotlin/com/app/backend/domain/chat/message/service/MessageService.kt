@@ -22,7 +22,8 @@ class MessageService(private val messageRepository: MessageRepository) {
 
 	@Async
 	fun saveMessageAsync(messageRequest: MessageRequest): CompletableFuture<Void> {
-		messageRepository.save(messageRequest.toEntity())
-		return CompletableFuture.completedFuture(null)
+		return CompletableFuture.runAsync {
+			messageRepository.save(messageRequest.toEntity())
+		}
 	}
 }
