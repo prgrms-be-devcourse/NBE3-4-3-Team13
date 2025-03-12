@@ -50,11 +50,10 @@ jobs:
           RABBITMQ_DEFAULT_PASS: guest
 
     steps:
-      # - name: Enable RabbitMQ STOMP plugin
-      #   run: rabbitmq-plugins enable rabbitmq_stomp
-
-      - name: container name confirm
-        run: docker ps
+      - name: Set up GCP credentials
+        run: |
+          echo "$GCP_CREDENTIALS" > linkus-453401.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=linkus-453401.json" >> $GITHUB_ENV
 
       - name: Checkout repository
         uses: actions/checkout@v3
