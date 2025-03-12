@@ -66,15 +66,20 @@ jobs:
       - name: Set up GCP credentials
         working-directory: ./backend
         run: |
-          echo "$GCP_CREDENTIALS" > linkus-453401.json
+          echo "${{ secrets.GCP_CREDENTIALS }}" > linkus-453401.json
           echo "GOOGLE_APPLICATION_CREDENTIALS=linkus-453401.json" >> $GITHUB_ENV
 
-      - name: Check GCS credentials and path
+      - name: Check GCP credentials and path
         working-directory: ./backend
         run: |
-          echo "${GOOGLE_APPLICATION_CREDENTIALS}"
+          # 파일이 정상적으로 생성되었는지 확인
+          ls -l linkus-453401.json
+          # GOOGLE_APPLICATION_CREDENTIALS 환경 변수 확인
+          echo GOOGLE_APPLICATION_CREDENTIALS
+          # 경로 확인
+          pwd
+          # 파일 화인
           ls
-          cat linkus-453401.json
 
       - name: Set MongoDB URI
         run: echo "TEST_MONGO_DB_URI=${{ secrets.TEST_MONGO_DB_URI }}" >> $GITHUB_ENV
